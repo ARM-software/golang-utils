@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>environment</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/environment<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package environment</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/environment&#34;</span></pre>
+<ul>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<p>Package environment defines object describing the current environment.
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-variables">Variables</a></li><li><a href="#SortEnvironmentVariables">func SortEnvironmentVariables(envvars []IEnvironmentVariable)</a></li>
+  <li><a href="#ValidateEnvironmentVariables">func ValidateEnvironmentVariables(vars ...IEnvironmentVariable) error</a></li>
+  <li>
+      <a href="#EnvVar">type EnvVar</a>
+      <ul>
+          <li><a href="#EnvVar.Equal">func (e *EnvVar) Equal(v IEnvironmentVariable) bool</a></li>
+          <li><a href="#EnvVar.GetKey">func (e *EnvVar) GetKey() string</a></li>
+          <li><a href="#EnvVar.GetValue">func (e *EnvVar) GetValue() string</a></li>
+          <li><a href="#EnvVar.MarshalText">func (e *EnvVar) MarshalText() (text []byte, err error)</a></li>
+          <li><a href="#EnvVar.String">func (e *EnvVar) String() string</a></li>
+          <li><a href="#EnvVar.UnmarshalText">func (e *EnvVar) UnmarshalText(text []byte) error</a></li>
+          <li><a href="#EnvVar.Validate">func (e *EnvVar) Validate() (err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IEnvironment">type IEnvironment</a>
+      <ul>
+          <li><a href="#NewCurrentEnvironment">func NewCurrentEnvironment() IEnvironment</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IEnvironmentVariable">type IEnvironmentVariable</a>
+      <ul>
+          <li><a href="#CloneEnvironmentVariable">func CloneEnvironmentVariable(envVar IEnvironmentVariable) IEnvironmentVariable</a></li>
+          <li><a href="#ExpandEnvironmentVariable">func ExpandEnvironmentVariable(recursive bool, envVarToExpand IEnvironmentVariable, ...) (expandedEnvVar IEnvironmentVariable)</a></li>
+          <li><a href="#ExpandEnvironmentVariables">func ExpandEnvironmentVariables(recursive bool, envvars ...IEnvironmentVariable) (expandedEnvVars []IEnvironmentVariable)</a></li>
+          <li><a href="#FindEnvironmentVariable">func FindEnvironmentVariable(envvar string, envvars ...IEnvironmentVariable) (IEnvironmentVariable, error)</a></li>
+          <li><a href="#FindEnvironmentVariableInEnvironment">func FindEnvironmentVariableInEnvironment(env IEnvironment, dotEnvFiles []string, envvars ...string) (variables []IEnvironmentVariable, err error)</a></li>
+          <li><a href="#FindEnvironmentVariables">func FindEnvironmentVariables(environment []IEnvironmentVariable, envvarToSearchFor ...string) ([]IEnvironmentVariable, error)</a></li>
+          <li><a href="#FindFoldEnvironmentVariable">func FindFoldEnvironmentVariable(envvar string, envvars ...IEnvironmentVariable) (IEnvironmentVariable, error)</a></li>
+          <li><a href="#FindFoldEnvironmentVariables">func FindFoldEnvironmentVariables(environment []IEnvironmentVariable, envvarToSearchFor ...string) ([]IEnvironmentVariable, error)</a></li>
+          <li><a href="#MergeEnvironmentVariableSets">func MergeEnvironmentVariableSets(caseSensitive bool, envvarSet1 []IEnvironmentVariable, ...) (mergedEnvVars []IEnvironmentVariable)</a></li>
+          <li><a href="#NewEnvironmentVariable">func NewEnvironmentVariable(key, value string) IEnvironmentVariable</a></li>
+          <li><a href="#NewEnvironmentVariableWithValidation">func NewEnvironmentVariableWithValidation(key, value string, rules ...validation.Rule) IEnvironmentVariable</a></li>
+          <li><a href="#ParseEnvironmentVariable">func ParseEnvironmentVariable(variable string) (IEnvironmentVariable, error)</a></li>
+          <li><a href="#ParseEnvironmentVariables">func ParseEnvironmentVariables(variables ...string) (envVars []IEnvironmentVariable)</a></li>
+          <li><a href="#UniqueEnvironmentVariables">func UniqueEnvironmentVariables(caseSensitive bool, envvars ...IEnvironmentVariable) (uniqueEnvVars []IEnvironmentVariable)</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// IsEnvironmentVariableKey defines a validation rule for environment variable keys ([IEEE Std 1003.1-2008 / IEEE POSIX P1003.2/ISO 9945.2](http://www.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_10_02)) for use with github.com/go-ozzo/ozzo-validation</span><span class="w">
+</span><span class="w">	</span><span class="c1">// TODO use the built-in implementation in `is` package when https://github.com/go-ozzo/ozzo-validation/issues/186 is looked at.</span><span class="w">
+</span><span class="w">	</span><span id="IsEnvironmentVariableKey"><span class="nx">IsEnvironmentVariableKey</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1"><span class="nx">validation</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1#NewStringRuleWithError"><span class="nf">NewStringRuleWithError</span></a><span class="p">(</span><span class="nx">isEnvVarKey</span><span class="p">,</span><span class="w"> </span><span class="nx">errEnvvarInvalid</span><span class="p">)</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="SortEnvironmentVariables">func SortEnvironmentVariables</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SortEnvironmentVariables</span><span class="p">(</span><span class="nx">envvars</span><span class="w"> </span><span class="p">[]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span></pre>
+  <p>SortEnvironmentVariables sorts a list of environment variable alphabetically no matter the case.
+<h4 id="ValidateEnvironmentVariables">func ValidateEnvironmentVariables</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateEnvironmentVariables</span><span class="p">(</span><span class="nx">vars</span><span class="w"> </span><span class="o">...</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateEnvironmentVariables validates that environment variables are correctly defined in regard to their schema.
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="EnvVar">type EnvVar</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">EnvVar</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="EnvVar.Equal">func (*EnvVar) Equal</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="w"> </span><span class="o">*</span><a href="#EnvVar"><span class="nx">EnvVar</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Equal</span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h5 id="EnvVar.GetKey">func (*EnvVar) GetKey</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="w"> </span><span class="o">*</span><a href="#EnvVar"><span class="nx">EnvVar</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetKey</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h5 id="EnvVar.GetValue">func (*EnvVar) GetValue</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="w"> </span><span class="o">*</span><a href="#EnvVar"><span class="nx">EnvVar</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetValue</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h5 id="EnvVar.MarshalText">func (*EnvVar) MarshalText</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="w"> </span><span class="o">*</span><a href="#EnvVar"><span class="nx">EnvVar</span></a><span class="p">)</span><span class="w"> </span><span class="nf">MarshalText</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">text</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="EnvVar.String">func (*EnvVar) String</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="w"> </span><span class="o">*</span><a href="#EnvVar"><span class="nx">EnvVar</span></a><span class="p">)</span><span class="w"> </span><span class="nf">String</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h5 id="EnvVar.UnmarshalText">func (*EnvVar) UnmarshalText</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="w"> </span><span class="o">*</span><a href="#EnvVar"><span class="nx">EnvVar</span></a><span class="p">)</span><span class="w"> </span><span class="nf">UnmarshalText</span><span class="p">(</span><span class="nx">text</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="EnvVar.Validate">func (*EnvVar) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="w"> </span><span class="o">*</span><a href="#EnvVar"><span class="nx">EnvVar</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="IEnvironment">type IEnvironment</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IEnvironment</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// GetCurrentUser returns the environment current user.</span><span class="w">
+</span><span class="w">	</span><span id="IEnvironment.GetCurrentUser"><span class="nf">GetCurrentUser</span></span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/os/user"><span class="nx">user</span></a><span class="p">.</span><a href="https://pkg.go.dev/os/user#User"><span class="nx">User</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetEnvironmentVariables returns the variables defining the environment  (and optionally those supplied in `dotEnvFiles`)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// `dotEnvFiles` corresponds to `.env` files present on the machine and follows the mechanism described by https://github.com/bkeepers/dotenv</span><span class="w">
+</span><span class="w">	</span><span id="IEnvironment.GetEnvironmentVariables"><span class="nf">GetEnvironmentVariables</span></span><span class="p">(</span><span class="nx">dotEnvFiles</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">[]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetExpandedEnvironmentVariables  is similar to GetEnvironmentVariables but returns variables with fully expanded values.</span><span class="w">
+</span><span class="w">	</span><span class="c1">// e.g. on Linux, if variable1=${variable2}, then the reported value of variable1 will be the value of variable2</span><span class="w">
+</span><span class="w">	</span><span id="IEnvironment.GetExpandedEnvironmentVariables"><span class="nf">GetExpandedEnvironmentVariables</span></span><span class="p">(</span><span class="nx">dotEnvFiles</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">[]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetFilesystem returns the filesystem associated with the current environment</span><span class="w">
+</span><span class="w">	</span><span id="IEnvironment.GetFilesystem"><span class="nf">GetFilesystem</span></span><span class="p">()</span><span class="w"> </span><a href="../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../filesystem#FS"><span class="nx">FS</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetEnvironmentVariable returns the environment variable corresponding to `envvar` or an error if it not set. optionally it searches `dotEnvFiles` files too</span><span class="w">
+</span><span class="w">	</span><span class="c1">// `dotEnvFiles` corresponds to `.env` files present on the machine and follows the mechanism described by https://github.com/bkeepers/dotenv</span><span class="w">
+</span><span class="w">	</span><span id="IEnvironment.GetEnvironmentVariable"><span class="nf">GetEnvironmentVariable</span></span><span class="p">(</span><span class="nx">envvar</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">dotEnvFiles</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// GetExpandedEnvironmentVariable is similar to GetEnvironmentVariable but returns variables with fully expanded values.</span><span class="w">
+</span><span class="w">	</span><span class="c1">//	// e.g. on Linux, if variable1=${variable2}, then the reported value of variable1 will be the value of variable2</span><span class="w">
+</span><span class="w">	</span><span id="IEnvironment.GetExpandedEnvironmentVariable"><span class="nf">GetExpandedEnvironmentVariable</span></span><span class="p">(</span><span class="nx">envvar</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">dotEnvFiles</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IEnvironment defines an environment for an application to run on.
+<h5 id="NewCurrentEnvironment">func NewCurrentEnvironment</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewCurrentEnvironment</span><span class="p">()</span><span class="w"> </span><a href="#IEnvironment"><span class="nx">IEnvironment</span></a></pre>
+  <p>NewCurrentEnvironment returns system current environment.
+<h4 id="IEnvironmentVariable">type IEnvironmentVariable</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IEnvironmentVariable</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/encoding"><span class="nx">encoding</span></a><span class="p">.</span><a href="https://pkg.go.dev/encoding#TextMarshaler"><span class="nx">TextMarshaler</span></a><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/encoding"><span class="nx">encoding</span></a><span class="p">.</span><a href="https://pkg.go.dev/encoding#TextUnmarshaler"><span class="nx">TextUnmarshaler</span></a><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/fmt"><span class="nx">fmt</span></a><span class="p">.</span><a href="https://pkg.go.dev/fmt#Stringer"><span class="nx">Stringer</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetKey returns the variable key.</span><span class="w">
+</span><span class="w">	</span><span id="IEnvironmentVariable.GetKey"><span class="nf">GetKey</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetValue returns the variable value.</span><span class="w">
+</span><span class="w">	</span><span id="IEnvironmentVariable.GetValue"><span class="nf">GetValue</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Validate checks whether the variable value is correctly defined</span><span class="w">
+</span><span class="w">	</span><span id="IEnvironmentVariable.Validate"><span class="nf">Validate</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Equal states whether two environment variables are equal or not.</span><span class="w">
+</span><span class="w">	</span><span id="IEnvironmentVariable.Equal"><span class="nf">Equal</span></span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IEnvironmentVariable defines an environment variable to be set for the commands to run.
+<h5 id="CloneEnvironmentVariable">func CloneEnvironmentVariable</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CloneEnvironmentVariable</span><span class="p">(</span><span class="nx">envVar</span><span class="w"> </span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span><span class="w"> </span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a></pre>
+  <p>CloneEnvironmentVariable returns a clone of the environment variable.
+<h5 id="ExpandEnvironmentVariable">func ExpandEnvironmentVariable</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ExpandEnvironmentVariable</span><span class="p">(</span><span class="nx">recursive</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envVarToExpand</span><span class="w"> </span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envvars</span><span class="w"> </span><span class="o">...</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">expandedEnvVar</span><span class="w"> </span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span></pre>
+  <p>ExpandEnvironmentVariable returns a clone of envVarToExpand but with an expanded value based on environment variables defined in envvars list.
+Expansion assumes that all the variables are present in the envvars list.
+If recursive is set to true, then expansion is performed recursively over the variable list.
+<h5 id="ExpandEnvironmentVariables">func ExpandEnvironmentVariables</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ExpandEnvironmentVariables</span><span class="p">(</span><span class="nx">recursive</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envvars</span><span class="w"> </span><span class="o">...</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">expandedEnvVars</span><span class="w"> </span><span class="p">[]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span></pre>
+  <p>ExpandEnvironmentVariables returns a list of environment variables with their value being expanded.
+Expansion assumes that all the variables are present in the envvars list.
+If recursive is set to true, then expansion is performed recursively over the variable list.
+<h5 id="FindEnvironmentVariable">func FindEnvironmentVariable</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FindEnvironmentVariable</span><span class="p">(</span><span class="nx">envvar</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envvars</span><span class="w"> </span><span class="o">...</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>FindEnvironmentVariable looks for an environment variable in a list. if no environment variable matches, an error is returned
+<h5 id="FindEnvironmentVariableInEnvironment">func FindEnvironmentVariableInEnvironment</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FindEnvironmentVariableInEnvironment</span><span class="p">(</span><span class="nx">env</span><span class="w"> </span><a href="#IEnvironment"><span class="nx">IEnvironment</span></a><span class="p">,</span><span class="w"> </span><span class="nx">dotEnvFiles</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envvars</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">variables</span><span class="w"> </span><span class="p">[]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>FindEnvironmentVariableInEnvironment returns a list of environment variables set in the environment env (and optionally those in the supplied in `dotEnvFiles`)
+`dotEnvFiles` corresponds to `.env` files present on the machine and follows the mechanism described by <a href="https://github.com/bkeepers/dotenv">https://github.com/bkeepers/dotenv</a>
+If no environment variable is found in env, an error is returned.
+<h5 id="FindEnvironmentVariables">func FindEnvironmentVariables</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FindEnvironmentVariables</span><span class="p">(</span><span class="nx">environment</span><span class="w"> </span><span class="p">[]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envvarToSearchFor</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>FindEnvironmentVariables looks for environment variables in a list. if no environment variable matches, an error is returned
+<h5 id="FindFoldEnvironmentVariable">func FindFoldEnvironmentVariable</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FindFoldEnvironmentVariable</span><span class="p">(</span><span class="nx">envvar</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envvars</span><span class="w"> </span><span class="o">...</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>FindFoldEnvironmentVariable looks for an environment variable in a list similarly to FindEnvironmentVariable but without case-sensitivity.
+<h5 id="FindFoldEnvironmentVariables">func FindFoldEnvironmentVariables</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FindFoldEnvironmentVariables</span><span class="p">(</span><span class="nx">environment</span><span class="w"> </span><span class="p">[]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envvarToSearchFor</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>FindFoldEnvironmentVariables looks for environment variables in a list with no case-sensitivity. if no environment variable matches, an error is returned
+<h5 id="MergeEnvironmentVariableSets">func MergeEnvironmentVariableSets</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">MergeEnvironmentVariableSets</span><span class="p">(</span><span class="nx">caseSensitive</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envvarSet1</span><span class="w"> </span><span class="p">[]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envvarSet2</span><span class="w"> </span><span class="o">...</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">mergedEnvVars</span><span class="w"> </span><span class="p">[]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span></pre>
+  <p>MergeEnvironmentVariableSets merges two sets of environment variables.
+If both sets have a same environment variable, its value in set 1 will take precedence.
+caseSensitive states whether two similar keys with different case should be considered as different
+<h5 id="NewEnvironmentVariable">func NewEnvironmentVariable</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewEnvironmentVariable</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a></pre>
+  <p>NewEnvironmentVariable returns an environment variable defined by a key and a value.
+<h5 id="NewEnvironmentVariableWithValidation">func NewEnvironmentVariableWithValidation</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewEnvironmentVariableWithValidation</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">rules</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1"><span class="nx">validation</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1#Rule"><span class="nx">Rule</span></a><span class="p">)</span><span class="w"> </span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a></pre>
+  <p>NewEnvironmentVariableWithValidation returns an environment variable defined by a key and a value but with the possibility to define value validation rules.
+<h5 id="ParseEnvironmentVariable">func ParseEnvironmentVariable</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ParseEnvironmentVariable</span><span class="p">(</span><span class="nx">variable</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>ParseEnvironmentVariable parses an environment variable definition, in the form &quot;key=value&quot;.
+<h5 id="ParseEnvironmentVariables">func ParseEnvironmentVariables</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ParseEnvironmentVariables</span><span class="p">(</span><span class="nx">variables</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">envVars</span><span class="w"> </span><span class="p">[]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span></pre>
+  <p>ParseEnvironmentVariables parses a list of key=value entries such as os.Environ() and returns a list of the corresponding environment variables.
+Any entry failing parsing will be ignored.
+<h5 id="UniqueEnvironmentVariables">func UniqueEnvironmentVariables</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">UniqueEnvironmentVariables</span><span class="p">(</span><span class="nx">caseSensitive</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envvars</span><span class="w"> </span><span class="o">...</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">uniqueEnvVars</span><span class="w"> </span><span class="p">[]</span><a href="#IEnvironmentVariable"><span class="nx">IEnvironmentVariable</span></a><span class="p">)</span></pre>
+  <p>UniqueEnvironmentVariables returns a list of unique environment variables.
+caseSensitive states whether two same keys but with different case should be both considered unique.
+<h3 id="pkg-directories">Directories</h3>
+
+<table>
+  <tbody>
+    <tr>
+        <td><a href="mocks">mocks</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    </tbody>
+</table>
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

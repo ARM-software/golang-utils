@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../../_/icons/favicon.ico"><title>annotations</title>
+</head>
+  <body>
+    <nav><a href="../../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../../..">github.com</a>/<a href="../../../..">ARM-software</a>/<a href="../../..">golang-utils</a>/<a href="../..">utils</a>/<a href="..">logs</a>/annotations<span class="navbar-right">
+          <a href="../../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package annotations</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/logs/annotations&#34;</span></pre>
+<ul>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<p>Package annotations provides loggers for emitting structured build and CI
+annotations such as errors, warnings, and notices.
+<p>Unlike ordinary log lines, annotations are intended for systems that can
+highlight issues in a richer way, for example by attaching messages to files
+and line numbers or surfacing build problems prominently in the UI.
+<p>The package provides a generic annotation model plus platform-specific
+formatters for common CI systems. Annotation loggers are built on top of the
+repository&apos;s [logs.Loggers] abstraction so they can reuse existing logging
+sinks.
+<p>References:
+<ul>
+<li><p>GitHub Actions workflow commands:
+<a href="https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands">https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands</a>
+<li><p>Azure DevOps logging commands:
+<a href="https://learn.microsoft.com/en-us/azure/devops/pipelines/scripts/logging-commands">https://learn.microsoft.com/en-us/azure/devops/pipelines/scripts/logging-commands</a>
+<li><p>TeamCity service messages:
+<a href="https://www.jetbrains.com/help/teamcity/service-messages.html">https://www.jetbrains.com/help/teamcity/service-messages.html</a>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#SeverityStrings">func SeverityStrings() []string</a></li>
+  <li>
+      <a href="#Annotation">type Annotation</a>
+      </li>
+  <li>
+      <a href="#AnnotationLogger">type AnnotationLogger</a>
+      <ul>
+          <li><a href="#NewAzureDevOpsLogger">func NewAzureDevOpsLogger(baseLogger baselogs.Loggers) (*AnnotationLogger, error)</a></li>
+          <li><a href="#NewGitHubLogger">func NewGitHubLogger(baseLogger baselogs.Loggers) (*AnnotationLogger, error)</a></li>
+          <li><a href="#NewLogger">func NewLogger(baseLogger baselogs.Loggers, formatter IFormatter) (*AnnotationLogger, error)</a></li>
+          <li><a href="#NewTeamCityLogger">func NewTeamCityLogger(baseLogger baselogs.Loggers) (*AnnotationLogger, error)</a></li>
+          <li><a href="#AnnotationLogger.Check">func (l *AnnotationLogger) Check() error</a></li>
+          <li><a href="#AnnotationLogger.WriteAnnotation">func (l *AnnotationLogger) WriteAnnotation(annotation *Annotation) error</a></li>
+          <li><a href="#AnnotationLogger.WriteError">func (l *AnnotationLogger) WriteError(message string, options ...AnnotationOption) error</a></li>
+          <li><a href="#AnnotationLogger.WriteNotice">func (l *AnnotationLogger) WriteNotice(message string, options ...AnnotationOption) error</a></li>
+          <li><a href="#AnnotationLogger.WriteWarning">func (l *AnnotationLogger) WriteWarning(message string, options ...AnnotationOption) error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#AnnotationOption">type AnnotationOption</a>
+      <ul>
+          <li><a href="#WithColumn">func WithColumn(column int) AnnotationOption</a></li>
+          <li><a href="#WithFile">func WithFile(path string) AnnotationOption</a></li>
+          <li><a href="#WithLine">func WithLine(line int) AnnotationOption</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#AzureDevOpsFormatter">type AzureDevOpsFormatter</a>
+      <ul>
+          <li><a href="#AzureDevOpsFormatter.Format">func (AzureDevOpsFormatter) Format(annotation *Annotation) string</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#GitHubFormatter">type GitHubFormatter</a>
+      <ul>
+          <li><a href="#GitHubFormatter.Format">func (GitHubFormatter) Format(annotation *Annotation) string</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IAnnotationLogger">type IAnnotationLogger</a>
+      </li>
+  <li>
+      <a href="#IFormatter">type IFormatter</a>
+      </li>
+  <li>
+      <a href="#Severity">type Severity</a>
+      <ul>
+          <li><a href="#SeverityString">func SeverityString(s string) (Severity, error)</a></li>
+          <li><a href="#SeverityValues">func SeverityValues() []Severity</a></li>
+          <li><a href="#Severity.IsASeverity">func (i Severity) IsASeverity() bool</a></li>
+          <li><a href="#Severity.MarshalJSON">func (i Severity) MarshalJSON() ([]byte, error)</a></li>
+          <li><a href="#Severity.MarshalText">func (i Severity) MarshalText() ([]byte, error)</a></li>
+          <li><a href="#Severity.MarshalYAML">func (i Severity) MarshalYAML() (interface{}, error)</a></li>
+          <li><a href="#Severity.String">func (i Severity) String() string</a></li>
+          <li><a href="#Severity.UnmarshalJSON">func (i *Severity) UnmarshalJSON(data []byte) error</a></li>
+          <li><a href="#Severity.UnmarshalText">func (i *Severity) UnmarshalText(text []byte) error</a></li>
+          <li><a href="#Severity.UnmarshalYAML">func (i *Severity) UnmarshalYAML(unmarshal func(interface{}) error) error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#TeamCityFormatter">type TeamCityFormatter</a>
+      <ul>
+          <li><a href="#TeamCityFormatter.Format">func (TeamCityFormatter) Format(annotation *Annotation) string</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="SeverityStrings">func SeverityStrings</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SeverityStrings</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>SeverityStrings returns a slice of all String values of the enum
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="Annotation">type Annotation</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Annotation</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Severity identifies whether the annotation is an error, warning, or notice.</span><span class="w">
+</span><span class="w">	</span><span id="Annotation.Severity"><span class="nx">Severity</span></span><span class="w"> </span><a href="#Severity"><span class="nx">Severity</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Message is the human-readable annotation text.</span><span class="w">
+</span><span class="w">	</span><span id="Annotation.Message"><span class="nx">Message</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// File is the file path associated with the annotation, if any.</span><span class="w">
+</span><span class="w">	</span><span id="Annotation.File"><span class="nx">File</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Line is the 1-based line number associated with the annotation, if any.</span><span class="w">
+</span><span class="w">	</span><span id="Annotation.Line"><span class="nx">Line</span></span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Column is the 1-based column number associated with the annotation, if any.</span><span class="w">
+</span><span class="w">	</span><span id="Annotation.Column"><span class="nx">Column</span></span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Annotation describes a structured annotation message.
+<h4 id="AnnotationLogger">type AnnotationLogger</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">AnnotationLogger</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href=".."><span class="nx">baselogs</span></a><span class="p">.</span><a href="..#Loggers"><span class="nx">Loggers</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>AnnotationLogger formats annotations and emits them through an underlying
+logger.
+<p>Annotations are for human usage rather than machine usage like other logs.
+Prefer structured logging over annotations if expecting the result to be parsed by machines only
+<p>The logger delegates final emission to an existing [logs.Loggers]
+implementation and is therefore suitable for any sink already supported by
+the logs package that provides access to the underlying writers.
+<h5 id="NewAzureDevOpsLogger">func NewAzureDevOpsLogger</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewAzureDevOpsLogger</span><span class="p">(</span><span class="nx">baseLogger</span><span class="w"> </span><a href=".."><span class="nx">baselogs</span></a><span class="p">.</span><a href="..#Loggers"><span class="nx">Loggers</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="#AnnotationLogger"><span class="nx">AnnotationLogger</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewAzureDevOpsLogger creates an Azure DevOps-formatted annotation logger backed by baseLogger.
+<h5 id="NewGitHubLogger">func NewGitHubLogger</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewGitHubLogger</span><span class="p">(</span><span class="nx">baseLogger</span><span class="w"> </span><a href=".."><span class="nx">baselogs</span></a><span class="p">.</span><a href="..#Loggers"><span class="nx">Loggers</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="#AnnotationLogger"><span class="nx">AnnotationLogger</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewGitHubLogger creates a GitHub-formatted annotation logger backed by baseLogger.
+<h5 id="NewLogger">func NewLogger</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewLogger</span><span class="p">(</span><span class="nx">baseLogger</span><span class="w"> </span><a href=".."><span class="nx">baselogs</span></a><span class="p">.</span><a href="..#Loggers"><span class="nx">Loggers</span></a><span class="p">,</span><span class="w"> </span><span class="nx">formatter</span><span class="w"> </span><a href="#IFormatter"><span class="nx">IFormatter</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="#AnnotationLogger"><span class="nx">AnnotationLogger</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewLogger creates an annotation logger backed by baseLogger.
+<h5 id="NewTeamCityLogger">func NewTeamCityLogger</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewTeamCityLogger</span><span class="p">(</span><span class="nx">baseLogger</span><span class="w"> </span><a href=".."><span class="nx">baselogs</span></a><span class="p">.</span><a href="..#Loggers"><span class="nx">Loggers</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="#AnnotationLogger"><span class="nx">AnnotationLogger</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewTeamCityLogger creates a TeamCity-formatted annotation logger backed by baseLogger.
+<h5 id="AnnotationLogger.Check">func (*AnnotationLogger) Check</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#AnnotationLogger"><span class="nx">AnnotationLogger</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Check</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="AnnotationLogger.WriteAnnotation">func (*AnnotationLogger) WriteAnnotation</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#AnnotationLogger"><span class="nx">AnnotationLogger</span></a><span class="p">)</span><span class="w"> </span><span class="nf">WriteAnnotation</span><span class="p">(</span><span class="nx">annotation</span><span class="w"> </span><span class="o">*</span><a href="#Annotation"><span class="nx">Annotation</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>WriteAnnotation writes annotation using the configured formatter.
+<h5 id="AnnotationLogger.WriteError">func (*AnnotationLogger) WriteError</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#AnnotationLogger"><span class="nx">AnnotationLogger</span></a><span class="p">)</span><span class="w"> </span><span class="nf">WriteError</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#AnnotationOption"><span class="nx">AnnotationOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>WriteError writes an error-level annotation.
+<h5 id="AnnotationLogger.WriteNotice">func (*AnnotationLogger) WriteNotice</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#AnnotationLogger"><span class="nx">AnnotationLogger</span></a><span class="p">)</span><span class="w"> </span><span class="nf">WriteNotice</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#AnnotationOption"><span class="nx">AnnotationOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>WriteNotice writes a notice-level annotation.
+<h5 id="AnnotationLogger.WriteWarning">func (*AnnotationLogger) WriteWarning</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#AnnotationLogger"><span class="nx">AnnotationLogger</span></a><span class="p">)</span><span class="w"> </span><span class="nf">WriteWarning</span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#AnnotationOption"><span class="nx">AnnotationOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>WriteWarning writes a warning-level annotation.
+<h4 id="AnnotationOption">type AnnotationOption</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">AnnotationOption</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="o">*</span><a href="#Annotation"><span class="nx">Annotation</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Annotation"><span class="nx">Annotation</span></a></pre>
+    <p>AnnotationOption configures an annotation.
+<h5 id="WithColumn">func WithColumn</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithColumn</span><span class="p">(</span><span class="nx">column</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><a href="#AnnotationOption"><span class="nx">AnnotationOption</span></a></pre>
+  <p>WithColumn sets the column associated with an annotation.
+<h5 id="WithFile">func WithFile</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithFile</span><span class="p">(</span><span class="nx">path</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#AnnotationOption"><span class="nx">AnnotationOption</span></a></pre>
+  <p>WithFile sets the file path associated with an annotation.
+<h5 id="WithLine">func WithLine</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithLine</span><span class="p">(</span><span class="nx">line</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><a href="#AnnotationOption"><span class="nx">AnnotationOption</span></a></pre>
+  <p>WithLine sets the line associated with an annotation.
+<h4 id="AzureDevOpsFormatter">type AzureDevOpsFormatter</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">AzureDevOpsFormatter</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span></pre>
+    <p>AzureDevOpsFormatter formats annotations as Azure DevOps logging commands.
+<p>Reference:
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/devops/pipelines/scripts/logging-commands">https://learn.microsoft.com/en-us/azure/devops/pipelines/scripts/logging-commands</a>
+</ul>
+<h5 id="AzureDevOpsFormatter.Format">func (AzureDevOpsFormatter) Format</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><a href="#AzureDevOpsFormatter"><span class="nx">AzureDevOpsFormatter</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Format</span><span class="p">(</span><span class="nx">annotation</span><span class="w"> </span><span class="o">*</span><a href="#Annotation"><span class="nx">Annotation</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h4 id="GitHubFormatter">type GitHubFormatter</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">GitHubFormatter</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span></pre>
+    <p>GitHubFormatter formats annotations as GitHub Actions annotation commands.
+<p>Reference:
+<ul>
+<li><a href="https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands">https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands</a>
+</ul>
+<h5 id="GitHubFormatter.Format">func (GitHubFormatter) Format</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><a href="#GitHubFormatter"><span class="nx">GitHubFormatter</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Format</span><span class="p">(</span><span class="nx">annotation</span><span class="w"> </span><span class="o">*</span><a href="#Annotation"><span class="nx">Annotation</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h4 id="IAnnotationLogger">type IAnnotationLogger</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IAnnotationLogger</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href=".."><span class="nx">baselogs</span></a><span class="p">.</span><a href="..#Loggers"><span class="nx">Loggers</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// WriteAnnotation writes annotation using the configured formatter.</span><span class="w">
+</span><span class="w">	</span><span id="IAnnotationLogger.WriteAnnotation"><span class="nf">WriteAnnotation</span></span><span class="p">(</span><span class="nx">annotation</span><span class="w"> </span><span class="o">*</span><a href="#Annotation"><span class="nx">Annotation</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// WriteError writes an error-level annotation.</span><span class="w">
+</span><span class="w">	</span><span id="IAnnotationLogger.WriteError"><span class="nf">WriteError</span></span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#AnnotationOption"><span class="nx">AnnotationOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// WriteWarning writes a warning-level annotation.</span><span class="w">
+</span><span class="w">	</span><span id="IAnnotationLogger.WriteWarning"><span class="nf">WriteWarning</span></span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#AnnotationOption"><span class="nx">AnnotationOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// WriteNotice writes a notice-level annotation.</span><span class="w">
+</span><span class="w">	</span><span id="IAnnotationLogger.WriteNotice"><span class="nf">WriteNotice</span></span><span class="p">(</span><span class="nx">message</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#AnnotationOption"><span class="nx">AnnotationOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IAnnotationLogger extends [logs.Loggers] with methods for writing structured
+annotations.
+<p>An annotation logger emits issue records in a format that CI systems can
+interpret specially, for example by surfacing them as file-linked errors or
+warnings in the build UI.
+<h4 id="IFormatter">type IFormatter</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IFormatter</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="IFormatter.Format"><span class="nf">Format</span></span><span class="p">(</span><span class="nx">annotation</span><span class="w"> </span><span class="o">*</span><a href="#Annotation"><span class="nx">Annotation</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IFormatter converts an annotation into the platform-specific line to emit.
+<p>References:
+<ul>
+<li>GitHub Actions workflow commands:
+<a href="https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands">https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands</a>
+<li>Azure DevOps logging commands:
+<a href="https://learn.microsoft.com/en-us/azure/devops/pipelines/scripts/logging-commands">https://learn.microsoft.com/en-us/azure/devops/pipelines/scripts/logging-commands</a>
+<li>TeamCity service messages:
+<a href="https://www.jetbrains.com/help/teamcity/service-messages.html">https://www.jetbrains.com/help/teamcity/service-messages.html</a>
+</ul>
+<h4 id="Severity">type Severity</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Severity</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a></pre>
+    <p>Severity identifies the severity of an annotation.
+
+  
+  <pre class="chroma"><span class="kd">const</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="SeverityError"><span class="nx">SeverityError</span></span><span class="w"> </span><a href="#Severity"><span class="nx">Severity</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#iota"><span class="kc">iota</span></a><span class="w">
+</span><span class="w">	</span><span id="SeverityWarning"><span class="nx">SeverityWarning</span></span><span class="w">
+</span><span class="w">	</span><span id="SeverityNotice"><span class="nx">SeverityNotice</span></span><span class="w">
+</span><span class="p">)</span></pre>
+  <h5 id="SeverityString">func SeverityString</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SeverityString</span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#Severity"><span class="nx">Severity</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>SeverityString retrieves an enum value from the enum constants string name.
+Throws an error if the param is not part of the enum.
+<h5 id="SeverityValues">func SeverityValues</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SeverityValues</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><a href="#Severity"><span class="nx">Severity</span></a></pre>
+  <p>SeverityValues returns all values of the enum
+<h5 id="Severity.IsASeverity">func (Severity) IsASeverity</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#Severity"><span class="nx">Severity</span></a><span class="p">)</span><span class="w"> </span><span class="nf">IsASeverity</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsASeverity returns &quot;true&quot; if the value is listed in the enum definition. &quot;false&quot; otherwise
+<h5 id="Severity.MarshalJSON">func (Severity) MarshalJSON</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#Severity"><span class="nx">Severity</span></a><span class="p">)</span><span class="w"> </span><span class="nf">MarshalJSON</span><span class="p">()</span><span class="w"> </span><span class="p">([]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MarshalJSON implements the json.Marshaler interface for Severity
+<h5 id="Severity.MarshalText">func (Severity) MarshalText</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#Severity"><span class="nx">Severity</span></a><span class="p">)</span><span class="w"> </span><span class="nf">MarshalText</span><span class="p">()</span><span class="w"> </span><span class="p">([]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MarshalText implements the encoding.TextMarshaler interface for Severity
+<h5 id="Severity.MarshalYAML">func (Severity) MarshalYAML</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#Severity"><span class="nx">Severity</span></a><span class="p">)</span><span class="w"> </span><span class="nf">MarshalYAML</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="kd">interface</span><span class="p">{},</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MarshalYAML implements a YAML Marshaler for Severity
+<h5 id="Severity.String">func (Severity) String</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#Severity"><span class="nx">Severity</span></a><span class="p">)</span><span class="w"> </span><span class="nf">String</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h5 id="Severity.UnmarshalJSON">func (*Severity) UnmarshalJSON</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="o">*</span><a href="#Severity"><span class="nx">Severity</span></a><span class="p">)</span><span class="w"> </span><span class="nf">UnmarshalJSON</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UnmarshalJSON implements the json.Unmarshaler interface for Severity
+<h5 id="Severity.UnmarshalText">func (*Severity) UnmarshalText</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="o">*</span><a href="#Severity"><span class="nx">Severity</span></a><span class="p">)</span><span class="w"> </span><span class="nf">UnmarshalText</span><span class="p">(</span><span class="nx">text</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UnmarshalText implements the encoding.TextUnmarshaler interface for Severity
+<h5 id="Severity.UnmarshalYAML">func (*Severity) UnmarshalYAML</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="o">*</span><a href="#Severity"><span class="nx">Severity</span></a><span class="p">)</span><span class="w"> </span><span class="nf">UnmarshalYAML</span><span class="p">(</span><span class="nx">unmarshal</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UnmarshalYAML implements a YAML Unmarshaler for Severity
+<h4 id="TeamCityFormatter">type TeamCityFormatter</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">TeamCityFormatter</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span></pre>
+    <p>TeamCityFormatter formats annotations as TeamCity service messages.
+<p>Reference:
+<ul>
+<li><a href="https://www.jetbrains.com/help/teamcity/service-messages.html">https://www.jetbrains.com/help/teamcity/service-messages.html</a>
+</ul>
+<h5 id="TeamCityFormatter.Format">func (TeamCityFormatter) Format</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><a href="#TeamCityFormatter"><span class="nx">TeamCityFormatter</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Format</span><span class="p">(</span><span class="nx">annotation</span><span class="w"> </span><span class="o">*</span><a href="#Annotation"><span class="nx">Annotation</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  </main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../../_/js/permalink.js"></script></body>
+</html>

@@ -3,10 +3,10 @@ module github.com/ARM-software/golang-utils/utils/config
 go 1.26.0
 
 require (
-	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7
-	github.com/ARM-software/golang-utils/utils/serialisation/maps/testing v1.170.7
+	github.com/ARM-software/golang-utils/utils/serialisation v1.171.0
+	github.com/ARM-software/golang-utils/utils/serialisation/maps/testing v1.171.0
 	github.com/go-faker/faker/v4 v4.12.0
-	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
+	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/pflag v1.0.10
@@ -17,12 +17,12 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/encoding v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/maps v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/url v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/encoding v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/maps v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/url v1.171.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
@@ -32,20 +32,20 @@ require (
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe // indirect
 	github.com/sasha-s/go-deadlock v0.3.9 // indirect
 	github.com/zalando/go-keyring v0.2.8 // indirect
-	go.mongodb.org/mongo-driver v1.17.4 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
+	go.mongodb.org/mongo-driver v1.17.7 // indirect
+	go.uber.org/atomic v1.12.0 // indirect
 	golang.org/x/net v0.61.0 // indirect
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.170.7
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.170.7
-	github.com/ARM-software/golang-utils/utils/field v1.170.7
-	github.com/ARM-software/golang-utils/utils/keyring v1.170.7
-	github.com/ARM-software/golang-utils/utils/reflection v1.170.7
-	github.com/ARM-software/golang-utils/utils/validation v1.170.7
-	github.com/ARM-software/golang-utils/utils/value v1.170.7
+	github.com/ARM-software/golang-utils/utils/collection v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.0
+	github.com/ARM-software/golang-utils/utils/field v1.171.0
+	github.com/ARM-software/golang-utils/utils/keyring v1.171.0
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.0
+	github.com/ARM-software/golang-utils/utils/validation v1.171.0
+	github.com/ARM-software/golang-utils/utils/value v1.171.0
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect

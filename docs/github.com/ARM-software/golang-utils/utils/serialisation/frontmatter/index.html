@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../../_/icons/favicon.ico"><title>frontmatter</title>
+</head>
+  <body>
+    <nav><a href="../../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../../..">github.com</a>/<a href="../../../..">ARM-software</a>/<a href="../../..">golang-utils</a>/<a href="../..">utils</a>/<a href="..">serialisation</a>/frontmatter<span class="navbar-right">
+          <a href="../../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package frontmatter</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/serialisation/frontmatter&#34;</span></pre>
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li>
+      <a href="#Format">type Format</a>
+      <ul>
+          <li><a href="#DefaultFormat">func DefaultFormat() *Format</a></li>
+          <li><a href="#NewFormat">func NewFormat(options ...FormatOption) *Format</a></li>
+          <li><a href="#Format.Apply">func (f *Format) Apply(option FormatOption) *Format</a></li>
+          <li><a href="#Format.Default">func (f *Format) Default() *Format</a></li>
+          <li><a href="#Format.Validate">func (f *Format) Validate() error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#FormatOption">type FormatOption</a>
+      <ul>
+          <li><a href="#IncludeDelimitersWhenUnmarshalling">func IncludeDelimitersWhenUnmarshalling() FormatOption</a></li>
+          <li><a href="#WithEnd">func WithEnd(end string) FormatOption</a></li>
+          <li><a href="#WithRequiresNewLine">func WithRequiresNewLine() FormatOption</a></li>
+          <li><a href="#WithStart">func WithStart(start string) FormatOption</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IFrontMatterParser">type IFrontMatterParser</a>
+      <ul>
+          <li><a href="#NewParser">func NewParser(formats ...*Format) (p IFrontMatterParser, err error)</a></li>
+          <li><a href="#NewParserWithFormatOptions">func NewParserWithFormatOptions(options ...FormatOption) (IFrontMatterParser, error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#ParserOption">type ParserOption</a>
+      <ul>
+          <li><a href="#WithBufferCapacity">func WithBufferCapacity(capacity int) ParserOption</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#ParserOptions">type ParserOptions</a>
+      <ul>
+          <li><a href="#DefaultParserOptions">func DefaultParserOptions() *ParserOptions</a></li>
+          <li><a href="#NewParserOptions">func NewParserOptions(options ...ParserOption) *ParserOptions</a></li>
+          <li><a href="#ParserOptions.Apply">func (o *ParserOptions) Apply(option ParserOption) *ParserOptions</a></li>
+          <li><a href="#ParserOptions.Default">func (o *ParserOptions) Default() *ParserOptions</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-types">Types</h3>
+  
+  <h4 id="Format">type Format</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Format</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Start defines the starting delimiter of the front matter, such as `---`.</span><span class="w">
+</span><span class="w">	</span><span id="Format.Start"><span class="nx">Start</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// End defines the ending delimiter of the front matter, such as `---`.</span><span class="w">
+</span><span class="w">	</span><span id="Format.End"><span class="nx">End</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// IncludeDelimitersWhenUnmarshalling specifies whether the returned front matter content should</span><span class="w">
+</span><span class="w">	</span><span class="c1">// include the start and end delimiters.</span><span class="w">
+</span><span class="w">	</span><span id="Format.IncludeDelimitersWhenUnmarshalling"><span class="nx">IncludeDelimitersWhenUnmarshalling</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// RequiresNewLine specifies whether an empty line must follow the ending</span><span class="w">
+</span><span class="w">	</span><span class="c1">// delimiter for the front matter to be considered complete.</span><span class="w">
+</span><span class="w">	</span><span id="Format.RequiresNewLine"><span class="nx">RequiresNewLine</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Format describes how a front matter block is detected and extracted.
+<p>A format defines the opening and closing delimiters of the front matter and
+how much of the surrounding text should be returned as front matter content.
+This allows callers to model common formats such as YAML, TOML, or JSON front
+matter, as well as custom variants.
+This structure was inspired by what is done in <a href="https://github.com/adrg/frontmatter">https://github.com/adrg/frontmatter</a>.
+<h5 id="DefaultFormat">func DefaultFormat</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultFormat</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#Format"><span class="nx">Format</span></a></pre>
+  <p>DefaultFormat returns a Format initialised with the package defaults.
+<h5 id="NewFormat">func NewFormat</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewFormat</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#FormatOption"><span class="nx">FormatOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Format"><span class="nx">Format</span></a></pre>
+  <p>NewFormat constructs a Format from the supplied options.
+<h5 id="Format.Apply">func (*Format) Apply</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">f</span><span class="w"> </span><span class="o">*</span><a href="#Format"><span class="nx">Format</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Apply</span><span class="p">(</span><span class="nx">option</span><span class="w"> </span><a href="#FormatOption"><span class="nx">FormatOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Format"><span class="nx">Format</span></a></pre>
+  <p>Apply applies a single option to a Format and then reapplies defaults.
+<h5 id="Format.Default">func (*Format) Default</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">f</span><span class="w"> </span><span class="o">*</span><a href="#Format"><span class="nx">Format</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Default</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#Format"><span class="nx">Format</span></a></pre>
+  <p>Default applies the package defaults to a Format.
+<h5 id="Format.Validate">func (*Format) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">f</span><span class="w"> </span><span class="o">*</span><a href="#Format"><span class="nx">Format</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Validate checks that the format contains the fields required to detect front
+matter boundaries.
+<h4 id="FormatOption">type FormatOption</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">FormatOption</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="o">*</span><a href="#Format"><span class="nx">Format</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Format"><span class="nx">Format</span></a></pre>
+    <p>FormatOption configures a front matter Format during construction.
+<h5 id="IncludeDelimitersWhenUnmarshalling">func IncludeDelimitersWhenUnmarshalling</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IncludeDelimitersWhenUnmarshalling</span><span class="p">()</span><span class="w"> </span><a href="#FormatOption"><span class="nx">FormatOption</span></a></pre>
+  <p>IncludeDelimitersWhenUnmarshalling specifies to include the start and end delimiters.
+<h5 id="WithEnd">func WithEnd</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithEnd</span><span class="p">(</span><span class="nx">end</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#FormatOption"><span class="nx">FormatOption</span></a></pre>
+  <p>WithEnd sets the closing delimiter of a front matter Format.
+<h5 id="WithRequiresNewLine">func WithRequiresNewLine</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithRequiresNewLine</span><span class="p">()</span><span class="w"> </span><a href="#FormatOption"><span class="nx">FormatOption</span></a></pre>
+  <p>WithRequiresNewLine specifies an empty line must follow the closing
+delimiter of the front matter.
+<h5 id="WithStart">func WithStart</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithStart</span><span class="p">(</span><span class="nx">start</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#FormatOption"><span class="nx">FormatOption</span></a></pre>
+  <p>WithStart sets the opening delimiter of a front matter Format.
+<h4 id="IFrontMatterParser">type IFrontMatterParser</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IFrontMatterParser</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Configure applies a parser option to the front matter parser.</span><span class="w">
+</span><span class="w">	</span><span id="IFrontMatterParser.Configure"><span class="nf">Configure</span></span><span class="p">(</span><span class="o">...</span><a href="#ParserOption"><span class="nx">ParserOption</span></a><span class="p">)</span><span class="w"> </span><a href="#IFrontMatterParser"><span class="nx">IFrontMatterParser</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Parse extracts the front matter from r and returns a reader containing only</span><span class="w">
+</span><span class="w">	</span><span class="c1">// the extracted front matter content.</span><span class="w">
+</span><span class="w">	</span><span id="IFrontMatterParser.Parse"><span class="nf">Parse</span></span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">frontmatter</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Extract extracts the front matter from r and returns the extracted front</span><span class="w">
+</span><span class="w">	</span><span class="c1">// matter content as raw bytes.</span><span class="w">
+</span><span class="w">	</span><span id="IFrontMatterParser.Extract"><span class="nf">Extract</span></span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">frontmatter</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IFrontMatterParser extracts front matter content from a reader.
+<p>Implementations detect one of the configured front matter formats at the
+start of the stream and return only the extracted front matter content.
+<h5 id="NewParser">func NewParser</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewParser</span><span class="p">(</span><span class="nx">formats</span><span class="w"> </span><span class="o">...*</span><a href="#Format"><span class="nx">Format</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><a href="#IFrontMatterParser"><span class="nx">IFrontMatterParser</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewParser returns a parser for the supplied front matter formats.
+<p>The formats are checked in order, with all formats sharing the detected
+opening delimiter considered during the same parsing pass.
+<h5 id="NewParserWithFormatOptions">func NewParserWithFormatOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewParserWithFormatOptions</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#FormatOption"><span class="nx">FormatOption</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IFrontMatterParser"><span class="nx">IFrontMatterParser</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewParserWithFormatOptions returns a parser using a Format built from the
+supplied format options.
+<h4 id="ParserOption">type ParserOption</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ParserOption</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="o">*</span><a href="#ParserOptions"><span class="nx">ParserOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#ParserOptions"><span class="nx">ParserOptions</span></a></pre>
+    <p>ParserOption is for configuring the front matter parser.
+<h5 id="WithBufferCapacity">func WithBufferCapacity</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithBufferCapacity</span><span class="p">(</span><span class="nx">capacity</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><a href="#ParserOption"><span class="nx">ParserOption</span></a></pre>
+  <p>WithBufferCapacity is for configuring the front matter parser.
+<h4 id="ParserOptions">type ParserOptions</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ParserOptions</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// BufferCapacity specifies the capacity of the buffer used to read the front</span><span class="w">
+</span><span class="w">	</span><span class="c1">// matter.</span><span class="w">
+</span><span class="w">	</span><span id="ParserOptions.BufferCapacity"><span class="nx">BufferCapacity</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>ParserOptions is for configuring the front matter parser.
+<h5 id="DefaultParserOptions">func DefaultParserOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultParserOptions</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#ParserOptions"><span class="nx">ParserOptions</span></a></pre>
+  <p>DefaultParserOptions returns default front matter parser options.
+<h5 id="NewParserOptions">func NewParserOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewParserOptions</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#ParserOption"><span class="nx">ParserOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#ParserOptions"><span class="nx">ParserOptions</span></a></pre>
+  <p>NewParserOptions constructs front matter parser options.
+<h5 id="ParserOptions.Apply">func (*ParserOptions) Apply</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#ParserOptions"><span class="nx">ParserOptions</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Apply</span><span class="p">(</span><span class="nx">option</span><span class="w"> </span><a href="#ParserOption"><span class="nx">ParserOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#ParserOptions"><span class="nx">ParserOptions</span></a></pre>
+  <p>Apply applies an option to the front matter parser options.
+<h5 id="ParserOptions.Default">func (*ParserOptions) Default</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#ParserOptions"><span class="nx">ParserOptions</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Default</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#ParserOptions"><span class="nx">ParserOptions</span></a></pre>
+  <p>Default applies default configuration to the front matter parser options.
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../../_/js/permalink.js"></script></body>
+</html>

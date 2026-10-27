@@ -5,30 +5,30 @@ go 1.26.0
 require (
 	github.com/deckarep/golang-set/v2 v2.9.0
 	github.com/go-git/go-git/v5 v5.19.1
-	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
+	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
 	github.com/stretchr/testify v1.12.1
-	go.uber.org/atomic v1.11.0
+	go.uber.org/atomic v1.12.0
 	golang.org/x/crypto v0.58.0
 	golang.org/x/sync v0.24.0
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/charset v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/collection v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/encoding v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/field v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/keyring v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/maps v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/platform v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/proc v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/resource v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/safeio v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/strings v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/url v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/charset v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/collection v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/encoding v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/keyring v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/maps v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/platform v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/proc v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/resource v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safeio v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/serialisation v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/strings v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/url v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.171.0 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/avast/retry-go/v4 v4.7.0 // indirect
@@ -38,7 +38,7 @@ require (
 	github.com/dolmen-go/contextio v1.0.0 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/go-faker/faker/v4 v4.7.0 // indirect
+	github.com/go-faker/faker/v4 v4.12.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
@@ -76,18 +76,18 @@ require (
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.170.7
-	github.com/ARM-software/golang-utils/utils/config v1.170.7
-	github.com/ARM-software/golang-utils/utils/filesystem v1.170.7
-	github.com/ARM-software/golang-utils/utils/hashing v1.170.7
-	github.com/ARM-software/golang-utils/utils/idgen v1.170.7
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.170.7
-	github.com/ARM-software/golang-utils/utils/reflection v1.170.7
-	github.com/ARM-software/golang-utils/utils/subprocess/command v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/units/multiplication v1.170.7
-	github.com/ARM-software/golang-utils/utils/units/size v1.170.7
-	github.com/ARM-software/golang-utils/utils/validation v1.170.7
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.0
+	github.com/ARM-software/golang-utils/utils/config v1.171.0
+	github.com/ARM-software/golang-utils/utils/filesystem v1.171.0
+	github.com/ARM-software/golang-utils/utils/hashing v1.171.0
+	github.com/ARM-software/golang-utils/utils/idgen v1.171.0
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.0
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.0
+	github.com/ARM-software/golang-utils/utils/subprocess/command v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/units/multiplication v1.171.0
+	github.com/ARM-software/golang-utils/utils/units/size v1.171.0
+	github.com/ARM-software/golang-utils/utils/validation v1.171.0
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
@@ -103,7 +103,7 @@ require (
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	go.mongodb.org/mongo-driver v1.17.4 // indirect
+	go.mongodb.org/mongo-driver v1.17.7 // indirect
 	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect

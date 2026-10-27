@@ -7,38 +7,38 @@ tool go.uber.org/mock/mockgen
 replace github.com/ARM-software/golang-utils/utils => ../../
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.170.7
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.170.7
-	github.com/ARM-software/golang-utils/utils/encoding v1.170.7
-	github.com/ARM-software/golang-utils/utils/field v1.170.7
-	github.com/ARM-software/golang-utils/utils/hashing v1.170.7
-	github.com/ARM-software/golang-utils/utils/http/schemes v1.170.7
-	github.com/ARM-software/golang-utils/utils/reflection v1.170.7
-	github.com/ARM-software/golang-utils/utils/value v1.170.7
+	github.com/ARM-software/golang-utils/utils/collection v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.0
+	github.com/ARM-software/golang-utils/utils/encoding v1.171.0
+	github.com/ARM-software/golang-utils/utils/field v1.171.0
+	github.com/ARM-software/golang-utils/utils/hashing v1.171.0
+	github.com/ARM-software/golang-utils/utils/http/schemes v1.171.0
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.0
+	github.com/ARM-software/golang-utils/utils/value v1.171.0
 	github.com/deckarep/golang-set/v2 v2.9.0
-	github.com/go-faker/faker/v4 v4.7.0
+	github.com/go-faker/faker/v4 v4.12.0
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/stretchr/testify v1.12.1
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/safeio v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/strings v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safeio v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/strings v1.171.0 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/dolmen-go/contextio v1.0.0 // indirect
-	github.com/go-ozzo/ozzo-validation/v4 v4.3.0 // indirect
+	github.com/go-ozzo/ozzo-validation/v4 v4.4.1 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe // indirect
 	github.com/sasha-s/go-deadlock v0.3.9 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	go.mongodb.org/mongo-driver v1.17.4 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
+	go.mongodb.org/mongo-driver v1.17.7 // indirect
+	go.uber.org/atomic v1.12.0 // indirect
 	go.uber.org/mock v0.6.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.58.0 // indirect

@@ -5,23 +5,23 @@ go 1.26.0
 require (
 	github.com/avast/retry-go/v4 v4.7.0
 	github.com/go-logr/logr v1.4.4
-	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
+	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
 	github.com/stretchr/testify v1.12.1
-	go.uber.org/atomic v1.11.0
+	go.uber.org/atomic v1.12.0
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/encoding v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/field v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/keyring v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/maps v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/url v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/validation v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/encoding v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/keyring v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/maps v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/serialisation v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/url v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/validation v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.171.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/bombsimon/logrusr/v4 v4.2.0 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
@@ -52,7 +52,7 @@ require (
 	github.com/spf13/viper v1.21.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/zalando/go-keyring v0.2.8 // indirect
-	go.mongodb.org/mongo-driver v1.17.4 // indirect
+	go.mongodb.org/mongo-driver v1.17.7 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
@@ -66,13 +66,13 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.170.7
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.170.7
-	github.com/ARM-software/golang-utils/utils/config v1.170.7
-	github.com/ARM-software/golang-utils/utils/logs/logstest v1.170.7
-	github.com/ARM-software/golang-utils/utils/reflection v1.170.7
-	github.com/ARM-software/golang-utils/utils/safecast v1.170.7
+	github.com/ARM-software/golang-utils/utils/collection v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.0
+	github.com/ARM-software/golang-utils/utils/config v1.171.0
+	github.com/ARM-software/golang-utils/utils/logs/logstest v1.171.0
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.0
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.0
 )
 
 replace github.com/ARM-software/golang-utils/utils/collection => ../collection

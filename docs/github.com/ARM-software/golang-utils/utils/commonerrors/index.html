@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>commonerrors</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/commonerrors<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package commonerrors</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/commonerrors&#34;</span></pre>
+<p>Package commonerrors defines typical errors which can happen.
+<ul>
+<li>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li>SPDX-License-Identifier: Apache-2.0
+</ul>
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-constants">Constants</a></li><li><a href="#pkg-variables">Variables</a></li><li><a href="#Any">func Any(target error, err ...error) bool</a></li>
+  <li><a href="#ConvertContextError">func ConvertContextError(err error) error</a></li>
+  <li><a href="#CorrespondTo">func CorrespondTo(target error, description ...string) bool</a></li>
+  <li><a href="#DescribeCircumstance">func DescribeCircumstance(originalError error, circumstance string) error</a></li>
+  <li><a href="#DescribeCircumstanceAndKeepType">func DescribeCircumstanceAndKeepType(err error, circumstance string) error</a></li>
+  <li><a href="#DescribeCircumstanceAndKeepTypef">func DescribeCircumstanceAndKeepTypef(err error, circumstanceFormat string, args ...any) error</a></li>
+  <li><a href="#DescribeCircumstancef">func DescribeCircumstancef(err error, circumstanceFormat string, args ...any) error</a></li>
+  <li><a href="#DeserialiseError">func DeserialiseError(text []byte) (deserialisedError, err error)</a></li>
+  <li><a href="#ErrFromContext">func ErrFromContext(ctx context.Context) error</a></li>
+  <li><a href="#Errorf">func Errorf(targetErr error, format string, args ...any) error</a></li>
+  <li><a href="#GetCommonErrorReason">func GetCommonErrorReason(srcErr error) (reason string, err error)</a></li>
+  <li><a href="#GetErrorReason">func GetErrorReason(srcErr error) (reason string, err error)</a></li>
+  <li><a href="#GetUnderlyingErrorType">func GetUnderlyingErrorType(srcErr error) (commonerrorType, err error)</a></li>
+  <li><a href="#Ignore">func Ignore(target error, ignore ...error) error</a></li>
+  <li><a href="#IgnoreCorrespondTo">func IgnoreCorrespondTo(target error, ignore ...string) error</a></li>
+  <li><a href="#IsCommonError">func IsCommonError(target error) bool</a></li>
+  <li><a href="#IsEmpty">func IsEmpty(err error) bool</a></li>
+  <li><a href="#IsFailure">func IsFailure(target error) bool</a></li>
+  <li><a href="#IsWarning">func IsWarning(target error) bool</a></li>
+  <li><a href="#Join">func Join(errs ...error) error</a></li>
+  <li><a href="#MarkAsFailure">func MarkAsFailure(err error) error</a></li>
+  <li><a href="#New">func New(targetError error, msg string) error</a></li>
+  <li><a href="#NewFailure">func NewFailure(msgFormat string, args ...any) error</a></li>
+  <li><a href="#NewWarning">func NewWarning(target error) (ok bool, err error)</a></li>
+  <li><a href="#NewWarningMessage">func NewWarningMessage(msgFormat string, args ...any) error</a></li>
+  <li><a href="#Newf">func Newf(targetError error, msgFormat string, args ...any) error</a></li>
+  <li><a href="#None">func None(target error, err ...error) bool</a></li>
+  <li><a href="#ParseWarning">func ParseWarning(target error) (ok bool, err error)</a></li>
+  <li><a href="#RelatesTo">func RelatesTo(target string, errors ...error) bool</a></li>
+  <li><a href="#RetrieveCommonError">func RetrieveCommonError(target error) (isCommonError bool, commonError error)</a></li>
+  <li><a href="#SerialiseError">func SerialiseError(err error) ([]byte, error)</a></li>
+  <li><a href="#UndefinedParameter">func UndefinedParameter(msg string) error</a></li>
+  <li><a href="#UndefinedParameterf">func UndefinedParameterf(msgFormat string, args ...any) error</a></li>
+  <li><a href="#UndefinedVariable">func UndefinedVariable(variableName string) error</a></li>
+  <li><a href="#UndefinedVariableWithMessage">func UndefinedVariableWithMessage(variableName string, msg string) error</a></li>
+  <li><a href="#WrapError">func WrapError(targetError, originalError error, msg string) error</a></li>
+  <li><a href="#WrapErrorf">func WrapErrorf(targetError, originalError error, msgFormat string, args ...any) error</a></li>
+  <li><a href="#WrapIfNotCommonError">func WrapIfNotCommonError(targetError, originalError error, msg string) error</a></li>
+  <li><a href="#WrapIfNotCommonErrorf">func WrapIfNotCommonErrorf(targetError, originalError error, msgFormat string, args ...any) error</a></li>
+  </ul><h3 id="pkg-constants">Constants</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">const</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="TypeReasonErrorSeparator"><span class="nx">TypeReasonErrorSeparator</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="sc">&#39;:&#39;</span><span class="w">
+</span><span class="w">	</span><span id="MultipleErrorSeparator"><span class="nx">MultipleErrorSeparator</span></span><span class="w">   </span><span class="p">=</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="ErrNotImplemented"><span class="nx">ErrNotImplemented</span></span><span class="w">     </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;not implemented&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrNoExtension"><span class="nx">ErrNoExtension</span></span><span class="w">        </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;missing extension&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrNoLogger"><span class="nx">ErrNoLogger</span></span><span class="w">           </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;missing logger&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrNoLoggerSource"><span class="nx">ErrNoLoggerSource</span></span><span class="w">     </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;missing logger source&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrNoLogSource"><span class="nx">ErrNoLogSource</span></span><span class="w">        </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;missing log source&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrUndefined"><span class="nx">ErrUndefined</span></span><span class="w">          </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;undefined&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrInvalidDestination"><span class="nx">ErrInvalidDestination</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;invalid destination&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrTimeout"><span class="nx">ErrTimeout</span></span><span class="w">            </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;timeout&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrLocked"><span class="nx">ErrLocked</span></span><span class="w">             </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;locked&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrStaleLock"><span class="nx">ErrStaleLock</span></span><span class="w">          </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;stale lock&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrExists"><span class="nx">ErrExists</span></span><span class="w">             </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;already exists&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrNotFound"><span class="nx">ErrNotFound</span></span><span class="w">           </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;not found&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrUnsupported"><span class="nx">ErrUnsupported</span></span><span class="w">        </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;unsupported&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrUnavailable"><span class="nx">ErrUnavailable</span></span><span class="w">        </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;unavailable&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrWrongUser"><span class="nx">ErrWrongUser</span></span><span class="w">          </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;wrong user&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrUnauthorised"><span class="nx">ErrUnauthorised</span></span><span class="w">       </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;unauthorised&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrUnknown"><span class="nx">ErrUnknown</span></span><span class="w">            </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;unknown&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrInvalid"><span class="nx">ErrInvalid</span></span><span class="w">            </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;invalid&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrConflict"><span class="nx">ErrConflict</span></span><span class="w">           </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;conflict&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrMarshalling"><span class="nx">ErrMarshalling</span></span><span class="w">        </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;unserialisable&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrCancelled"><span class="nx">ErrCancelled</span></span><span class="w">          </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;cancelled&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrEmpty"><span class="nx">ErrEmpty</span></span><span class="w">              </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;empty&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrUnexpected"><span class="nx">ErrUnexpected</span></span><span class="w">         </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;unexpected&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrTooLarge"><span class="nx">ErrTooLarge</span></span><span class="w">           </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;too large&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrForbidden"><span class="nx">ErrForbidden</span></span><span class="w">          </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;forbidden&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrCondition"><span class="nx">ErrCondition</span></span><span class="w">          </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;failed condition&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrEOF"><span class="nx">ErrEOF</span></span><span class="w">                </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;end of file&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrMalicious"><span class="nx">ErrMalicious</span></span><span class="w">          </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;suspected malicious intent&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrOutOfRange"><span class="nx">ErrOutOfRange</span></span><span class="w">         </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;out of range&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ErrInterrupted"><span class="nx">ErrInterrupted</span></span><span class="w">        </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="s">&#34;interrupted&#34;</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// ErrFailed should be used as a generic error where an error is an expected and valid state.</span><span class="w">
+</span><span class="w">	</span><span class="c1">// For example a failing command may cause subprocess.Execute to return an error if the command exits with 1 but</span><span class="w">
+</span><span class="w">	</span><span class="c1">// this wouldn&#39;t be a system error, and you might want to distinguish between this and the subprocess wrapper erroring</span><span class="w">
+</span><span class="w">	</span><span class="c1">// when you pass the message up the stack.</span><span class="w">
+</span><span class="w">	</span><span id="ErrFailed"><span class="nx">ErrFailed</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="nx">failureStr</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// ErrWarning is a generic error that can be used when an error should be raised but it shouldn&#39;t necessary be</span><span class="w">
+</span><span class="w">	</span><span class="c1">// passed up the chain, for example in cases where an error should be logged but the program should continue. In</span><span class="w">
+</span><span class="w">	</span><span class="c1">// these situations it should be handled immediately and then ignored/set to nil.</span><span class="w">
+</span><span class="w">	</span><span id="ErrWarning"><span class="nx">ErrWarning</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/errors"><span class="nx">errors</span></a><span class="p">.</span><a href="https://pkg.go.dev/errors#New"><span class="nf">New</span></a><span class="p">(</span><span class="nx">warningStr</span><span class="p">)</span><span class="w">
+</span><span class="p">)</span></pre>
+  <p>List of common errors used to qualify and categorise go errors
+Note: if adding error types to this list, ensure mapping functions (below) are also updated.
+<h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="Any">func Any</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Any</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>Any determines whether the target error is of the same type as any of the errors `err`
+<h4 id="ConvertContextError">func ConvertContextError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ConvertContextError</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ConvertContextError converts a context error into common errors.
+<h4 id="CorrespondTo">func CorrespondTo</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CorrespondTo</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">description</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>CorrespondTo determines whether a `target` error corresponds to a specific error described by `description`
+It will check whether the error contains the string in its description. It is not case-sensitive.
+```code
+<pre>  CorrespondTo(errors.New(&quot;feature a is not supported&quot;), &quot;not supported&quot;) = True
+```
+</pre>
+<h4 id="DescribeCircumstance">func DescribeCircumstance</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DescribeCircumstance</span><span class="p">(</span><span class="nx">originalError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">circumstance</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>DescribeCircumstance adds some context to a particular error. If the error is of a known type (as in, a common error), it will be kept. Otherwise, it will be set as Unexpected.
+<h4 id="DescribeCircumstanceAndKeepType">func DescribeCircumstanceAndKeepType</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DescribeCircumstanceAndKeepType</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">circumstance</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>DescribeCircumstanceAndKeepType does almost the same as DescribeCircumstance but if the error is not a common error, it won&apos;t wrap it but just add the context string to it.
+<h4 id="DescribeCircumstanceAndKeepTypef">func DescribeCircumstanceAndKeepTypef</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DescribeCircumstanceAndKeepTypef</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">circumstanceFormat</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>DescribeCircumstanceAndKeepTypef is like DescribeCircumstanceAndKeepType but uses a message format to describe the error context.
+<h4 id="DescribeCircumstancef">func DescribeCircumstancef</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DescribeCircumstancef</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">circumstanceFormat</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>DescribeCircumstancef is the same as DescribeCircumstance but uses a format for capturing the error context.
+<h4 id="DeserialiseError">func DeserialiseError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DeserialiseError</span><span class="p">(</span><span class="nx">text</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">deserialisedError</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>DeserialiseError unmarshals text into an error. It tries to determine the error type.
+<h4 id="ErrFromContext">func ErrFromContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ErrFromContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ErrFromContext extracts the error from the context. If the error has a cause that is a common error then
+that will be returned over the underlying context error
+<h4 id="Errorf">func Errorf</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Errorf</span><span class="p">(</span><span class="nx">targetErr</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">format</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Errorf is similar to fmt.Errorf although it will try to follow the error convention we use i.e. `errortype: message` but differs in that the wrapped error will be the targetErr
+<h4 id="GetCommonErrorReason">func GetCommonErrorReason</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">GetCommonErrorReason</span><span class="p">(</span><span class="nx">srcErr</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">reason</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="GetErrorReason">func GetErrorReason</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">GetErrorReason</span><span class="p">(</span><span class="nx">srcErr</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">reason</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="GetUnderlyingErrorType">func GetUnderlyingErrorType</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">GetUnderlyingErrorType</span><span class="p">(</span><span class="nx">srcErr</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">commonerrorType</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="Ignore">func Ignore</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Ignore</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">ignore</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Ignore will return nil if the target error matches one of the errors to ignore
+<h4 id="IgnoreCorrespondTo">func IgnoreCorrespondTo</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IgnoreCorrespondTo</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">ignore</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>IgnoreCorrespondTo will return nil if the target error matches one of the descriptions of errors to ignore
+<h4 id="IsCommonError">func IsCommonError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsCommonError</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsCommonError returns whether an error is a commonerror
+<h4 id="IsEmpty">func IsEmpty</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsEmpty</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsEmpty states whether an error is empty or not.
+An error is considered empty if it is `nil` or has no description.
+<h4 id="IsFailure">func IsFailure</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsFailure</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsFailure returns whether an error is unexpected (i.e. deviation from an expected state) but not a system error e.g. test failure
+<h4 id="IsWarning">func IsWarning</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsWarning</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsWarning will return whether an error is actually a warning
+<h4 id="Join">func Join</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Join</span><span class="p">(</span><span class="nx">errs</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Join is similar to errors.Join but follows the common errors convention when printing
+<h4 id="MarkAsFailure">func MarkAsFailure</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">MarkAsFailure</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>MarkAsFailure will tent an error as failure. It will retain its original error type but IsFailure should return true.
+<h4 id="New">func New</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">New</span><span class="p">(</span><span class="nx">targetError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">msg</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>New is similar to errors.New or fmt.Errorf but creates an error of type targetError
+<h4 id="NewFailure">func NewFailure</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewFailure</span><span class="p">(</span><span class="nx">msgFormat</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>NewFailure creates a failure object.
+<h4 id="NewWarning">func NewWarning</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewWarning</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">ok</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewWarning will create a warning wrapper around an existing commonerror so that it can be easily recovered. If the
+underlying error is not a commonerror then ok will be set to false
+<h4 id="NewWarningMessage">func NewWarningMessage</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewWarningMessage</span><span class="p">(</span><span class="nx">msgFormat</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>NewWarningMessage creates a warning message.
+<h4 id="Newf">func Newf</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Newf</span><span class="p">(</span><span class="nx">targetError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">msgFormat</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Newf is similar to New but allows to format the message
+<h4 id="None">func None</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">None</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>None determines whether the target error is of none of the types of the errors `err`
+<h4 id="ParseWarning">func ParseWarning</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ParseWarning</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">ok</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>ParseWarning will extract the error that has been wrapped by ErrWarning. It will return nil if the error was not
+one of ErrWarning with ok set to false. It will also set ok to false if the underlying error cannot be parsed
+<h4 id="RelatesTo">func RelatesTo</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">RelatesTo</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">errors</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>RelatesTo determines whether an error description string could relate to a particular set of common errors
+This assumes that the error description follows the convention of placing the type of errors at the start of the string.
+<h4 id="RetrieveCommonError">func RetrieveCommonError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">RetrieveCommonError</span><span class="p">(</span><span class="nx">target</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">isCommonError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">commonError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>RetrieveCommonError tries to return the common error of an error.
+<h4 id="SerialiseError">func SerialiseError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SerialiseError</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>SerialiseError marshals an error following a certain convention: `error type: reason`.
+<h4 id="UndefinedParameter">func UndefinedParameter</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">UndefinedParameter</span><span class="p">(</span><span class="nx">msg</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UndefinedParameter returns an undefined error with a message
+<h4 id="UndefinedParameterf">func UndefinedParameterf</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">UndefinedParameterf</span><span class="p">(</span><span class="nx">msgFormat</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UndefinedParameterf returns an undefined error with a message
+<h4 id="UndefinedVariable">func UndefinedVariable</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">UndefinedVariable</span><span class="p">(</span><span class="nx">variableName</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UndefinedVariable returns an undefined error related to a variable.
+<h4 id="UndefinedVariableWithMessage">func UndefinedVariableWithMessage</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">UndefinedVariableWithMessage</span><span class="p">(</span><span class="nx">variableName</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">msg</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UndefinedVariableWithMessage returns an undefined error with a message.
+<h4 id="WrapError">func WrapError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapError</span><span class="p">(</span><span class="nx">targetError</span><span class="p">,</span><span class="w"> </span><span class="nx">originalError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">msg</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>WrapError wraps an error into a particular targetError. However, if the original error has to do with a contextual error (i.e. ErrCancelled or ErrTimeout) or should be considered as a failure rather than an error, it will be passed through without having its type changed.
+Same is true with warnings.
+This method should be used to safely wrap errors without losing information about context control information.
+If the target error is not set, the wrapped error will be of type ErrUnknown.
+<h4 id="WrapErrorf">func WrapErrorf</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapErrorf</span><span class="p">(</span><span class="nx">targetError</span><span class="p">,</span><span class="w"> </span><span class="nx">originalError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">msgFormat</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>WrapErrorf is similar to WrapError but uses a format for the message
+<h4 id="WrapIfNotCommonError">func WrapIfNotCommonError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapIfNotCommonError</span><span class="p">(</span><span class="nx">targetError</span><span class="p">,</span><span class="w"> </span><span class="nx">originalError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">msg</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>WrapIfNotCommonError is similar to WrapError but only wraps an error if it is not a common error.
+<h4 id="WrapIfNotCommonErrorf">func WrapIfNotCommonErrorf</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapIfNotCommonErrorf</span><span class="p">(</span><span class="nx">targetError</span><span class="p">,</span><span class="w"> </span><span class="nx">originalError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">msgFormat</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>WrapIfNotCommonErrorf is similar to WrapError but only wraps an error if it is not a common error.
+<h3 id="pkg-directories">Directories</h3>
+
+<table>
+  <tbody>
+    <tr>
+        <td><a href="errortest">errortest</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    </tbody>
+</table>
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

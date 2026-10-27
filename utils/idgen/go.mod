@@ -13,7 +13,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 )
 
-require github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7
+require github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
 
 replace github.com/ARM-software/golang-utils/utils/commonerrors => ../commonerrors
 

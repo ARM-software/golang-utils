@@ -14,6 +14,36 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+# 1.171.0 (2026-10-27)
+
+## Features
+
+- :recyle: Split golang-utils into [CDS](https://github.com/ARMmbed/continuous-delivery-scripts)-managed Go submodules with repository-wide workspace, per-module CI coverage, and full Dependabot coverage. (#202610231530)
+- :recyle: Add British-spelled `serialisation` modules, retaining the existing `serialization` import paths for compatibility. (#202610261300)
+- :recyle: Publish a combined project-wide JUnit XML report alongside per-module Go test reports in CI. (#202610261415)
+- :recyle: Reuse a standalone Go workspace sync action across CI, CodeQL, and release workflows. (#202610261430)
+- :sparkles: Define reusable Go actions for projects following the golang-utils multimodule convention, including workspace synchronisation, module discovery, generation, linting, testing, and combined reports. (#202610261500)
+- :sparkles: Publish dedicated Go modules for units, subprocess helpers, casing, JSON/YAML frontmatter, logging helpers, HTTP helpers, and AES/RSA encryption while preserving their import paths. (#202610261700)
+- :recycle: Forward legacy `serialization` helpers and types to `serialisation`, preserving existing import paths without maintaining duplicate implementations. (#202610261915)
+- :sparkles: [actions] Simplify multimodule Go test reporting by publishing per-module JUnit results with `publish-unit-test-result-action`, storing its combined JSON report in uploaded artifacts, and keeping the bespoke coverage combination flow. (#202610261955)
+
+## Bugfixes
+
+- :bug: [serialization] Make XML and frontmatter parsing tolerate prepended copyright header comments in serialised test fixtures. (#202610261646)
+- Dependency upgrade: v4-4.4.1 (#20261027131905474189580)
+- Dependency upgrade: v4-4.12.0 (#20261027131906426558447, #20261027131920332788338, #20261027131925488671416, #20261027131930221142662, #20261027131933957634673, #20261027131934706830307, #20261027131944751763408)
+- Dependency upgrade: atomic-1.12.0 (#20261027131923131348657)
+- Dependency upgrade: upload-artifact-7.0.2 (#20261027132018160488327)
+- Dependency upgrade: create-pull-request-8 (#20261027132031548689296)
+- Dependency upgrade: scorecard-action-2.5.0 (#20261027132032131117656)
+- Dependency upgrade: mongo-driver-1.17.7 (#20261027132220751070468, #20261027132222753804511)
+- Dependency upgrade: compress-1.18.7 (#20261027132221541873361, #20261027132224249760926)
+
+## Misc
+
+- #202610231531, #20261026155253423794900, #20261026155508003842115
+
+
 1.170.7 (2026-10-02)
 
 # Bugfixes

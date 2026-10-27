@@ -2,7 +2,7 @@ module github.com/ARM-software/golang-utils/utils/serialisation/maps/testing
 
 go 1.26.0
 
-require github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7
+require github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
 
 require (
 	github.com/hashicorp/errwrap v1.0.0 // indirect

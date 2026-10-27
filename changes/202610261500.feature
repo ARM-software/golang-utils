@@ -1,1 +1,0 @@
-:sparkles: Define reusable Go actions for projects following the golang-utils multimodule convention, including workspace synchronisation, module discovery, generation, linting, testing, and combined reports.

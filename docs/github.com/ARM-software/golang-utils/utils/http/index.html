@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>http</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/http<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package http</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/http&#34;</span></pre>
+<ul>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<p>Package http provides a familiar HTTP client interface with
+various implementations in order to answer common use cases: e.g. need for a robust client (performs retries on server errors with different retry policies depending on configuration),
+for a fast client which leverages connection pools.
+For the robust client, it is possible to set its configuration fully but this package also come with a set of preset configuration to answer most usecases
+e.g. to create a client which performs exponential backoff and listens to `Retry-After` headers, the following can be done:
+robustClient := NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithExponentialBackOff())
+resp, err := robustClient.Get(&quot;<a href="https://somehost.com">https://somehost.com</a>&quot;)
+Whereas to create a client which will only perform 4 retries without backoff, the following can be done:
+retriableClient := NewConfigurableRetryableClient(DefaultRobustHTTPClientConfiguration())
+resp, err := retriableClient.Get(&quot;<a href="https://somehost.com">https://somehost.com</a>&quot;)
+It is a thin wrapper over some hashicorp implementations and hence over the standard net/http client library.
+This makes the client implementations very easy to drop into existing programs in lieu of standard library default client.
+<ul>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-constants">Constants</a></li><li><a href="#pkg-variables">Variables</a></li><li><a href="#RetryOnError">func RetryOnError(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyConfiguration, ...) error</a></li>
+  <li>
+      <a href="#Auth">type Auth</a>
+      <ul>
+          <li><a href="#NewAuthConfiguration">func NewAuthConfiguration(authorizationHeader *string) (cfg *Auth, err error)</a></li>
+          <li><a href="#Auth.GetAuthorizationHeader">func (cfg *Auth) GetAuthorizationHeader() string</a></li>
+          <li><a href="#Auth.Validate">func (cfg *Auth) Validate() (err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#BasicRetryPolicy">type BasicRetryPolicy</a>
+      <ul>
+          <li><a href="#BasicRetryPolicy.Apply">func (p *BasicRetryPolicy) Apply(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#ClientWithHeaders">type ClientWithHeaders</a>
+      <ul>
+          <li><a href="#ClientWithHeaders.AppendHeader">func (c *ClientWithHeaders) AppendHeader(key, value string)</a></li>
+          <li><a href="#ClientWithHeaders.ClearHeaders">func (c *ClientWithHeaders) ClearHeaders()</a></li>
+          <li><a href="#ClientWithHeaders.Close">func (c *ClientWithHeaders) Close() error</a></li>
+          <li><a href="#ClientWithHeaders.Delete">func (c *ClientWithHeaders) Delete(url string) (*http.Response, error)</a></li>
+          <li><a href="#ClientWithHeaders.Do">func (c *ClientWithHeaders) Do(req *http.Request) (*http.Response, error)</a></li>
+          <li><a href="#ClientWithHeaders.Get">func (c *ClientWithHeaders) Get(url string) (*http.Response, error)</a></li>
+          <li><a href="#ClientWithHeaders.Head">func (c *ClientWithHeaders) Head(url string) (*http.Response, error)</a></li>
+          <li><a href="#ClientWithHeaders.Options">func (c *ClientWithHeaders) Options(url string) (*http.Response, error)</a></li>
+          <li><a href="#ClientWithHeaders.Post">func (c *ClientWithHeaders) Post(url, contentType string, rawBody interface{}) (*http.Response, error)</a></li>
+          <li><a href="#ClientWithHeaders.PostForm">func (c *ClientWithHeaders) PostForm(url string, data url.Values) (*http.Response, error)</a></li>
+          <li><a href="#ClientWithHeaders.Put">func (c *ClientWithHeaders) Put(url string, rawBody interface{}) (*http.Response, error)</a></li>
+          <li><a href="#ClientWithHeaders.RemoveHeader">func (c *ClientWithHeaders) RemoveHeader(key string)</a></li>
+          <li><a href="#ClientWithHeaders.StandardClient">func (c *ClientWithHeaders) StandardClient() *http.Client</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#ExponentialBackoffPolicy">type ExponentialBackoffPolicy</a>
+      <ul>
+          <li><a href="#ExponentialBackoffPolicy.Apply">func (p *ExponentialBackoffPolicy) Apply(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#GenericClient">type GenericClient</a>
+      <ul>
+          <li><a href="#GenericClient.Close">func (c *GenericClient) Close() error</a></li>
+          <li><a href="#GenericClient.Delete">func (c *GenericClient) Delete(url string) (*http.Response, error)</a></li>
+          <li><a href="#GenericClient.Do">func (c *GenericClient) Do(req *http.Request) (resp *http.Response, err error)</a></li>
+          <li><a href="#GenericClient.Get">func (c *GenericClient) Get(url string) (*http.Response, error)</a></li>
+          <li><a href="#GenericClient.Head">func (c *GenericClient) Head(url string) (*http.Response, error)</a></li>
+          <li><a href="#GenericClient.Options">func (c *GenericClient) Options(url string) (*http.Response, error)</a></li>
+          <li><a href="#GenericClient.Post">func (c *GenericClient) Post(url, contentType string, rawBody interface{}) (*http.Response, error)</a></li>
+          <li><a href="#GenericClient.PostForm">func (c *GenericClient) PostForm(url string, data url.Values) (*http.Response, error)</a></li>
+          <li><a href="#GenericClient.Put">func (c *GenericClient) Put(url string, rawBody interface{}) (*http.Response, error)</a></li>
+          <li><a href="#GenericClient.StandardClient">func (c *GenericClient) StandardClient() *http.Client</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#HTTPClientConfiguration">type HTTPClientConfiguration</a>
+      <ul>
+          <li><a href="#DefaultHTTPClientConfiguration">func DefaultHTTPClientConfiguration() *HTTPClientConfiguration</a></li>
+          <li><a href="#DefaultRobustHTTPClientConfiguration">func DefaultRobustHTTPClientConfiguration() *HTTPClientConfiguration</a></li>
+          <li><a href="#DefaultRobustHTTPClientConfigurationWithExponentialBackOff">func DefaultRobustHTTPClientConfigurationWithExponentialBackOff() *HTTPClientConfiguration</a></li>
+          <li><a href="#DefaultRobustHTTPClientConfigurationWithLinearBackOff">func DefaultRobustHTTPClientConfigurationWithLinearBackOff() *HTTPClientConfiguration</a></li>
+          <li><a href="#DefaultRobustHTTPClientConfigurationWithRetryAfter">func DefaultRobustHTTPClientConfigurationWithRetryAfter() *HTTPClientConfiguration</a></li>
+          <li><a href="#FastHTTPClientConfiguration">func FastHTTPClientConfiguration() *HTTPClientConfiguration</a></li>
+          <li><a href="#HTTPClientConfiguration.Validate">func (cfg *HTTPClientConfiguration) Validate() error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IClient">type IClient</a>
+      <ul>
+          <li><a href="#NewDefaultPooledClient">func NewDefaultPooledClient() IClient</a></li>
+          <li><a href="#NewFastPooledClient">func NewFastPooledClient() IClient</a></li>
+          <li><a href="#NewGenericClient">func NewGenericClient(rawClient *http.Client) IClient</a></li>
+          <li><a href="#NewPlainHTTPClient">func NewPlainHTTPClient() IClient</a></li>
+          <li><a href="#NewPooledClient">func NewPooledClient(cfg *HTTPClientConfiguration) IClient</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IClientWithHeaders">type IClientWithHeaders</a>
+      <ul>
+          <li><a href="#NewHTTPClientWithEmptyHeaders">func NewHTTPClientWithEmptyHeaders() (c IClientWithHeaders, err error)</a></li>
+          <li><a href="#NewHTTPClientWithHeaders">func NewHTTPClientWithHeaders(headers ...string) (clientWithHeaders IClientWithHeaders, err error)</a></li>
+          <li><a href="#NewHTTPClientWithUnderlyingClientWithEmptyHeaders">func NewHTTPClientWithUnderlyingClientWithEmptyHeaders(underlyingClient IClient) (c IClientWithHeaders, err error)</a></li>
+          <li><a href="#NewHTTPClientWithUnderlyingClientWithHeaders">func NewHTTPClientWithUnderlyingClientWithHeaders(underlyingClient IClient, headers ...string) (c IClientWithHeaders, err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IRetryWaitPolicy">type IRetryWaitPolicy</a>
+      <ul>
+          <li><a href="#BackOffPolicyFactory">func BackOffPolicyFactory(cfg *RetryPolicyConfiguration) (policy IRetryWaitPolicy)</a></li>
+          <li><a href="#NewBasicRetryPolicy">func NewBasicRetryPolicy(cfg *RetryPolicyConfiguration) IRetryWaitPolicy</a></li>
+          <li><a href="#NewExponentialBackoffPolicy">func NewExponentialBackoffPolicy(cfg *RetryPolicyConfiguration) IRetryWaitPolicy</a></li>
+          <li><a href="#NewLinearBackoffPolicy">func NewLinearBackoffPolicy(cfg *RetryPolicyConfiguration) IRetryWaitPolicy</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IRetryableClient">type IRetryableClient</a>
+      <ul>
+          <li><a href="#NewClientWithAuthorisation">func NewClientWithAuthorisation(requestCfg *RequestConfiguration) IRetryableClient</a></li>
+          <li><a href="#NewConfigurableRetryableClient">func NewConfigurableRetryableClient(cfg *HTTPClientConfiguration) IRetryableClient</a></li>
+          <li><a href="#NewConfigurableRetryableClientFromClient">func NewConfigurableRetryableClientFromClient(cfg *HTTPClientConfiguration, client *http.Client) IRetryableClient</a></li>
+          <li><a href="#NewConfigurableRetryableClientWithLogger">func NewConfigurableRetryableClientWithLogger(cfg *HTTPClientConfiguration, logger logr.Logger) IRetryableClient</a></li>
+          <li><a href="#NewConfigurableRetryableClientWithLoggerAndCustomClient">func NewConfigurableRetryableClientWithLoggerAndCustomClient(cfg *HTTPClientConfiguration, requestCfg *RequestConfiguration, ...) IRetryableClient</a></li>
+          <li><a href="#NewConfigurableRetryableClientWithLoggerFromClient">func NewConfigurableRetryableClientWithLoggerFromClient(cfg *HTTPClientConfiguration, logger logr.Logger, client *http.Client) IRetryableClient</a></li>
+          <li><a href="#NewConfigurableRetryableOauthClient">func NewConfigurableRetryableOauthClient(cfg *HTTPClientConfiguration, token string) IRetryableClient</a></li>
+          <li><a href="#NewConfigurableRetryableOauthClientWithLogger">func NewConfigurableRetryableOauthClientWithLogger(cfg *HTTPClientConfiguration, logger logr.Logger, token string) IRetryableClient</a></li>
+          <li><a href="#NewConfigurableRetryableOauthClientWithLoggerAndCustomClient">func NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(cfg *HTTPClientConfiguration, client *http.Client, logger logr.Logger, ...) IRetryableClient</a></li>
+          <li><a href="#NewConfigurableRetryableOauthClientWithToken">func NewConfigurableRetryableOauthClientWithToken(cfg *HTTPClientConfiguration, t *oauth2.Token) IRetryableClient</a></li>
+          <li><a href="#NewConfigurableRetryableOauthClientWithTokenAndLogger">func NewConfigurableRetryableOauthClientWithTokenAndLogger(cfg *HTTPClientConfiguration, logger logr.Logger, t *oauth2.Token) IRetryableClient</a></li>
+          <li><a href="#NewRetryableClient">func NewRetryableClient() IRetryableClient</a></li>
+          <li><a href="#NewRetryableClientWithAuthorisation">func NewRetryableClientWithAuthorisation(cfg *HTTPClientConfiguration, requestCfg *RequestConfiguration) IRetryableClient</a></li>
+          <li><a href="#NewRetryableClientWithLogger">func NewRetryableClientWithLogger(cfg *HTTPClientConfiguration, requestCfg *RequestConfiguration, ...) IRetryableClient</a></li>
+          <li><a href="#NewRetryableOauthClient">func NewRetryableOauthClient(token string) IRetryableClient</a></li>
+          <li><a href="#NewRetryableOauthClientWithToken">func NewRetryableOauthClientWithToken(t *oauth2.Token) IRetryableClient</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#LinearBackoffPolicy">type LinearBackoffPolicy</a>
+      <ul>
+          <li><a href="#LinearBackoffPolicy.Apply">func (p *LinearBackoffPolicy) Apply(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#PooledClient">type PooledClient</a>
+      </li>
+  <li>
+      <a href="#RequestConfiguration">type RequestConfiguration</a>
+      <ul>
+          <li><a href="#DefaultHTTPRequestConfiguration">func DefaultHTTPRequestConfiguration(userAgent string) *RequestConfiguration</a></li>
+          <li><a href="#DefaultHTTPRequestWithAuthorisationConfigurationEnforced">func DefaultHTTPRequestWithAuthorisationConfigurationEnforced(userAgent string) *RequestConfiguration</a></li>
+          <li><a href="#RequestConfiguration.Validate">func (cfg *RequestConfiguration) Validate() (err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#RetryPolicyConfiguration">type RetryPolicyConfiguration</a>
+      <ul>
+          <li><a href="#DefaultBasicRetryPolicyConfiguration">func DefaultBasicRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          <li><a href="#DefaultExponentialBackoffRetryPolicyConfiguration">func DefaultExponentialBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          <li><a href="#DefaultLinearBackoffRetryPolicyConfiguration">func DefaultLinearBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          <li><a href="#DefaultNoRetryPolicyConfiguration">func DefaultNoRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          <li><a href="#DefaultRobustRetryPolicyConfiguration">func DefaultRobustRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#RetryWaitPolicy">type RetryWaitPolicy</a>
+      <ul>
+          <li><a href="#NewRetryWaitPolicy">func NewRetryWaitPolicy(cfg *RetryPolicyConfiguration) *RetryWaitPolicy</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#RetryableClient">type RetryableClient</a>
+      <ul>
+          <li><a href="#RetryableClient.Close">func (c *RetryableClient) Close() error</a></li>
+          <li><a href="#RetryableClient.Delete">func (c *RetryableClient) Delete(url string) (*http.Response, error)</a></li>
+          <li><a href="#RetryableClient.Do">func (c *RetryableClient) Do(req *http.Request) (*http.Response, error)</a></li>
+          <li><a href="#RetryableClient.Get">func (c *RetryableClient) Get(url string) (*http.Response, error)</a></li>
+          <li><a href="#RetryableClient.Head">func (c *RetryableClient) Head(url string) (*http.Response, error)</a></li>
+          <li><a href="#RetryableClient.Options">func (c *RetryableClient) Options(url string) (*http.Response, error)</a></li>
+          <li><a href="#RetryableClient.Post">func (c *RetryableClient) Post(url, contentType string, body interface{}) (*http.Response, error)</a></li>
+          <li><a href="#RetryableClient.PostForm">func (c *RetryableClient) PostForm(url string, data url.Values) (*http.Response, error)</a></li>
+          <li><a href="#RetryableClient.Put">func (c *RetryableClient) Put(url string, body interface{}) (*http.Response, error)</a></li>
+          <li><a href="#RetryableClient.StandardClient">func (c *RetryableClient) StandardClient() *http.Client</a></li>
+          <li><a href="#RetryableClient.UnderlyingClient">func (c *RetryableClient) UnderlyingClient() *retryablehttp.Client</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#Target">type Target</a>
+      <ul>
+          <li><a href="#Target.GetTargetAddress">func (cfg *Target) GetTargetAddress() string</a></li>
+          <li><a href="#Target.Validate">func (cfg *Target) Validate() (err error)</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-constants">Constants</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">const</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeToken"><span class="nx">AuthorisationSchemeToken</span></span><span class="w">        </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeToken"><span class="nx">AuthorisationSchemeToken</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeBasic"><span class="nx">AuthorisationSchemeBasic</span></span><span class="w">        </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeBasic"><span class="nx">AuthorisationSchemeBasic</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeBearer"><span class="nx">AuthorisationSchemeBearer</span></span><span class="w">       </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeBearer"><span class="nx">AuthorisationSchemeBearer</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeConcealed"><span class="nx">AuthorisationSchemeConcealed</span></span><span class="w">    </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeConcealed"><span class="nx">AuthorisationSchemeConcealed</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeDigest"><span class="nx">AuthorisationSchemeDigest</span></span><span class="w">       </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeDigest"><span class="nx">AuthorisationSchemeDigest</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeDPoP"><span class="nx">AuthorisationSchemeDPoP</span></span><span class="w">         </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeDPoP"><span class="nx">AuthorisationSchemeDPoP</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeGNAP"><span class="nx">AuthorisationSchemeGNAP</span></span><span class="w">         </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeGNAP"><span class="nx">AuthorisationSchemeGNAP</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeHOBA"><span class="nx">AuthorisationSchemeHOBA</span></span><span class="w">         </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeHOBA"><span class="nx">AuthorisationSchemeHOBA</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeMutual"><span class="nx">AuthorisationSchemeMutual</span></span><span class="w">       </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeMutual"><span class="nx">AuthorisationSchemeMutual</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeNegotiate"><span class="nx">AuthorisationSchemeNegotiate</span></span><span class="w">    </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeNegotiate"><span class="nx">AuthorisationSchemeNegotiate</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeOAuth"><span class="nx">AuthorisationSchemeOAuth</span></span><span class="w">        </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeOAuth"><span class="nx">AuthorisationSchemeOAuth</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemePrivateToken"><span class="nx">AuthorisationSchemePrivateToken</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemePrivateToken"><span class="nx">AuthorisationSchemePrivateToken</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeSCRAMSSHA1"><span class="nx">AuthorisationSchemeSCRAMSSHA1</span></span><span class="w">   </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeSCRAMSHA1"><span class="nx">AuthorisationSchemeSCRAMSHA1</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeSCRAMSHA256"><span class="nx">AuthorisationSchemeSCRAMSHA256</span></span><span class="w">  </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeSCRAMSHA256"><span class="nx">AuthorisationSchemeSCRAMSHA256</span></a><span class="w">
+</span><span class="w">	</span><span id="AuthorisationSchemeVapid"><span class="nx">AuthorisationSchemeVapid</span></span><span class="w">        </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#AuthorisationSchemeVapid"><span class="nx">AuthorisationSchemeVapid</span></a><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="HTTPAuthorisationSchemes"><span class="nx">HTTPAuthorisationSchemes</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="schemes"><span class="nx">schemes</span></a><span class="p">.</span><a href="schemes#HTTPAuthorisationSchemes"><span class="nx">HTTPAuthorisationSchemes</span></a><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="RetryOnError">func RetryOnError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">RetryOnError</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">logger</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4"><span class="nx">logr</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4#Logger"><span class="nx">Logger</span></a><span class="p">,</span><span class="w"> </span><span class="nx">retryPolicy</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fn</span><span class="w"> </span><span class="kd">func</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">msgOnRetry</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">retriableErr</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>RetryOnError allows the caller to retry fn when the error returned by fn is retriable
+as in of the type specified by retriableErr. backoff defines the maximum retries and the wait
+interval between two retries.
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="Auth">type Auth</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Auth</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="Auth.Enforced"><span class="nx">Enforced</span></span><span class="w">    </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">   </span><span class="s">`mapstructure:&#34;enforced&#34;`</span><span class="w">
+</span><span class="w">	</span><span id="Auth.Scheme"><span class="nx">Scheme</span></span><span class="w">      </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;scheme&#34;`</span><span class="w">
+</span><span class="w">	</span><span id="Auth.AccessToken"><span class="nx">AccessToken</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;token&#34;`</span><span class="w"> </span><span class="cp">//nolint:gosec //G117: Exported struct field</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Auth defines a typical HTTP client authentication/authorisation configuration
+See <a href="https://datatracker.ietf.org/doc/html/rfc7235">https://datatracker.ietf.org/doc/html/rfc7235</a>
+<h5 id="NewAuthConfiguration">func NewAuthConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewAuthConfiguration</span><span class="p">(</span><span class="nx">authorizationHeader</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#Auth"><span class="nx">Auth</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewAuthConfiguration returns a configuration based on an authorization header
+<h5 id="Auth.GetAuthorizationHeader">func (*Auth) GetAuthorizationHeader</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#Auth"><span class="nx">Auth</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetAuthorizationHeader</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h5 id="Auth.Validate">func (*Auth) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#Auth"><span class="nx">Auth</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="BasicRetryPolicy">type BasicRetryPolicy</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">BasicRetryPolicy</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#RetryWaitPolicy"><span class="nx">RetryWaitPolicy</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>BasicRetryPolicy defines a basic retry policy i.e. it only waits a constant `min` amount of time between attempts.
+If enabled, it also looks at the `Retry-After` header in the case of 429/503 HTTP errors (<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After</a>).
+<h5 id="BasicRetryPolicy.Apply">func (*BasicRetryPolicy) Apply</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="o">*</span><a href="#BasicRetryPolicy"><span class="nx">BasicRetryPolicy</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Apply</span><span class="p">(</span><span class="nx">min</span><span class="p">,</span><span class="w"> </span><span class="nx">max</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">attemptNum</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">resp</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a></pre>
+  <h4 id="ClientWithHeaders">type ClientWithHeaders</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ClientWithHeaders</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="ClientWithHeaders.AppendHeader">func (*ClientWithHeaders) AppendHeader</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">AppendHeader</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span></pre>
+  <h5 id="ClientWithHeaders.ClearHeaders">func (*ClientWithHeaders) ClearHeaders</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">ClearHeaders</span><span class="p">()</span></pre>
+  <h5 id="ClientWithHeaders.Close">func (*ClientWithHeaders) Close</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Close</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="ClientWithHeaders.Delete">func (*ClientWithHeaders) Delete</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Delete</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="ClientWithHeaders.Do">func (*ClientWithHeaders) Do</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Do</span><span class="p">(</span><span class="nx">req</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Request"><span class="nx">Request</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="ClientWithHeaders.Get">func (*ClientWithHeaders) Get</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Get</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="ClientWithHeaders.Head">func (*ClientWithHeaders) Head</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Head</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="ClientWithHeaders.Options">func (*ClientWithHeaders) Options</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Options</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="ClientWithHeaders.Post">func (*ClientWithHeaders) Post</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Post</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span><span class="w"> </span><span class="nx">contentType</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">rawBody</span><span class="w"> </span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="ClientWithHeaders.PostForm">func (*ClientWithHeaders) PostForm</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">PostForm</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><a href="https://pkg.go.dev/net/url"><span class="nx">url</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/url#Values"><span class="nx">Values</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="ClientWithHeaders.Put">func (*ClientWithHeaders) Put</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Put</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">rawBody</span><span class="w"> </span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="ClientWithHeaders.RemoveHeader">func (*ClientWithHeaders) RemoveHeader</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">RemoveHeader</span><span class="p">(</span><span class="nx">key</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span></pre>
+  <h5 id="ClientWithHeaders.StandardClient">func (*ClientWithHeaders) StandardClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#ClientWithHeaders"><span class="nx">ClientWithHeaders</span></a><span class="p">)</span><span class="w"> </span><span class="nf">StandardClient</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Client"><span class="nx">Client</span></a></pre>
+  <h4 id="ExponentialBackoffPolicy">type ExponentialBackoffPolicy</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ExponentialBackoffPolicy</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#RetryWaitPolicy"><span class="nx">RetryWaitPolicy</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>ExponentialBackoffPolicy defines an exponential backoff retry policy.
+It is exactly the same as retryablehttp.DefaultBackoff although the `Retry-After` header is checked differently to accept dates as well as time.
+<h5 id="ExponentialBackoffPolicy.Apply">func (*ExponentialBackoffPolicy) Apply</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="o">*</span><a href="#ExponentialBackoffPolicy"><span class="nx">ExponentialBackoffPolicy</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Apply</span><span class="p">(</span><span class="nx">min</span><span class="p">,</span><span class="w"> </span><span class="nx">max</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">attemptNum</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">resp</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a></pre>
+  <h4 id="GenericClient">type GenericClient</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">GenericClient</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>GenericClient is an HTTP client similar to
+http.Client (in fact, entirely based on it), but with extended capabilities (e.g. Options, Delete and Put methods are defined)
+to cover most methods defined in HTTP.
+<h5 id="GenericClient.Close">func (*GenericClient) Close</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GenericClient"><span class="nx">GenericClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Close</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="GenericClient.Delete">func (*GenericClient) Delete</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GenericClient"><span class="nx">GenericClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Delete</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="GenericClient.Do">func (*GenericClient) Do</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GenericClient"><span class="nx">GenericClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Do</span><span class="p">(</span><span class="nx">req</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Request"><span class="nx">Request</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">resp</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Do sends the provided HTTP request using the underlying http.Client
+and returns the resulting response.
+<p>Validation
+The method performs minimal defensive checks before dispatching:
+<ul>
+<li>req must not be nil or empty
+<li>req.URL must not be empty
+</ul>
+<p>If either validation fails, an UndefinedVariable error is returned.
+<p>Security considerations
+This method intentionally delegates full request validation and
+authorisation decisions to the caller. In particular, it does not
+enforce host allow-listing, scheme restrictions, redirect policies,
+or other SSRF mitigations.
+<p>Static analysis tools (e.g. gosec G704) flag direct execution of
+externally influenced requests as a potential Server-Side Request
+Forgery (SSRF) risk. This behaviour is deliberate: callers are
+responsible for validating and constraining req before invoking Do.
+<h5 id="GenericClient.Get">func (*GenericClient) Get</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GenericClient"><span class="nx">GenericClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Get</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="GenericClient.Head">func (*GenericClient) Head</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GenericClient"><span class="nx">GenericClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Head</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="GenericClient.Options">func (*GenericClient) Options</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GenericClient"><span class="nx">GenericClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Options</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="GenericClient.Post">func (*GenericClient) Post</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GenericClient"><span class="nx">GenericClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Post</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span><span class="w"> </span><span class="nx">contentType</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">rawBody</span><span class="w"> </span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="GenericClient.PostForm">func (*GenericClient) PostForm</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GenericClient"><span class="nx">GenericClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">PostForm</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><a href="https://pkg.go.dev/net/url"><span class="nx">url</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/url#Values"><span class="nx">Values</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="GenericClient.Put">func (*GenericClient) Put</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GenericClient"><span class="nx">GenericClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Put</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">rawBody</span><span class="w"> </span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="GenericClient.StandardClient">func (*GenericClient) StandardClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GenericClient"><span class="nx">GenericClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">StandardClient</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Client"><span class="nx">Client</span></a></pre>
+  <h4 id="HTTPClientConfiguration">type HTTPClientConfiguration</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">HTTPClientConfiguration</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// MaxConnsPerHost optionally limits the total number of</span><span class="w">
+</span><span class="w">	</span><span class="c1">// connections per host, including connections in the dialling,</span><span class="w">
+</span><span class="w">	</span><span class="c1">// active, and idle states. On limit violation, dials will block.</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	// Zero means no limit.</span><span class="w">
+</span><span class="w">	</span><span id="HTTPClientConfiguration.MaxConnsPerHost"><span class="nx">MaxConnsPerHost</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_connections_per_host&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// MaxIdleConns controls the maximum number of idle (keep-alive)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// connections across all hosts. Zero means no limit.</span><span class="w">
+</span><span class="w">	</span><span id="HTTPClientConfiguration.MaxIdleConns"><span class="nx">MaxIdleConns</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_idle_connections&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// MaxIdleConnsPerHost, if non-zero, controls the maximum idle</span><span class="w">
+</span><span class="w">	</span><span class="c1">// (keep-alive) connections to keep per-host. If zero,</span><span class="w">
+</span><span class="w">	</span><span class="c1">// DefaultMaxIdleConnsPerHost is used.</span><span class="w">
+</span><span class="w">	</span><span id="HTTPClientConfiguration.MaxIdleConnsPerHost"><span class="nx">MaxIdleConnsPerHost</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_idle_connections_per_host&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// IdleConnTimeout is the maximum amount of time an idle</span><span class="w">
+</span><span class="w">	</span><span class="c1">// (keep-alive) connection will remain idle before closing</span><span class="w">
+</span><span class="w">	</span><span class="c1">// itself.</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Zero means no limit.</span><span class="w">
+</span><span class="w">	</span><span id="HTTPClientConfiguration.IdleConnTimeout"><span class="nx">IdleConnTimeout</span></span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;timeout_idle_connection&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// TLSHandshakeTimeout specifies the maximum amount of time waiting to</span><span class="w">
+</span><span class="w">	</span><span class="c1">// wait for a TLS handshake. Zero means no timeout.</span><span class="w">
+</span><span class="w">	</span><span id="HTTPClientConfiguration.TLSHandshakeTimeout"><span class="nx">TLSHandshakeTimeout</span></span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;timeout_tls_handshake&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// ExpectContinueTimeout, if non-zero, specifies the amount of</span><span class="w">
+</span><span class="w">	</span><span class="c1">// time to wait for a server&#39;s first response headers after fully</span><span class="w">
+</span><span class="w">	</span><span class="c1">// writing the request headers if the request has an</span><span class="w">
+</span><span class="w">	</span><span class="c1">// &#34;Expect: 100-continue&#34; header. Zero means no timeout and</span><span class="w">
+</span><span class="w">	</span><span class="c1">// causes the body to be sent immediately, without</span><span class="w">
+</span><span class="w">	</span><span class="c1">// waiting for the server to approve.</span><span class="w">
+</span><span class="w">	</span><span class="c1">// This time does not include the time to send the request header.</span><span class="w">
+</span><span class="w">	</span><span id="HTTPClientConfiguration.ExpectContinueTimeout"><span class="nx">ExpectContinueTimeout</span></span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;timeout_expect_continue&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// RetryPolicy defines the retry policy to use for the retryable client</span><span class="w">
+</span><span class="w">	</span><span id="HTTPClientConfiguration.RetryPolicy"><span class="nx">RetryPolicy</span></span><span class="w"> </span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;retry_policy&#34;`</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>HTTPClientConfiguration defines the client configuration. It can be used to tweak low level transport
+parameters in order to adapt the client to your use case.
+If unsure about the values to set, use the DefaultHTTPClientConfiguration or FastHTTPClientConfiguration depending on
+what flow you are dealing with.
+<h5 id="DefaultHTTPClientConfiguration">func DefaultHTTPClientConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultHTTPClientConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a></pre>
+  <p>DefaultHTTPClientConfiguration uses default values similar to <a href="https://github.com/hashicorp/go-cleanhttp/blob/6d9e2ac5d828e5f8594b97f88c4bde14a67bb6d2/cleanhttp.go#L23">https://github.com/hashicorp/go-cleanhttp/blob/6d9e2ac5d828e5f8594b97f88c4bde14a67bb6d2/cleanhttp.go#L23</a>
+Similar default values to http.DefaultTransport
+<h5 id="DefaultRobustHTTPClientConfiguration">func DefaultRobustHTTPClientConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultRobustHTTPClientConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a></pre>
+  <p>DefaultRobustHTTPClientConfiguration is similar to DefaultHTTPClientConfiguration but performs basic retry policy on failure.
+<h5 id="DefaultRobustHTTPClientConfigurationWithExponentialBackOff">func DefaultRobustHTTPClientConfigurationWithExponentialBackOff</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultRobustHTTPClientConfigurationWithExponentialBackOff</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a></pre>
+  <p>DefaultRobustHTTPClientConfigurationWithExponentialBackOff is similar to DefaultHTTPClientConfiguration but performs exponential backoff.
+<h5 id="DefaultRobustHTTPClientConfigurationWithLinearBackOff">func DefaultRobustHTTPClientConfigurationWithLinearBackOff</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultRobustHTTPClientConfigurationWithLinearBackOff</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a></pre>
+  <p>DefaultRobustHTTPClientConfigurationWithLinearBackOff is similar to DefaultHTTPClientConfiguration but performs linear backoff.
+<h5 id="DefaultRobustHTTPClientConfigurationWithRetryAfter">func DefaultRobustHTTPClientConfigurationWithRetryAfter</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultRobustHTTPClientConfigurationWithRetryAfter</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a></pre>
+  <p>DefaultRobustHTTPClientConfigurationWithRetryAfter is similar to DefaultRobustHTTPClientConfiguration but considers `Retry-After` header.
+<h5 id="FastHTTPClientConfiguration">func FastHTTPClientConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FastHTTPClientConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a></pre>
+  <p>FastHTTPClientConfiguration uses parameter values similar to <a href="https://github.com/valyala/fasthttp/blob/81fc96827033a5ee92d8a098ab1cdb9827e1eb8d/client.go">https://github.com/valyala/fasthttp/blob/81fc96827033a5ee92d8a098ab1cdb9827e1eb8d/client.go</a>
+the configuration was designed for some high performance edge cases: handle thousands of small to medium requests per seconds and a consistent low millisecond response time.
+It is, for example, used for checking authentication/authorisation.
+<h5 id="HTTPClientConfiguration.Validate">func (*HTTPClientConfiguration) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h4 id="IClient">type IClient</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IClient</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Closer"><span class="nx">Closer</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Get is a convenience helper for doing simple GET requests.</span><span class="w">
+</span><span class="w">	</span><span id="IClient.Get"><span class="nf">Get</span></span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Head is a convenience method for doing simple HEAD requests.</span><span class="w">
+</span><span class="w">	</span><span id="IClient.Head"><span class="nf">Head</span></span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Post is a convenience method for doing simple POST requests.</span><span class="w">
+</span><span class="w">	</span><span id="IClient.Post"><span class="nf">Post</span></span><span class="p">(</span><span class="nx">url</span><span class="p">,</span><span class="w"> </span><span class="nx">contentType</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// PostForm is a convenience method for doing simple POST operations using</span><span class="w">
+</span><span class="w">	</span><span class="c1">// pre-filled url.Values form data.</span><span class="w">
+</span><span class="w">	</span><span id="IClient.PostForm"><span class="nf">PostForm</span></span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><a href="https://pkg.go.dev/net/url"><span class="nx">url</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/url#Values"><span class="nx">Values</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// StandardClient returns a standard library *http.Client with a custom Transport layer.</span><span class="w">
+</span><span class="w">	</span><span id="IClient.StandardClient"><span class="nf">StandardClient</span></span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Client"><span class="nx">Client</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Put performs a PUT request.</span><span class="w">
+</span><span class="w">	</span><span id="IClient.Put"><span class="nf">Put</span></span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Delete performs a DELETE request.</span><span class="w">
+</span><span class="w">	</span><span id="IClient.Delete"><span class="nf">Delete</span></span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Options performs an OPTIONS request.</span><span class="w">
+</span><span class="w">	</span><span id="IClient.Options"><span class="nf">Options</span></span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Do performs a generic request.</span><span class="w">
+</span><span class="w">	</span><span id="IClient.Do"><span class="nf">Do</span></span><span class="p">(</span><span class="nx">req</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Request"><span class="nx">Request</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IClient defines an HTTP client similar to http.Client but without shared state with other clients used in the same program.
+See <a href="https://github.com/hashicorp/go-cleanhttp">https://github.com/hashicorp/go-cleanhttp</a> for more details.
+<h5 id="NewDefaultPooledClient">func NewDefaultPooledClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewDefaultPooledClient</span><span class="p">()</span><span class="w"> </span><a href="#IClient"><span class="nx">IClient</span></a></pre>
+  <p>NewDefaultPooledClient returns a new HTTP client with similar default values to
+http.Client, but with a shared Transport.
+<h5 id="NewFastPooledClient">func NewFastPooledClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewFastPooledClient</span><span class="p">()</span><span class="w"> </span><a href="#IClient"><span class="nx">IClient</span></a></pre>
+  <p>NewFastPooledClient returns a new HTTP client with similar default values to
+fast http client <a href="https://github.com/valyala/fasthttp">https://github.com/valyala/fasthttp</a>.
+<h5 id="NewGenericClient">func NewGenericClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewGenericClient</span><span class="p">(</span><span class="nx">rawClient</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Client"><span class="nx">Client</span></a><span class="p">)</span><span class="w"> </span><a href="#IClient"><span class="nx">IClient</span></a></pre>
+  <p>NewGenericClient returns a new HTTP client (GenericClient) based on a standard library client implementation.
+If the raw client is not provided, it will default to the plain HTTP client (See NewPlainHTTPClient).
+<h5 id="NewPlainHTTPClient">func NewPlainHTTPClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewPlainHTTPClient</span><span class="p">()</span><span class="w"> </span><a href="#IClient"><span class="nx">IClient</span></a></pre>
+  <p>NewPlainHTTPClient creates an HTTP client similar to http.DefaultClient but with extended methods and no shared state.
+<h5 id="NewPooledClient">func NewPooledClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewPooledClient</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="#IClient"><span class="nx">IClient</span></a></pre>
+  <p>NewPooledClient returns a new HTTP client using the configuration passed as argument.
+Do not use this function for
+transient clients as it can leak file descriptors over time. Only use this
+for clients that will be re-used for the same host(s).
+<h4 id="IClientWithHeaders">type IClientWithHeaders</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IClientWithHeaders</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IClient"><span class="nx">IClient</span></a><span class="w">
+</span><span class="w">	</span><span id="IClientWithHeaders.AppendHeader"><span class="nf">AppendHeader</span></span><span class="p">(</span><span class="nx">key</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="IClientWithHeaders.RemoveHeader"><span class="nf">RemoveHeader</span></span><span class="p">(</span><span class="nx">key</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="IClientWithHeaders.ClearHeaders"><span class="nf">ClearHeaders</span></span><span class="p">()</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IClientWithHeaders is a normal client that can have headers attached to it. These headers will be used in all requests
+<h5 id="NewHTTPClientWithEmptyHeaders">func NewHTTPClientWithEmptyHeaders</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewHTTPClientWithEmptyHeaders</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><a href="#IClientWithHeaders"><span class="nx">IClientWithHeaders</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="NewHTTPClientWithHeaders">func NewHTTPClientWithHeaders</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewHTTPClientWithHeaders</span><span class="p">(</span><span class="nx">headers</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">clientWithHeaders</span><span class="w"> </span><a href="#IClientWithHeaders"><span class="nx">IClientWithHeaders</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="NewHTTPClientWithUnderlyingClientWithEmptyHeaders">func NewHTTPClientWithUnderlyingClientWithEmptyHeaders</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewHTTPClientWithUnderlyingClientWithEmptyHeaders</span><span class="p">(</span><span class="nx">underlyingClient</span><span class="w"> </span><a href="#IClient"><span class="nx">IClient</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><a href="#IClientWithHeaders"><span class="nx">IClientWithHeaders</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="NewHTTPClientWithUnderlyingClientWithHeaders">func NewHTTPClientWithUnderlyingClientWithHeaders</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewHTTPClientWithUnderlyingClientWithHeaders</span><span class="p">(</span><span class="nx">underlyingClient</span><span class="w"> </span><a href="#IClient"><span class="nx">IClient</span></a><span class="p">,</span><span class="w"> </span><span class="nx">headers</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><a href="#IClientWithHeaders"><span class="nx">IClientWithHeaders</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="IRetryWaitPolicy">type IRetryWaitPolicy</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IRetryWaitPolicy</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Apply determines the amount of time to wait before the next retry attempt.</span><span class="w">
+</span><span class="w">	</span><span class="c1">// the time will be comprised between the `min` and `max` value unless other information are retrieved from the server response e.g. `Retry-After` header.</span><span class="w">
+</span><span class="w">	</span><span id="IRetryWaitPolicy.Apply"><span class="nf">Apply</span></span><span class="p">(</span><span class="nx">min</span><span class="p">,</span><span class="w"> </span><span class="nx">max</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">attemptNum</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">resp</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IRetryWaitPolicy defines the policy which specifies how much wait/sleep should happen between retry attempts.
+<h5 id="BackOffPolicyFactory">func BackOffPolicyFactory</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">BackOffPolicyFactory</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">policy</span><span class="w"> </span><a href="#IRetryWaitPolicy"><span class="nx">IRetryWaitPolicy</span></a><span class="p">)</span></pre>
+  <p>BackOffPolicyFactory generates a backoff policy based on configuration.
+<h5 id="NewBasicRetryPolicy">func NewBasicRetryPolicy</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewBasicRetryPolicy</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryWaitPolicy"><span class="nx">IRetryWaitPolicy</span></a></pre>
+  <p>NewBasicRetryPolicy creates a BasicRetryPolicy.
+<h5 id="NewExponentialBackoffPolicy">func NewExponentialBackoffPolicy</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewExponentialBackoffPolicy</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryWaitPolicy"><span class="nx">IRetryWaitPolicy</span></a></pre>
+  <p>NewExponentialBackoffPolicy creates a ExponentialBackoffPolicy.
+<h5 id="NewLinearBackoffPolicy">func NewLinearBackoffPolicy</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewLinearBackoffPolicy</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryWaitPolicy"><span class="nx">IRetryWaitPolicy</span></a></pre>
+  <p>NewLinearBackoffPolicy creates a LinearBackoffPolicy.
+<h4 id="IRetryableClient">type IRetryableClient</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IRetryableClient</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IClient"><span class="nx">IClient</span></a><span class="w">
+</span><span class="w">	</span><span id="IRetryableClient.UnderlyingClient"><span class="nf">UnderlyingClient</span></span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/github.com/hashicorp/go-retryablehttp@v0.7.8"><span class="nx">retryablehttp</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/hashicorp/go-retryablehttp@v0.7.8#Client"><span class="nx">Client</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IRetryableClient is a retryable client. It is a normal client with the additional method of extracting the underlying go-retryablehttp client so it can be used in libraries that use it
+<h5 id="NewClientWithAuthorisation">func NewClientWithAuthorisation</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewClientWithAuthorisation</span><span class="p">(</span><span class="nx">requestCfg</span><span class="w"> </span><span class="o">*</span><a href="#RequestConfiguration"><span class="nx">RequestConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewClientWithAuthorisation creates a new http client with the authorisation header set according to the configuration
+<h5 id="NewConfigurableRetryableClient">func NewConfigurableRetryableClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConfigurableRetryableClient</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewConfigurableRetryableClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
+<h5 id="NewConfigurableRetryableClientFromClient">func NewConfigurableRetryableClientFromClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConfigurableRetryableClientFromClient</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">client</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Client"><span class="nx">Client</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewConfigurableRetryableClientFromClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
+It also takes a custom client if you need an authenticated client
+<h5 id="NewConfigurableRetryableClientWithLogger">func NewConfigurableRetryableClientWithLogger</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConfigurableRetryableClientWithLogger</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">logger</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4"><span class="nx">logr</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4#Logger"><span class="nx">Logger</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewConfigurableRetryableClientWithLogger creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
+It is also possible to supply a logger for debug purposes
+<h5 id="NewConfigurableRetryableClientWithLoggerAndCustomClient">func NewConfigurableRetryableClientWithLoggerAndCustomClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConfigurableRetryableClientWithLoggerAndCustomClient</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">requestCfg</span><span class="w"> </span><span class="o">*</span><a href="#RequestConfiguration"><span class="nx">RequestConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">logger</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4"><span class="nx">logr</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4#Logger"><span class="nx">Logger</span></a><span class="p">,</span><span class="w"> </span><span class="nx">client</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Client"><span class="nx">Client</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewConfigurableRetryableClientWithLoggerAndCustomClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff)
+with the authorisation header set to what the request configuration specifies.
+The underlying client used can be optionally supplied via client
+It is also possible to supply a logger for debug purposes
+<h5 id="NewConfigurableRetryableClientWithLoggerFromClient">func NewConfigurableRetryableClientWithLoggerFromClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConfigurableRetryableClientWithLoggerFromClient</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">logger</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4"><span class="nx">logr</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4#Logger"><span class="nx">Logger</span></a><span class="p">,</span><span class="w"> </span><span class="nx">client</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Client"><span class="nx">Client</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewConfigurableRetryableClientWithLoggerFromClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
+It is also possible to supply a logger for debug purposes as well as a custom client if you need an authenticated client
+<h5 id="NewConfigurableRetryableOauthClient">func NewConfigurableRetryableOauthClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConfigurableRetryableOauthClient</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">token</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewConfigurableRetryableOauthClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set to token
+<h5 id="NewConfigurableRetryableOauthClientWithLogger">func NewConfigurableRetryableOauthClientWithLogger</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConfigurableRetryableOauthClientWithLogger</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">logger</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4"><span class="nx">logr</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4#Logger"><span class="nx">Logger</span></a><span class="p">,</span><span class="w"> </span><span class="nx">token</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewConfigurableRetryableOauthClientWithLogger creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set to token
+It is also possible to supply a logger for debug purposes
+<h5 id="NewConfigurableRetryableOauthClientWithLoggerAndCustomClient">func NewConfigurableRetryableOauthClientWithLoggerAndCustomClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConfigurableRetryableOauthClientWithLoggerAndCustomClient</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">client</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Client"><span class="nx">Client</span></a><span class="p">,</span><span class="w"> </span><span class="nx">logger</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4"><span class="nx">logr</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4#Logger"><span class="nx">Logger</span></a><span class="p">,</span><span class="w"> </span><span class="nx">token</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewConfigurableRetryableOauthClientWithLoggerAndCustomClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set to token
+The underlying client used by the oauth client can be optionally supplied via client
+It is also possible to supply a logger for debug purposes
+<h5 id="NewConfigurableRetryableOauthClientWithToken">func NewConfigurableRetryableOauthClientWithToken</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConfigurableRetryableOauthClientWithToken</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">t</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/golang.org/x/oauth2@v0.36.0"><span class="nx">oauth2</span></a><span class="p">.</span><a href="https://pkg.go.dev/golang.org/x/oauth2@v0.36.0#Token"><span class="nx">Token</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewConfigurableRetryableOauthClientWithToken creates a new http client with an authorisation token which will retry based on the configuration.
+It takes a full oauth2.Token to give more configuration for the token
+<h5 id="NewConfigurableRetryableOauthClientWithTokenAndLogger">func NewConfigurableRetryableOauthClientWithTokenAndLogger</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConfigurableRetryableOauthClientWithTokenAndLogger</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">logger</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4"><span class="nx">logr</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4#Logger"><span class="nx">Logger</span></a><span class="p">,</span><span class="w"> </span><span class="nx">t</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/golang.org/x/oauth2@v0.36.0"><span class="nx">oauth2</span></a><span class="p">.</span><a href="https://pkg.go.dev/golang.org/x/oauth2@v0.36.0#Token"><span class="nx">Token</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewConfigurableRetryableOauthClientWithTokenAndLogger creates a new http client with an authorisation token which will retry based on the configuration.
+It takes a logger to allow for debugging. It takes a full oauth2.Token to give more configuration for the token
+<h5 id="NewRetryableClient">func NewRetryableClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewRetryableClient</span><span class="p">()</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewRetryableClient creates a new http client which will retry failed requests with exponential backoff.
+It is based on `retryablehttp` default client
+<h5 id="NewRetryableClientWithAuthorisation">func NewRetryableClientWithAuthorisation</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewRetryableClientWithAuthorisation</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">requestCfg</span><span class="w"> </span><span class="o">*</span><a href="#RequestConfiguration"><span class="nx">RequestConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewRetryableClientWithAuthorisation creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set to token
+<h5 id="NewRetryableClientWithLogger">func NewRetryableClientWithLogger</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewRetryableClientWithLogger</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#HTTPClientConfiguration"><span class="nx">HTTPClientConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">requestCfg</span><span class="w"> </span><span class="o">*</span><a href="#RequestConfiguration"><span class="nx">RequestConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">logger</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4"><span class="nx">logr</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4#Logger"><span class="nx">Logger</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewRetryableClientWithLogger creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set if enforced in configuration
+It is also possible to supply a logger for debug purposes
+<h5 id="NewRetryableOauthClient">func NewRetryableOauthClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewRetryableOauthClient</span><span class="p">(</span><span class="nx">token</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewRetryableOauthClient creates a new http client with an authorisation token which will retry failed requests with exponential backoff.
+<h5 id="NewRetryableOauthClientWithToken">func NewRetryableOauthClientWithToken</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewRetryableOauthClientWithToken</span><span class="p">(</span><span class="nx">t</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/golang.org/x/oauth2@v0.36.0"><span class="nx">oauth2</span></a><span class="p">.</span><a href="https://pkg.go.dev/golang.org/x/oauth2@v0.36.0#Token"><span class="nx">Token</span></a><span class="p">)</span><span class="w"> </span><a href="#IRetryableClient"><span class="nx">IRetryableClient</span></a></pre>
+  <p>NewRetryableOauthClientWithToken creates a new http client with an authorisation token which will retry failed requests with exponential backoff. It takes a full oauth2.Token to give more configuration for the token
+<h4 id="LinearBackoffPolicy">type LinearBackoffPolicy</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">LinearBackoffPolicy</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#RetryWaitPolicy"><span class="nx">RetryWaitPolicy</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>LinearBackoffPolicy defines a linear backoff retry policy based on the attempt number and with jitter to
+prevent a thundering herd.
+It is similar to retryablehttp.LinearJitterBackoff but if enabled, it also looks at the `Retry-After` header in the case of 429/503 HTTP errors (<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After">https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After</a>).
+<h5 id="LinearBackoffPolicy.Apply">func (*LinearBackoffPolicy) Apply</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="o">*</span><a href="#LinearBackoffPolicy"><span class="nx">LinearBackoffPolicy</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Apply</span><span class="p">(</span><span class="nx">min</span><span class="p">,</span><span class="w"> </span><span class="nx">max</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">attemptNum</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">resp</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a></pre>
+  <h4 id="PooledClient">type PooledClient</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">PooledClient</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#GenericClient"><span class="nx">GenericClient</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>PooledClient is an HTTP client similar to
+http.Client, but with a shared Transport and different configuration values.
+It is based on <a href="https://github.com/hashicorp/go-cleanhttp">https://github.com/hashicorp/go-cleanhttp</a> which ensures the client configuration is only set for the current use case and not the whole project (i.e. no global variable)
+<h4 id="RequestConfiguration">type RequestConfiguration</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">RequestConfiguration</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#Target"><span class="nx">Target</span></a><span class="w">        </span><span class="s">`mapstructure:&#34;target&#34;`</span><span class="w">
+</span><span class="w">	</span><span id="RequestConfiguration.UserAgent"><span class="nx">UserAgent</span></span><span class="w">     </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">                   </span><span class="s">`mapstructure:&#34;user_agent&#34;`</span><span class="w">
+</span><span class="w">	</span><span id="RequestConfiguration.Authorisation"><span class="nx">Authorisation</span></span><span class="w"> </span><a href="#Auth"><span class="nx">Auth</span></a><span class="w">                     </span><span class="s">`mapstructure:&#34;authorisation&#34;`</span><span class="w">
+</span><span class="w">	</span><span id="RequestConfiguration.Retries"><span class="nx">Retries</span></span><span class="w">       </span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;retries&#34;`</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>RequestConfiguration defines the typical configuration for an HTTP requests so it can contact a particular target.
+<h5 id="DefaultHTTPRequestConfiguration">func DefaultHTTPRequestConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultHTTPRequestConfiguration</span><span class="p">(</span><span class="nx">userAgent</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#RequestConfiguration"><span class="nx">RequestConfiguration</span></a></pre>
+  <h5 id="DefaultHTTPRequestWithAuthorisationConfigurationEnforced">func DefaultHTTPRequestWithAuthorisationConfigurationEnforced</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultHTTPRequestWithAuthorisationConfigurationEnforced</span><span class="p">(</span><span class="nx">userAgent</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#RequestConfiguration"><span class="nx">RequestConfiguration</span></a></pre>
+  <h5 id="RequestConfiguration.Validate">func (*RequestConfiguration) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#RequestConfiguration"><span class="nx">RequestConfiguration</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="RetryPolicyConfiguration">type RetryPolicyConfiguration</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">RetryPolicyConfiguration</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="../retry"><span class="nx">retry</span></a><span class="p">.</span><a href="../retry#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+    <p>RetryPolicyConfiguration was moved to the `retry` module. Nonetheless, it was redefined here to avoid breaking changes
+<h5 id="DefaultBasicRetryPolicyConfiguration">func DefaultBasicRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultBasicRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultBasicRetryPolicyConfiguration defines a configuration for basic retries i.e. retrying straight after a failure for maximum 4 attempts.
+<h5 id="DefaultExponentialBackoffRetryPolicyConfiguration">func DefaultExponentialBackoffRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultExponentialBackoffRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultExponentialBackoffRetryPolicyConfiguration defines a configuration for retries with exponential backoff.
+<h5 id="DefaultLinearBackoffRetryPolicyConfiguration">func DefaultLinearBackoffRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultLinearBackoffRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultLinearBackoffRetryPolicyConfiguration defines a configuration for retries with linear backoff.
+<h5 id="DefaultNoRetryPolicyConfiguration">func DefaultNoRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultNoRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultNoRetryPolicyConfiguration defines a configuration for no retry being performed.
+<h5 id="DefaultRobustRetryPolicyConfiguration">func DefaultRobustRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultRobustRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultRobustRetryPolicyConfiguration defines a configuration for basic retries but considering any `Retry-After` being returned by server.
+<h4 id="RetryWaitPolicy">type RetryWaitPolicy</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">RetryWaitPolicy</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="RetryWaitPolicy.ConsiderRetryAfter"><span class="nx">ConsiderRetryAfter</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>RetryWaitPolicy defines an `abstract` retry wait policy
+<h5 id="NewRetryWaitPolicy">func NewRetryWaitPolicy</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewRetryWaitPolicy</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#RetryWaitPolicy"><span class="nx">RetryWaitPolicy</span></a></pre>
+  <p>NewRetryWaitPolicy creates an generic RetryWaitPolicy based on configuration.
+<h4 id="RetryableClient">type RetryableClient</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">RetryableClient</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>RetryableClient is an http client which will retry failed requests according to the retry configuration.
+<h5 id="RetryableClient.Close">func (*RetryableClient) Close</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#RetryableClient"><span class="nx">RetryableClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Close</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="RetryableClient.Delete">func (*RetryableClient) Delete</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#RetryableClient"><span class="nx">RetryableClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Delete</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="RetryableClient.Do">func (*RetryableClient) Do</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#RetryableClient"><span class="nx">RetryableClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Do</span><span class="p">(</span><span class="nx">req</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Request"><span class="nx">Request</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="RetryableClient.Get">func (*RetryableClient) Get</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#RetryableClient"><span class="nx">RetryableClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Get</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="RetryableClient.Head">func (*RetryableClient) Head</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#RetryableClient"><span class="nx">RetryableClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Head</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="RetryableClient.Options">func (*RetryableClient) Options</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#RetryableClient"><span class="nx">RetryableClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Options</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="RetryableClient.Post">func (*RetryableClient) Post</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#RetryableClient"><span class="nx">RetryableClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Post</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span><span class="w"> </span><span class="nx">contentType</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="RetryableClient.PostForm">func (*RetryableClient) PostForm</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#RetryableClient"><span class="nx">RetryableClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">PostForm</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><a href="https://pkg.go.dev/net/url"><span class="nx">url</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/url#Values"><span class="nx">Values</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="RetryableClient.Put">func (*RetryableClient) Put</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#RetryableClient"><span class="nx">RetryableClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Put</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">body</span><span class="w"> </span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="RetryableClient.StandardClient">func (*RetryableClient) StandardClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#RetryableClient"><span class="nx">RetryableClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">StandardClient</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Client"><span class="nx">Client</span></a></pre>
+  <h5 id="RetryableClient.UnderlyingClient">func (*RetryableClient) UnderlyingClient</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#RetryableClient"><span class="nx">RetryableClient</span></a><span class="p">)</span><span class="w"> </span><span class="nf">UnderlyingClient</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/github.com/hashicorp/go-retryablehttp@v0.7.8"><span class="nx">retryablehttp</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/hashicorp/go-retryablehttp@v0.7.8#Client"><span class="nx">Client</span></a></pre>
+  <h4 id="Target">type Target</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Target</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="Target.Host"><span class="nx">Host</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;host&#34;`</span><span class="w">
+</span><span class="w">	</span><span id="Target.Port"><span class="nx">Port</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;port&#34;`</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="Target.GetTargetAddress">func (*Target) GetTargetAddress</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#Target"><span class="nx">Target</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetTargetAddress</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h5 id="Target.Validate">func (*Target) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#Target"><span class="nx">Target</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h3 id="pkg-directories">Directories</h3>
+
+<table>
+  <tbody>
+    <tr>
+        <td><a href="api">api</a></td>
+        <td>Package api provides common helpers related to API calls.</td>
+      </tr>
+    <tr>
+        <td><a href="errors">errors</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    <tr>
+        <td><a href="headers">headers</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    <tr>
+        <td><a href="httptest">httptest</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    <tr>
+        <td><a href="mocks">mocks</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    <tr>
+        <td><a href="proxy">proxy</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    <tr>
+        <td><a href="schemes">schemes</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    </tbody>
+</table>
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

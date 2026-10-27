@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>git</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/git<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package git</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/git&#34;</span></pre>
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-variables">Variables</a></li><li><a href="#CheckAccess">func CheckAccess(ctx context.Context, gitOptions *GitActionConfig) error</a></li>
+  <li><a href="#CloneWithLimits">func CloneWithLimits(ctx context.Context, dir string, limits ILimits, gitOptions *GitActionConfig) (err error)</a></li>
+  <li>
+      <a href="#CloneObject">type CloneObject</a>
+      <ul>
+          <li><a href="#NewCloneObject">func NewCloneObject() *CloneObject</a></li>
+          <li><a href="#CloneObject.Checkout">func (c *CloneObject) Checkout(gitOptions *GitActionConfig) (err error)</a></li>
+          <li><a href="#CloneObject.Clone">func (c *CloneObject) Clone(ctx context.Context, path string, cfg *GitActionConfig) (err error)</a></li>
+          <li><a href="#CloneObject.SetupLimits">func (c *CloneObject) SetupLimits(cfg ILimits) (err error)</a></li>
+          <li><a href="#CloneObject.ValidateRepository">func (c *CloneObject) ValidateRepository(ctx context.Context) (err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#Entry">type Entry</a>
+      </li>
+  <li>
+      <a href="#GitActionConfig">type GitActionConfig</a>
+      <ul>
+          <li><a href="#NewGitActionConfig">func NewGitActionConfig(url string) GitActionConfig</a></li>
+          <li><a href="#NewSSHAgentGitActionConfig">func NewSSHAgentGitActionConfig(url string) GitActionConfig</a></li>
+          <li><a href="#NewSSHGitActionConfig">func NewSSHGitActionConfig(url, privateKeyPath, privateKeyPassword, knownHostsFile string) GitActionConfig</a></li>
+          <li><a href="#GitActionConfig.GetAuth">func (c *GitActionConfig) GetAuth() transport.AuthMethod</a></li>
+          <li><a href="#GitActionConfig.GetCreate">func (c *GitActionConfig) GetCreate() bool</a></li>
+          <li><a href="#GitActionConfig.GetDepth">func (c *GitActionConfig) GetDepth() int</a></li>
+          <li><a href="#GitActionConfig.GetNoCheckout">func (c *GitActionConfig) GetNoCheckout() bool</a></li>
+          <li><a href="#GitActionConfig.GetRecursiveSubModules">func (c *GitActionConfig) GetRecursiveSubModules() bool</a></li>
+          <li><a href="#GitActionConfig.GetReference">func (c *GitActionConfig) GetReference() string</a></li>
+          <li><a href="#GitActionConfig.GetSSHAuth">func (c *GitActionConfig) GetSSHAuth() (transport.AuthMethod, error)</a></li>
+          <li><a href="#GitActionConfig.GetTags">func (c *GitActionConfig) GetTags() git.TagMode</a></li>
+          <li><a href="#GitActionConfig.GetURL">func (c *GitActionConfig) GetURL() string</a></li>
+          <li><a href="#GitActionConfig.ResolveAuth">func (c *GitActionConfig) ResolveAuth() (transport.AuthMethod, error)</a></li>
+          <li><a href="#GitActionConfig.Validate">func (c *GitActionConfig) Validate() error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IGitActionConfig">type IGitActionConfig</a>
+      </li>
+  <li>
+      <a href="#ILimits">type ILimits</a>
+      <ul>
+          <li><a href="#DefaultLimits">func DefaultLimits() ILimits</a></li>
+          <li><a href="#NewLimits">func NewLimits(...) ILimits</a></li>
+          <li><a href="#NoLimits">func NoLimits() ILimits</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#Limits">type Limits</a>
+      <ul>
+          <li><a href="#Limits.Apply">func (l *Limits) Apply() bool</a></li>
+          <li><a href="#Limits.GetMaxEntries">func (l *Limits) GetMaxEntries() int64</a></li>
+          <li><a href="#Limits.GetMaxFileCount">func (l *Limits) GetMaxFileCount() int64</a></li>
+          <li><a href="#Limits.GetMaxFileSize">func (l *Limits) GetMaxFileSize() int64</a></li>
+          <li><a href="#Limits.GetMaxTotalSize">func (l *Limits) GetMaxTotalSize() int64</a></li>
+          <li><a href="#Limits.GetMaxTreeDepth">func (l *Limits) GetMaxTreeDepth() int64</a></li>
+          <li><a href="#Limits.GetMaxTrueSize">func (l *Limits) GetMaxTrueSize() int64</a></li>
+          <li><a href="#Limits.Validate">func (l *Limits) Validate() error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#SSHAuthConfig">type SSHAuthConfig</a>
+      <ul>
+          <li><a href="#SSHAuthConfig.ToAuthMethod">func (s *SSHAuthConfig) ToAuthMethod() (transport.AuthMethod, error)</a></li>
+          <li><a href="#SSHAuthConfig.Validate">func (s *SSHAuthConfig) Validate() error</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="MaxEntriesChannelSize"><span class="nx">MaxEntriesChannelSize</span></span><span class="w">     </span><span class="p">=</span><span class="w"> </span><span class="mi">100000</span><span class="w">
+</span><span class="w">	</span><span id="ValidationParallelisation"><span class="nx">ValidationParallelisation</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">32</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="CheckAccess">func CheckAccess</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CheckAccess</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">gitOptions</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>CheckAccess verifies that the repository at gitOptions.URL is reachable and
+that the credentials in gitOptions authenticate successfully, without
+performing a clone. It does so by listing remote references, which requires
+only network access and valid auth.
+<h4 id="CloneWithLimits">func CloneWithLimits</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CloneWithLimits</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">dir</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">limits</span><span class="w"> </span><a href="#ILimits"><span class="nx">ILimits</span></a><span class="p">,</span><span class="w"> </span><span class="nx">gitOptions</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>CloneWithLimits clones a repository with limits on the max tree depth, the max repository size, the max file count, the max individual file size, and the max entries
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="CloneObject">type CloneObject</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">CloneObject</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewCloneObject">func NewCloneObject</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewCloneObject</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#CloneObject"><span class="nx">CloneObject</span></a></pre>
+  <h5 id="CloneObject.Checkout">func (*CloneObject) Checkout</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#CloneObject"><span class="nx">CloneObject</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Checkout</span><span class="p">(</span><span class="nx">gitOptions</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="CloneObject.Clone">func (*CloneObject) Clone</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#CloneObject"><span class="nx">CloneObject</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Clone</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Clone without checkout or validation
+<h5 id="CloneObject.SetupLimits">func (*CloneObject) SetupLimits</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#CloneObject"><span class="nx">CloneObject</span></a><span class="p">)</span><span class="w"> </span><span class="nf">SetupLimits</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><a href="#ILimits"><span class="nx">ILimits</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="CloneObject.ValidateRepository">func (*CloneObject) ValidateRepository</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#CloneObject"><span class="nx">CloneObject</span></a><span class="p">)</span><span class="w"> </span><span class="nf">ValidateRepository</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>After cloning without checkout, valdiate the repository to check for git bombs
+<h4 id="Entry">type Entry</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Entry</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="Entry.TreeEntry"><span class="nx">TreeEntry</span></span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/object"><span class="nx">object</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/object#TreeEntry"><span class="nx">TreeEntry</span></a><span class="w">
+</span><span class="w">	</span><span id="Entry.TreeDepth"><span class="nx">TreeDepth</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w">
+</span><span class="w">	</span><span id="Entry.Seen"><span class="nx">Seen</span></span><span class="w">      </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <h4 id="GitActionConfig">type GitActionConfig</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">GitActionConfig</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// The (possibly remote) repository URL to clone from.</span><span class="w">
+</span><span class="w">	</span><span id="GitActionConfig.URL"><span class="nx">URL</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;url&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Auth credentials, if required, to use with the remote repository (HTTP/HTTPS).</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Mutually exclusive with SSH.</span><span class="w">
+</span><span class="w">	</span><span id="GitActionConfig.Auth"><span class="nx">Auth</span></span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport/http#BasicAuth"><span class="nx">BasicAuth</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;auth&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// SSH holds SSH-specific authentication configuration.</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Takes precedence over Auth when configured.</span><span class="w">
+</span><span class="w">	</span><span id="GitActionConfig.SSH"><span class="nx">SSH</span></span><span class="w"> </span><a href="#SSHAuthConfig"><span class="nx">SSHAuthConfig</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;ssh&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Limit fetching to the specified number of commits.</span><span class="w">
+</span><span class="w">	</span><span id="GitActionConfig.Depth"><span class="nx">Depth</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;depth&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Regerence can be a hash, a branch, or a tag</span><span class="w">
+</span><span class="w">	</span><span id="GitActionConfig.Reference"><span class="nx">Reference</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;ref&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// RecurseSubmodules after the clone is created, initialise all submodules</span><span class="w">
+</span><span class="w">	</span><span class="c1">// within, using their default settings. This option is ignored if the</span><span class="w">
+</span><span class="w">	</span><span class="c1">// cloned repository does not have a worktree.</span><span class="w">
+</span><span class="w">	</span><span id="GitActionConfig.RecurseSubmodules"><span class="nx">RecurseSubmodules</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;recursive_submodules&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Tags describe how the tags will be fetched from the remote repository,</span><span class="w">
+</span><span class="w">	</span><span class="c1">// by default is AllTags.</span><span class="w">
+</span><span class="w">	</span><span id="GitActionConfig.Tags"><span class="nx">Tags</span></span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1"><span class="nx">git</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1#TagMode"><span class="nx">TagMode</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;tags&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// CreateBranch a new branch named Branch and start it at Hash.</span><span class="w">
+</span><span class="w">	</span><span id="GitActionConfig.CreateBranch"><span class="nx">CreateBranch</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;create_branch&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// No checkout of HEAD after clone if true.</span><span class="w">
+</span><span class="w">	</span><span id="GitActionConfig.NoCheckout"><span class="nx">NoCheckout</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>GitActionConfig describes how a clone or checkout should be performed.
+<h5 id="NewGitActionConfig">func NewGitActionConfig</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewGitActionConfig</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a></pre>
+  <h5 id="NewSSHAgentGitActionConfig">func NewSSHAgentGitActionConfig</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewSSHAgentGitActionConfig</span><span class="p">(</span><span class="nx">url</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a></pre>
+  <p>NewSSHAgentGitActionConfig creates a GitActionConfig pre-populated for SSH
+agent authentication.
+<h5 id="NewSSHGitActionConfig">func NewSSHGitActionConfig</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewSSHGitActionConfig</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span><span class="w"> </span><span class="nx">privateKeyPath</span><span class="p">,</span><span class="w"> </span><span class="nx">privateKeyPassword</span><span class="p">,</span><span class="w"> </span><span class="nx">knownHostsFile</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a></pre>
+  <p>NewSSHGitActionConfig creates a GitActionConfig pre-populated for SSH
+authentication using a private key file.
+Pass an empty knownHostsFile to use the system default known_hosts.
+<h5 id="GitActionConfig.GetAuth">func (*GitActionConfig) GetAuth</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetAuth</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport"><span class="nx">transport</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport#AuthMethod"><span class="nx">AuthMethod</span></a></pre>
+  <p>GetAuth returns the HTTP basic-auth credentials as a transport.AuthMethod.
+For SSH-based authentication use GetSSHAuth or ResolveAuth.
+<h5 id="GitActionConfig.GetCreate">func (*GitActionConfig) GetCreate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetCreate</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h5 id="GitActionConfig.GetDepth">func (*GitActionConfig) GetDepth</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetDepth</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a></pre>
+  <h5 id="GitActionConfig.GetNoCheckout">func (*GitActionConfig) GetNoCheckout</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetNoCheckout</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h5 id="GitActionConfig.GetRecursiveSubModules">func (*GitActionConfig) GetRecursiveSubModules</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetRecursiveSubModules</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h5 id="GitActionConfig.GetReference">func (*GitActionConfig) GetReference</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetReference</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h5 id="GitActionConfig.GetSSHAuth">func (*GitActionConfig) GetSSHAuth</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetSSHAuth</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport"><span class="nx">transport</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport#AuthMethod"><span class="nx">AuthMethod</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>GetSSHAuth returns an SSH transport.AuthMethod built from the SSH field.
+Returns (nil, nil) when no SSH configuration is present.
+<h5 id="GitActionConfig.GetTags">func (*GitActionConfig) GetTags</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetTags</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1"><span class="nx">git</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1#TagMode"><span class="nx">TagMode</span></a></pre>
+  <h5 id="GitActionConfig.GetURL">func (*GitActionConfig) GetURL</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetURL</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h5 id="GitActionConfig.ResolveAuth">func (*GitActionConfig) ResolveAuth</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">ResolveAuth</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport"><span class="nx">transport</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport#AuthMethod"><span class="nx">AuthMethod</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>ResolveAuth returns the appropriate transport.AuthMethod for this config.
+SSH auth takes precedence when the SSH field is populated; otherwise HTTP
+basic auth is returned (nil when no credentials are set).
+<h5 id="GitActionConfig.Validate">func (*GitActionConfig) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h4 id="IGitActionConfig">type IGitActionConfig</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IGitActionConfig</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="../config"><span class="nx">config</span></a><span class="p">.</span><a href="../config#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="w">
+</span><span class="w">	</span><span id="IGitActionConfig.GetUrl"><span class="nf">GetUrl</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetAuth returns the HTTP basic-auth transport.AuthMethod.</span><span class="w">
+</span><span class="w">	</span><span id="IGitActionConfig.GetAuth"><span class="nf">GetAuth</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport"><span class="nx">transport</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport#AuthMethod"><span class="nx">AuthMethod</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetSSHAuth returns the SSH transport.AuthMethod, or (nil, nil) when SSH is not configured.</span><span class="w">
+</span><span class="w">	</span><span id="IGitActionConfig.GetSSHAuth"><span class="nf">GetSSHAuth</span></span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport"><span class="nx">transport</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport#AuthMethod"><span class="nx">AuthMethod</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// ResolveAuth returns whichever auth method is appropriate (SSH takes precedence over HTTP).</span><span class="w">
+</span><span class="w">	</span><span id="IGitActionConfig.ResolveAuth"><span class="nf">ResolveAuth</span></span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport"><span class="nx">transport</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport#AuthMethod"><span class="nx">AuthMethod</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="IGitActionConfig.GetDepth"><span class="nf">GetDepth</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w">
+</span><span class="w">	</span><span id="IGitActionConfig.GetReference"><span class="nf">GetReference</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="IGitActionConfig.GetRecursiveSubModules"><span class="nf">GetRecursiveSubModules</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1"><span class="nx">git</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1#SubmoduleRescursivity"><span class="nx">SubmoduleRescursivity</span></a><span class="w">
+</span><span class="w">	</span><span id="IGitActionConfig.GetTags"><span class="nf">GetTags</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1"><span class="nx">git</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1#TagMode"><span class="nx">TagMode</span></a><span class="w">
+</span><span class="w">	</span><span id="IGitActionConfig.GetCreate"><span class="nf">GetCreate</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="w">	</span><span id="IGitActionConfig.GetNoCheckout"><span class="nf">GetNoCheckout</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <h4 id="ILimits">type ILimits</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ILimits</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="../config"><span class="nx">config</span></a><span class="p">.</span><a href="../config#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Apply states whether the limit should be applied</span><span class="w">
+</span><span class="w">	</span><span id="ILimits.Apply"><span class="nf">Apply</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetMaxFileSize returns the maximum size in byte a file can have on a file system</span><span class="w">
+</span><span class="w">	</span><span id="ILimits.GetMaxFileSize"><span class="nf">GetMaxFileSize</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetMaxTotalSize returns the maximum size in byte a location can have on a file system (whether it is a file or a folder)</span><span class="w">
+</span><span class="w">	</span><span id="ILimits.GetMaxTotalSize"><span class="nf">GetMaxTotalSize</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetMaxFileCount returns the maximum number of files allowed in a reposittory</span><span class="w">
+</span><span class="w">	</span><span id="ILimits.GetMaxFileCount"><span class="nf">GetMaxFileCount</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetMaxTreeDepth returns the maximum tree depth for a repository</span><span class="w">
+</span><span class="w">	</span><span id="ILimits.GetMaxTreeDepth"><span class="nf">GetMaxTreeDepth</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetMaxEntries returns the maximum total entries allowed in the it repo</span><span class="w">
+</span><span class="w">	</span><span id="ILimits.GetMaxEntries"><span class="nf">GetMaxEntries</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetMaxTrueSize returns the maximum true size of the repo based on blobs</span><span class="w">
+</span><span class="w">	</span><span id="ILimits.GetMaxTrueSize"><span class="nf">GetMaxTrueSize</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>ILimits defines general GitLimits for actions performed during a git clone
+<h5 id="DefaultLimits">func DefaultLimits</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultLimits</span><span class="p">()</span><span class="w"> </span><a href="#ILimits"><span class="nx">ILimits</span></a></pre>
+  <p>DefaultLimits defines default file system FileSystemLimits
+<h5 id="NewLimits">func NewLimits</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewLimits</span><span class="p">(</span><span class="nx">maxFileSize</span><span class="p">,</span><span class="w"> </span><span class="nx">maxTotalSize</span><span class="p">,</span><span class="w"> </span><span class="nx">maxFileCount</span><span class="p">,</span><span class="w"> </span><span class="nx">maxTreeDepth</span><span class="p">,</span><span class="w"> </span><span class="nx">maxEntries</span><span class="p">,</span><span class="w"> </span><span class="nx">maxTrueSize</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="p">)</span><span class="w"> </span><a href="#ILimits"><span class="nx">ILimits</span></a></pre>
+  <p>NewLimits defines file system FileSystemLimits.
+<h5 id="NoLimits">func NoLimits</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NoLimits</span><span class="p">()</span><span class="w"> </span><a href="#ILimits"><span class="nx">ILimits</span></a></pre>
+  <p>NoLimits defines no file system FileSystemLimits
+<h4 id="Limits">type Limits</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Limits</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="Limits.MaxFileSize"><span class="nx">MaxFileSize</span></span><span class="w">  </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_file_size&#34;`</span><span class="w">
+</span><span class="w">	</span><span id="Limits.MaxTotalSize"><span class="nx">MaxTotalSize</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_total_size&#34;`</span><span class="w">
+</span><span class="w">	</span><span id="Limits.MaxFileCount"><span class="nx">MaxFileCount</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_file_count&#34;`</span><span class="w">
+</span><span class="w">	</span><span id="Limits.MaxTreeDepth"><span class="nx">MaxTreeDepth</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_tree_depth&#34;`</span><span class="w">
+</span><span class="w">	</span><span id="Limits.MaxEntries"><span class="nx">MaxEntries</span></span><span class="w">   </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_entries&#34;`</span><span class="w">
+</span><span class="w">	</span><span id="Limits.MaxTrueSize"><span class="nx">MaxTrueSize</span></span><span class="w">  </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_true_size&#34;`</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Limits defines file system limits
+<h5 id="Limits.Apply">func (*Limits) Apply</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#Limits"><span class="nx">Limits</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Apply</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h5 id="Limits.GetMaxEntries">func (*Limits) GetMaxEntries</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#Limits"><span class="nx">Limits</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetMaxEntries</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a></pre>
+  <h5 id="Limits.GetMaxFileCount">func (*Limits) GetMaxFileCount</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#Limits"><span class="nx">Limits</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetMaxFileCount</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a></pre>
+  <h5 id="Limits.GetMaxFileSize">func (*Limits) GetMaxFileSize</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#Limits"><span class="nx">Limits</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetMaxFileSize</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a></pre>
+  <h5 id="Limits.GetMaxTotalSize">func (*Limits) GetMaxTotalSize</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#Limits"><span class="nx">Limits</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetMaxTotalSize</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a></pre>
+  <h5 id="Limits.GetMaxTreeDepth">func (*Limits) GetMaxTreeDepth</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#Limits"><span class="nx">Limits</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetMaxTreeDepth</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a></pre>
+  <h5 id="Limits.GetMaxTrueSize">func (*Limits) GetMaxTrueSize</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#Limits"><span class="nx">Limits</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetMaxTrueSize</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a></pre>
+  <h5 id="Limits.Validate">func (*Limits) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><span class="o">*</span><a href="#Limits"><span class="nx">Limits</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h4 id="SSHAuthConfig">type SSHAuthConfig</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">SSHAuthConfig</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// PrivateKeyPath is the path to the PEM-encoded SSH private key file.</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Required when UseAgent is false.</span><span class="w">
+</span><span class="w">	</span><span id="SSHAuthConfig.PrivateKeyPath"><span class="nx">PrivateKeyPath</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;private_key_path&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// PrivateKeyPassword is an optional passphrase protecting the private key.</span><span class="w">
+</span><span class="w">	</span><span id="SSHAuthConfig.PrivateKeyPassword"><span class="nx">PrivateKeyPassword</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;private_key_password&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// KnownHostsFile is a path to a known_hosts file used for host key</span><span class="w">
+</span><span class="w">	</span><span class="c1">// verification. When empty, the system default (~/.ssh/known_hosts) is</span><span class="w">
+</span><span class="w">	</span><span class="c1">// used unless UseInsecureHostKey is true.</span><span class="w">
+</span><span class="w">	</span><span id="SSHAuthConfig.KnownHostsFile"><span class="nx">KnownHostsFile</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;known_hosts_file&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// UseInsecureHostKey disables host key verification.</span><span class="w">
+</span><span class="w">	</span><span class="c1">// WARNING: this makes the connection vulnerable to MITM attacks.</span><span class="w">
+</span><span class="w">	</span><span id="SSHAuthConfig.UseInsecureHostKey"><span class="nx">UseInsecureHostKey</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;insecure_ignore_host_key&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// UseAgent authenticates via the running SSH agent instead of a key file.</span><span class="w">
+</span><span class="w">	</span><span id="SSHAuthConfig.UseAgent"><span class="nx">UseAgent</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;use_agent&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Username is the SSH user. Defaults to &#34;git&#34; when empty.</span><span class="w">
+</span><span class="w">	</span><span id="SSHAuthConfig.Username"><span class="nx">Username</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;username&#34;`</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>SSHAuthConfig holds SSH-specific authentication configuration.
+It is mutually exclusive with the HTTP basic auth (Auth field).
+<h5 id="SSHAuthConfig.ToAuthMethod">func (*SSHAuthConfig) ToAuthMethod</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#SSHAuthConfig"><span class="nx">SSHAuthConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">ToAuthMethod</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport"><span class="nx">transport</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-git/go-git/v5@v5.19.1/plumbing/transport#AuthMethod"><span class="nx">AuthMethod</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>ToAuthMethod builds the go-git transport.AuthMethod for the SSH config.
+<h5 id="SSHAuthConfig.Validate">func (*SSHAuthConfig) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#SSHAuthConfig"><span class="nx">SSHAuthConfig</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Validate validates the SSHAuthConfig using ozzo-validation rules.
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

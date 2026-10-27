@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>parallelisation</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/parallelisation<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package parallelisation</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/parallelisation&#34;</span></pre>
+<ul>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<p>Package parallelisation defines a module for `Concurrency`
+<ul>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#BreakOnError">func BreakOnError(ctx context.Context, executionOptions *StoreOptions, ...) error</a></li>
+  <li><a href="#BreakOnErrorOrEOF">func BreakOnErrorOrEOF(ctx context.Context, executionOptions *StoreOptions, ...) error</a></li>
+  <li><a href="#CloseAll">func CloseAll(cs ...io.Closer) error</a></li>
+  <li><a href="#CloseAllAndCollateErrors">func CloseAllAndCollateErrors(cs ...io.Closer) error</a></li>
+  <li><a href="#CloseAllFunc">func CloseAllFunc(cs ...CloseFunc) error</a></li>
+  <li><a href="#CloseAllFuncAndCollateErrors">func CloseAllFuncAndCollateErrors(cs ...CloseFunc) error</a></li>
+  <li><a href="#CloseAllWithContext">func CloseAllWithContext(ctx context.Context, cs ...io.Closer) error</a></li>
+  <li><a href="#CloseAllWithContextAndCollateErrors">func CloseAllWithContextAndCollateErrors(ctx context.Context, cs ...io.Closer) error</a></li>
+  <li><a href="#DetermineContextError">func DetermineContextError(ctx context.Context) error</a></li>
+  <li><a href="#Filter">func Filter(ctx context.Context, numWorkers int, s []T, f collection.FilterFunc[T]) (result []T, err error)</a></li>
+  <li><a href="#ForEach">func ForEach(ctx context.Context, executionOptions *StoreOptions, ...) error</a></li>
+  <li><a href="#Map">func Map(ctx context.Context, numWorkers int, s []T1, f collection.MapFunc[T1, T2]) (result []T2, err error)</a></li>
+  <li><a href="#MapConcurrent">func MapConcurrent(ctx context.Context, items []I, fn collection.MapFunc[I, O], ...) ([]O, error)</a></li>
+  <li><a href="#MapConcurrentRef">func MapConcurrentRef(ctx context.Context, items []I, fn collection.MapRefFunc[I, O], ...) ([]O, error)</a></li>
+  <li><a href="#MapConcurrentSequence">func MapConcurrentSequence(ctx context.Context, items iter.Seq[I], fn collection.MapFunc[I, O], ...) ([]O, error)</a></li>
+  <li><a href="#OrderedMap">func OrderedMap(ctx context.Context, numWorkers int, s []T1, f collection.MapFunc[T1, T2]) (result []T2, err error)</a></li>
+  <li><a href="#Parallelise">func Parallelise(argList any, action func(arg any) (any, error), resultType reflect.Type) (results any, err error)</a></li>
+  <li><a href="#Reject">func Reject(ctx context.Context, numWorkers int, s []T, f collection.FilterFunc[T]) ([]T, error)</a></li>
+  <li><a href="#RunActionWithParallelCheck">func RunActionWithParallelCheck(ctx context.Context, action ActionFunc, checkAction CheckFunc, ...) (err error)</a></li>
+  <li><a href="#RunActionWithParallelCheckAndResult">func RunActionWithParallelCheckAndResult(ctx context.Context, action ActionFunc, checkAction CheckWithResultFunc[T], ...) (res T, ok bool, err error)</a></li>
+  <li><a href="#RunActionWithTimeout">func RunActionWithTimeout(blockingAction func(stop chan bool) error, timeout time.Duration) (err error)</a></li>
+  <li><a href="#RunActionWithTimeoutAndCancelStore">func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Duration, store *CancelFunctionStore, ...) error</a></li>
+  <li><a href="#RunActionWithTimeoutAndContext">func RunActionWithTimeoutAndContext(ctx context.Context, timeout time.Duration, ...) error</a></li>
+  <li><a href="#SafeSchedule">func SafeSchedule(ctx context.Context, period time.Duration, offset time.Duration, ...)</a></li>
+  <li><a href="#SafeScheduleAfter">func SafeScheduleAfter(ctx context.Context, offset time.Duration, f func(context.Context, time.Time))</a></li>
+  <li><a href="#Schedule">func Schedule(ctx context.Context, period time.Duration, offset time.Duration, ...)</a></li>
+  <li><a href="#ScheduleAfter">func ScheduleAfter(ctx context.Context, offset time.Duration, f func(time.Time))</a></li>
+  <li><a href="#SchedulePeriodicCheckWithAction">func SchedulePeriodicCheckWithAction(ctx context.Context, checkFunc CheckFuncWithErr, actionFunc ActionFunc, ...) error</a></li>
+  <li><a href="#SleepWithContext">func SleepWithContext(ctx context.Context, delay time.Duration)</a></li>
+  <li><a href="#SleepWithInterruption">func SleepWithInterruption(stop chan bool, delay time.Duration)</a></li>
+  <li><a href="#Transform">func Transform(ctx context.Context, inputs iter.Seq[I], transform TransformFunc[I, O], ...) ([]O, error)</a></li>
+  <li><a href="#TransformInOrder">func TransformInOrder(ctx context.Context, inputs iter.Seq[I], transform TransformFunc[I, O], ...) ([]O, error)</a></li>
+  <li><a href="#WaitUntil">func WaitUntil(ctx context.Context, evalCondition func(ctx2 context.Context) (bool, error), ...) error</a></li>
+  <li><a href="#WaitWithContext">func WaitWithContext(ctx context.Context, wg IWaiter) (err error)</a></li>
+  <li><a href="#WaitWithContextAndError">func WaitWithContextAndError(ctx context.Context, wg IErrorWaiter) (err error)</a></li>
+  <li><a href="#WorkerPool">func WorkerPool(ctx context.Context, numWorkers int, jobs []InputType, ...) (results []ResultType, err error)</a></li>
+  <li><a href="#WrapCloseToCancelFunc">func WrapCloseToCancelFunc(f CloseFunc) context.CancelFunc</a></li>
+  <li><a href="#WrapContextualToCancelFunc">func WrapContextualToCancelFunc(f ContextualFunc) context.CancelFunc</a></li>
+  <li>
+      <a href="#ActionFunc">type ActionFunc</a>
+      </li>
+  <li>
+      <a href="#CancelFunctionStore">type CancelFunctionStore</a>
+      <ul>
+          <li><a href="#NewCancelFunctionsStore">func NewCancelFunctionsStore(options ...StoreOption) *CancelFunctionStore</a></li>
+          <li><a href="#CancelFunctionStore.Cancel">func (s *CancelFunctionStore) Cancel()</a></li>
+          <li><a href="#CancelFunctionStore.Clone">func (s *CancelFunctionStore) Clone() IExecutionGroup[context.CancelFunc]</a></li>
+          <li><a href="#CancelFunctionStore.Len">func (s *CancelFunctionStore) Len() int</a></li>
+          <li><a href="#CancelFunctionStore.RegisterCancelFunction">func (s *CancelFunctionStore) RegisterCancelFunction(cancel ...context.CancelFunc)</a></li>
+          <li><a href="#CancelFunctionStore.RegisterCancelStore">func (s *CancelFunctionStore) RegisterCancelStore(store *CancelFunctionStore)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#CheckFunc">type CheckFunc</a>
+      </li>
+  <li>
+      <a href="#CheckFuncWithErr">type CheckFuncWithErr</a>
+      </li>
+  <li>
+      <a href="#CheckWithResultFunc">type CheckWithResultFunc</a>
+      </li>
+  <li>
+      <a href="#CloseFunc">type CloseFunc</a>
+      <ul>
+          <li><a href="#WrapCancelToCloseFunc">func WrapCancelToCloseFunc(f context.CancelFunc) CloseFunc</a></li>
+          <li><a href="#WrapCloserIntoCloseFunc">func WrapCloserIntoCloseFunc(closer io.Closer) CloseFunc</a></li>
+          <li><a href="#WrapContextualToCloseFunc">func WrapContextualToCloseFunc(f ContextualFunc) CloseFunc</a></li>
+          <li><a href="#CloseFunc.Close">func (c CloseFunc) Close() error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#CloseFunctionStore">type CloseFunctionStore</a>
+      <ul>
+          <li><a href="#NewCloseFunctionStore">func NewCloseFunctionStore(options ...StoreOption) *CloseFunctionStore</a></li>
+          <li><a href="#NewCloseFunctionStoreStore">func NewCloseFunctionStoreStore(stopOnFirstError bool) *CloseFunctionStore</a></li>
+          <li><a href="#NewCloseOnceGroup">func NewCloseOnceGroup(options ...StoreOption) *CloseFunctionStore</a></li>
+          <li><a href="#NewConcurrentCloseFunctionStore">func NewConcurrentCloseFunctionStore(stopOnFirstError bool) *CloseFunctionStore</a></li>
+          <li><a href="#NewConcurrentCloseOnceFunctionStore">func NewConcurrentCloseOnceFunctionStore(stopOnFirstError bool) *CloseFunctionStore</a></li>
+          <li><a href="#CloseFunctionStore.Clone">func (s *CloseFunctionStore) Clone() IExecutionGroup[CloseFunc]</a></li>
+          <li><a href="#CloseFunctionStore.Close">func (s *CloseFunctionStore) Close() error</a></li>
+          <li><a href="#CloseFunctionStore.Len">func (s *CloseFunctionStore) Len() int</a></li>
+          <li><a href="#CloseFunctionStore.RegisterCancelFunction">func (s *CloseFunctionStore) RegisterCancelFunction(cancelFunc ...context.CancelFunc)</a></li>
+          <li><a href="#CloseFunctionStore.RegisterCancelStore">func (s *CloseFunctionStore) RegisterCancelStore(cancelStore *CancelFunctionStore)</a></li>
+          <li><a href="#CloseFunctionStore.RegisterCloseFunction">func (s *CloseFunctionStore) RegisterCloseFunction(closerObj ...CloseFunc)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#CloserStore">type CloserStore</a>
+      <ul>
+          <li><a href="#NewCloserOnceStore">func NewCloserOnceStore(stopOnFirstError bool) *CloserStore</a></li>
+          <li><a href="#NewCloserStore">func NewCloserStore(stopOnFirstError bool) *CloserStore</a></li>
+          <li><a href="#NewCloserStoreWithOptions">func NewCloserStoreWithOptions(opts ...StoreOption) *CloserStore</a></li>
+          <li><a href="#CloserStore.Clone">func (s *CloserStore) Clone() IExecutionGroup[io.Closer]</a></li>
+          <li><a href="#CloserStore.Close">func (s *CloserStore) Close() error</a></li>
+          <li><a href="#CloserStore.Len">func (s *CloserStore) Len() int</a></li>
+          <li><a href="#CloserStore.RegisterCloser">func (s *CloserStore) RegisterCloser(closerObj ...io.Closer)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#CompoundExecutionGroup">type CompoundExecutionGroup</a>
+      <ul>
+          <li><a href="#NewCompoundExecutionGroup">func NewCompoundExecutionGroup(options ...StoreOption) *CompoundExecutionGroup</a></li>
+          <li><a href="#CompoundExecutionGroup.Clone">func (g *CompoundExecutionGroup) Clone() IExecutionGroup[ContextualFunc]</a></li>
+          <li><a href="#CompoundExecutionGroup.RegisterExecutor">func (g *CompoundExecutionGroup) RegisterExecutor(group ...IExecutor)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#ContextualFunc">type ContextualFunc</a>
+      <ul>
+          <li><a href="#WrapCancelToContextualFunc">func WrapCancelToContextualFunc(f context.CancelFunc) ContextualFunc</a></li>
+          <li><a href="#WrapCloseToContextualFunc">func WrapCloseToContextualFunc(f CloseFunc) ContextualFunc</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#ContextualFunctionGroup">type ContextualFunctionGroup</a>
+      <ul>
+          <li><a href="#NewContextualGroup">func NewContextualGroup(options ...StoreOption) *ContextualFunctionGroup</a></li>
+          <li><a href="#ContextualFunctionGroup.Clone">func (s *ContextualFunctionGroup) Clone() IExecutionGroup[ContextualFunc]</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#ExecuteFunc">type ExecuteFunc</a>
+      </li>
+  <li>
+      <a href="#ExecutionGroup">type ExecutionGroup</a>
+      <ul>
+          <li><a href="#NewExecutionGroup">func NewExecutionGroup(executeFunc ExecuteFunc[T], options ...StoreOption) *ExecutionGroup[T]</a></li>
+          <li><a href="#NewOrderedExecutionGroup">func NewOrderedExecutionGroup(executeFunc OrderedExecuteFunc[T], options ...StoreOption) *ExecutionGroup[T]</a></li>
+          <li><a href="#ExecutionGroup.Clone">func (s *ExecutionGroup[T]) Clone() IExecutionGroup[T]</a></li>
+          <li><a href="#ExecutionGroup.CopyFunctions">func (s *ExecutionGroup[T]) CopyFunctions(g IExecutionGroup[T])</a></li>
+          <li><a href="#ExecutionGroup.Execute">func (s *ExecutionGroup[T]) Execute(ctx context.Context) (err error)</a></li>
+          <li><a href="#ExecutionGroup.Len">func (s *ExecutionGroup[T]) Len() int</a></li>
+          <li><a href="#ExecutionGroup.RegisterFunction">func (s *ExecutionGroup[T]) RegisterFunction(function ...T)</a></li>
+          <li><a href="#ExecutionGroup.RegisterFunctions">func (s *ExecutionGroup[T]) RegisterFunctions(function iter.Seq[T])</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#ICompoundExecutionGroup">type ICompoundExecutionGroup</a>
+      </li>
+  <li>
+      <a href="#IErrorWaiter">type IErrorWaiter</a>
+      </li>
+  <li>
+      <a href="#IExecutionGroup">type IExecutionGroup</a>
+      </li>
+  <li>
+      <a href="#IExecutor">type IExecutor</a>
+      </li>
+  <li>
+      <a href="#IWaiter">type IWaiter</a>
+      </li>
+  <li>
+      <a href="#OrderedExecuteFunc">type OrderedExecuteFunc</a>
+      </li>
+  <li>
+      <a href="#PriorityExecutionGroup">type PriorityExecutionGroup</a>
+      <ul>
+          <li><a href="#NewPriorityContextualGroup">func NewPriorityContextualGroup(options ...StoreOption) *PriorityExecutionGroup[ContextualFunc]</a></li>
+          <li><a href="#NewPriorityExecutionGroup">func NewPriorityExecutionGroup(options ...StoreOption) *PriorityExecutionGroup[IExecutor]</a></li>
+          <li><a href="#PriorityExecutionGroup.Clone">func (g *PriorityExecutionGroup[T]) Clone() IExecutionGroup[T]</a></li>
+          <li><a href="#PriorityExecutionGroup.CopyAllPriorityFunctions">func (g *PriorityExecutionGroup[T]) CopyAllPriorityFunctions(d *PriorityExecutionGroup[T])</a></li>
+          <li><a href="#PriorityExecutionGroup.CopyFunctions">func (g *PriorityExecutionGroup[T]) CopyFunctions(d IExecutionGroup[T])</a></li>
+          <li><a href="#PriorityExecutionGroup.CopyPriorityFunctions">func (g *PriorityExecutionGroup[T]) CopyPriorityFunctions(priority uint, d IExecutionGroup[T])</a></li>
+          <li><a href="#PriorityExecutionGroup.Execute">func (g *PriorityExecutionGroup[T]) Execute(ctx context.Context) error</a></li>
+          <li><a href="#PriorityExecutionGroup.GetPriorityGroup">func (g *PriorityExecutionGroup[T]) GetPriorityGroup(priority uint) IExecutionGroup[T]</a></li>
+          <li><a href="#PriorityExecutionGroup.Len">func (g *PriorityExecutionGroup[T]) Len() (n int)</a></li>
+          <li><a href="#PriorityExecutionGroup.RegisterFunction">func (g *PriorityExecutionGroup[T]) RegisterFunction(function ...T)</a></li>
+          <li><a href="#PriorityExecutionGroup.RegisterFunctionWithPriority">func (g *PriorityExecutionGroup[T]) RegisterFunctionWithPriority(priority uint, function ...T)</a></li>
+          <li><a href="#PriorityExecutionGroup.RegisterFunctions">func (g *PriorityExecutionGroup[T]) RegisterFunctions(functionSeq iter.Seq[T])</a></li>
+          <li><a href="#PriorityExecutionGroup.RegisterFunctionsWithPriority">func (g *PriorityExecutionGroup[T]) RegisterFunctionsWithPriority(priority uint, functionSeq iter.Seq[T])</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#ResultCheckFunc">type ResultCheckFunc</a>
+      </li>
+  <li>
+      <a href="#StoreOption">type StoreOption</a>
+      <ul>
+          <li><a href="#Workers">func Workers(workers int) StoreOption</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#StoreOptions">type StoreOptions</a>
+      <ul>
+          <li><a href="#DefaultOptions">func DefaultOptions() *StoreOptions</a></li>
+          <li><a href="#WithOptions">func WithOptions(option ...StoreOption) (opts *StoreOptions)</a></li>
+          <li><a href="#StoreOptions.Apply">func (o *StoreOptions) Apply(opt StoreOption) *StoreOptions</a></li>
+          <li><a href="#StoreOptions.Default">func (o *StoreOptions) Default() *StoreOptions</a></li>
+          <li><a href="#StoreOptions.Merge">func (o *StoreOptions) Merge(opts *StoreOptions) *StoreOptions</a></li>
+          <li><a href="#StoreOptions.MergeWithOptions">func (o *StoreOptions) MergeWithOptions(opt ...StoreOption) *StoreOptions</a></li>
+          <li><a href="#StoreOptions.Options">func (o *StoreOptions) Options() []StoreOption</a></li>
+          <li><a href="#StoreOptions.Overwrite">func (o *StoreOptions) Overwrite(opts *StoreOptions) *StoreOptions</a></li>
+          <li><a href="#StoreOptions.WithOptions">func (o *StoreOptions) WithOptions(opts ...StoreOption) *StoreOptions</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#TransformFunc">type TransformFunc</a>
+      </li>
+  <li>
+      <a href="#TransformGroup">type TransformGroup</a>
+      <ul>
+          <li><a href="#NewTransformGroup">func NewTransformGroup(transform TransformFunc[I, O], options ...StoreOption) *TransformGroup[I, O]</a></li>
+          <li><a href="#TransformGroup.Clone">func (g *TransformGroup[I, O]) Clone() IExecutionGroup[I]</a></li>
+          <li><a href="#TransformGroup.InputSequence">func (g *TransformGroup[I, O]) InputSequence(ctx context.Context, i iter.Seq[I]) error</a></li>
+          <li><a href="#TransformGroup.Inputs">func (g *TransformGroup[I, O]) Inputs(ctx context.Context, i ...I) error</a></li>
+          <li><a href="#TransformGroup.OrderedOutputs">func (g *TransformGroup[I, O]) OrderedOutputs(ctx context.Context) ([]O, error)</a></li>
+          <li><a href="#TransformGroup.Outputs">func (g *TransformGroup[I, O]) Outputs(ctx context.Context) ([]O, error)</a></li>
+          <li><a href="#TransformGroup.Transform">func (g *TransformGroup[I, O]) Transform(ctx context.Context) error</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="BreakOnError">func BreakOnError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">BreakOnError</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">executionOptions</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">,</span><span class="w"> </span><span class="nx">contextualFunc</span><span class="w"> </span><span class="o">...</span><a href="#ContextualFunc"><span class="nx">ContextualFunc</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>BreakOnError executes each functions in the group until an error is found or the context gets cancelled.
+<h4 id="BreakOnErrorOrEOF">func BreakOnErrorOrEOF</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">BreakOnErrorOrEOF</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">executionOptions</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">,</span><span class="w"> </span><span class="nx">contextualFunc</span><span class="w"> </span><span class="o">...</span><a href="#ContextualFunc"><span class="nx">ContextualFunc</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>BreakOnErrorOrEOF is similar to BreakOnError but also stops on EOF. However, in this case, no error is returned
+<h4 id="CloseAll">func CloseAll</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CloseAll</span><span class="p">(</span><span class="nx">cs</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Closer"><span class="nx">Closer</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>CloseAll calls concurrently Close on all io.Closer implementations passed as arguments and returns the first error encountered
+<h4 id="CloseAllAndCollateErrors">func CloseAllAndCollateErrors</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CloseAllAndCollateErrors</span><span class="p">(</span><span class="nx">cs</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Closer"><span class="nx">Closer</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>CloseAllAndCollateErrors calls concurrently Close on all io.Closer implementations passed as arguments and returns the errors encountered
+<h4 id="CloseAllFunc">func CloseAllFunc</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CloseAllFunc</span><span class="p">(</span><span class="nx">cs</span><span class="w"> </span><span class="o">...</span><a href="#CloseFunc"><span class="nx">CloseFunc</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>CloseAllFunc calls concurrently all Close functions passed as arguments and returns the first error encountered
+<h4 id="CloseAllFuncAndCollateErrors">func CloseAllFuncAndCollateErrors</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CloseAllFuncAndCollateErrors</span><span class="p">(</span><span class="nx">cs</span><span class="w"> </span><span class="o">...</span><a href="#CloseFunc"><span class="nx">CloseFunc</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>CloseAllFuncAndCollateErrors calls concurrently all Close functions passed as arguments and returns the errors encountered
+<h4 id="CloseAllWithContext">func CloseAllWithContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CloseAllWithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">cs</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Closer"><span class="nx">Closer</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>CloseAllWithContext is similar to CloseAll but can be controlled using a context.
+<h4 id="CloseAllWithContextAndCollateErrors">func CloseAllWithContextAndCollateErrors</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CloseAllWithContextAndCollateErrors</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">cs</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Closer"><span class="nx">Closer</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>CloseAllWithContextAndCollateErrors is similar to CloseAllAndCollateErrors but can be controlled using a context.
+<h4 id="DetermineContextError">func DetermineContextError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DetermineContextError</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>DetermineContextError determines what the context error is if any.
+<h4 id="Filter">func Filter</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">Filter</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">numWorkers</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">s</span><span class="w"> </span><span class="p">[]</span><span class="nx">T</span><span class="p">,</span><span class="w"> </span><span class="nx">f</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#FilterFunc"><span class="nx">FilterFunc</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="p">(</span><span class="nx">result</span><span class="w"> </span><span class="p">[]</span><span class="nx">T</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Filter is similar to collection.Filter but uses parallelisation.
+<h4 id="ForEach">func ForEach</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ForEach</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">executionOptions</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">,</span><span class="w"> </span><span class="nx">contextualFunc</span><span class="w"> </span><span class="o">...</span><a href="#ContextualFunc"><span class="nx">ContextualFunc</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ForEach executes all the contextual functions according to the store options and returns an error if one occurred.
+<h4 id="Map">func Map</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">Map</span><span class="p">[</span><span class="nx">T1</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">T2</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">numWorkers</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">s</span><span class="w"> </span><span class="p">[]</span><span class="nx">T1</span><span class="p">,</span><span class="w"> </span><span class="nx">f</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#MapFunc"><span class="nx">MapFunc</span></a><span class="p">[</span><span class="nx">T1</span><span class="p">,</span><span class="w"> </span><span class="nx">T2</span><span class="p">])</span><span class="w"> </span><span class="p">(</span><span class="nx">result</span><span class="w"> </span><span class="p">[]</span><span class="nx">T2</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Map is similar to collection.Map but uses parallelisation.
+<h4 id="MapConcurrent">func MapConcurrent</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">MapConcurrent</span><span class="p">[</span><span class="nx">I</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="w"> </span><span class="p">[]</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">fn</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#MapFunc"><span class="nx">MapFunc</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">],</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">O</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MapConcurrent is similar to <a href="../collection#Map">collection.Map</a> but uses store options instead of
+a dedicated worker-count parameter.
+<p>Results are returned in input order. Use <a href="#Workers">Workers</a> to limit parallelism.
+<h4 id="MapConcurrentRef">func MapConcurrentRef</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">MapConcurrentRef</span><span class="p">[</span><span class="nx">I</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="w"> </span><span class="p">[]</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">fn</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#MapRefFunc"><span class="nx">MapRefFunc</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">],</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">O</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MapConcurrentRef is similar to <a href="../collection#MapRef">collection.MapRef</a> but uses store options
+instead of a dedicated worker-count parameter.
+<p>Results are returned in input order. Nil mapped values are skipped.
+<h4 id="MapConcurrentSequence">func MapConcurrentSequence</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">MapConcurrentSequence</span><span class="p">[</span><span class="nx">I</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="w"> </span><a href="https://pkg.go.dev/iter"><span class="nx">iter</span></a><span class="p">.</span><a href="https://pkg.go.dev/iter#Seq"><span class="nx">Seq</span></a><span class="p">[</span><span class="nx">I</span><span class="p">],</span><span class="w"> </span><span class="nx">fn</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#MapFunc"><span class="nx">MapFunc</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">],</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">O</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MapConcurrentSequence is similar to <a href="../collection#MapSequence">collection.MapSequence</a> but evaluates the
+mapping work concurrently and returns the eagerly collected result slice.
+<p>Results are returned in input order. Use <a href="#Workers">Workers</a> to limit parallelism.
+<h4 id="OrderedMap">func OrderedMap</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">OrderedMap</span><span class="p">[</span><span class="nx">T1</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">T2</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">numWorkers</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">s</span><span class="w"> </span><span class="p">[]</span><span class="nx">T1</span><span class="p">,</span><span class="w"> </span><span class="nx">f</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#MapFunc"><span class="nx">MapFunc</span></a><span class="p">[</span><span class="nx">T1</span><span class="p">,</span><span class="w"> </span><span class="nx">T2</span><span class="p">])</span><span class="w"> </span><span class="p">(</span><span class="nx">result</span><span class="w"> </span><span class="p">[]</span><span class="nx">T2</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>OrderedMap is similar to Map but ensures the results are in the same order as the input.
+<h4 id="Parallelise">func Parallelise</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Parallelise</span><span class="p">(</span><span class="nx">argList</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">action</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">arg</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">),</span><span class="w"> </span><span class="nx">resultType</span><span class="w"> </span><a href="https://pkg.go.dev/reflect"><span class="nx">reflect</span></a><span class="p">.</span><a href="https://pkg.go.dev/reflect#Type"><span class="nx">Type</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">results</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Parallelise parallelises an action over as many goroutines as specified by the argList and retrieves all the results when all the goroutines are done.
+To control the number of goroutines spawned, prefer WorkerPool
+<h4 id="Reject">func Reject</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">Reject</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">numWorkers</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">s</span><span class="w"> </span><span class="p">[]</span><span class="nx">T</span><span class="p">,</span><span class="w"> </span><span class="nx">f</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#FilterFunc"><span class="nx">FilterFunc</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="p">([]</span><span class="nx">T</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Reject is the opposite of Filter and returns the elements of collection for which the filtering function f returns false.
+<h4 id="RunActionWithParallelCheck">func RunActionWithParallelCheck</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">RunActionWithParallelCheck</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">action</span><span class="w"> </span><a href="#ActionFunc"><span class="nx">ActionFunc</span></a><span class="p">,</span><span class="w"> </span><span class="nx">checkAction</span><span class="w"> </span><a href="#CheckFunc"><span class="nx">CheckFunc</span></a><span class="p">,</span><span class="w"> </span><span class="nx">checkPeriod</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>RunActionWithParallelCheck runs an action with a check in parallel
+The function performing the check should return true if the check was favourable; false otherwise. If the check did not have the expected result then the whole function would be cancelled.
+<h4 id="RunActionWithParallelCheckAndResult">func RunActionWithParallelCheckAndResult</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">RunActionWithParallelCheckAndResult</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">action</span><span class="w"> </span><a href="#ActionFunc"><span class="nx">ActionFunc</span></a><span class="p">,</span><span class="w"> </span><span class="nx">checkAction</span><span class="w"> </span><a href="#CheckWithResultFunc"><span class="nx">CheckWithResultFunc</span></a><span class="p">[</span><span class="nx">T</span><span class="p">],</span><span class="w"> </span><span class="nx">onCheckResult</span><span class="w"> </span><a href="#ResultCheckFunc"><span class="nx">ResultCheckFunc</span></a><span class="p">[</span><span class="nx">T</span><span class="p">],</span><span class="w"> </span><span class="nx">checkPeriod</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="nx">T</span><span class="p">,</span><span class="w"> </span><span class="nx">ok</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>RunActionWithParallelCheck runs an action with a check in parallel
+The function performing the check should return true if the check should be repeated; false otherwise it should not.
+For more context about how the check ended, a result can be returned. If the check did not have the expected result
+then the whole function would be cancelled.
+<h4 id="RunActionWithTimeout">func RunActionWithTimeout</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">RunActionWithTimeout</span><span class="p">(</span><span class="nx">blockingAction</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">stop</span><span class="w"> </span><span class="kd">chan</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">timeout</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>RunActionWithTimeout runs an action with timeout
+<h4 id="RunActionWithTimeoutAndCancelStore">func RunActionWithTimeoutAndCancelStore</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">RunActionWithTimeoutAndCancelStore</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">timeout</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">store</span><span class="w"> </span><span class="o">*</span><a href="#CancelFunctionStore"><span class="nx">CancelFunctionStore</span></a><span class="p">,</span><span class="w"> </span><span class="nx">blockingAction</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>RunActionWithTimeoutAndCancelStore runs an action with timeout
+The cancel ExecutionGroup is used just to register the cancel function so that it can be called on Cancel.
+<h4 id="RunActionWithTimeoutAndContext">func RunActionWithTimeoutAndContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">RunActionWithTimeoutAndContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">timeout</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">blockingAction</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>RunActionWithTimeoutAndContext runs an action with timeout
+blockingAction&apos;s context will be cancelled on exit.
+<h4 id="SafeSchedule">func SafeSchedule</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SafeSchedule</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">period</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">offset</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">f</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Time"><span class="nx">Time</span></a><span class="p">))</span></pre>
+  <p>SafeSchedule calls function `f` regularly with a `period` and an `offset`, similarly to Schedule but with context control.
+<h4 id="SafeScheduleAfter">func SafeScheduleAfter</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SafeScheduleAfter</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">offset</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">f</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Time"><span class="nx">Time</span></a><span class="p">))</span></pre>
+  <p>SafeScheduleAfter calls once function `f` after `offset` similarly to ScheduleAfter but stops the function is controlled by the context
+<h4 id="Schedule">func Schedule</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Schedule</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">period</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">offset</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">f</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Time"><span class="nx">Time</span></a><span class="p">))</span></pre>
+  <p>Schedule calls function `f` regularly with a `period` and an `offset`.
+<h4 id="ScheduleAfter">func ScheduleAfter</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ScheduleAfter</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">offset</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">f</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Time"><span class="nx">Time</span></a><span class="p">))</span></pre>
+  <p>ScheduleAfter calls once function `f` after `offset`
+<h4 id="SchedulePeriodicCheckWithAction">func SchedulePeriodicCheckWithAction</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SchedulePeriodicCheckWithAction</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">checkFunc</span><span class="w"> </span><a href="#CheckFuncWithErr"><span class="nx">CheckFuncWithErr</span></a><span class="p">,</span><span class="w"> </span><span class="nx">actionFunc</span><span class="w"> </span><a href="#ActionFunc"><span class="nx">ActionFunc</span></a><span class="p">,</span><span class="w"> </span><span class="nx">pauseBetweenEvaluations</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>SchedulePeriodicCheckWithAction continuously evaluates checkFunc and, when it returns true, executes actionFunc before waiting for pauseBetweenEvaluations.
+The loop stops when the context is cancelled or when either the checkFunc or the actionFunc returns an error.
+<h4 id="SleepWithContext">func SleepWithContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SleepWithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">delay</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span></pre>
+  <p>SleepWithContext performs an interruptable sleep
+Similar to time.Sleep() but also responding to context cancellation instead of blocking for the whole length of time.
+<h4 id="SleepWithInterruption">func SleepWithInterruption</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SleepWithInterruption</span><span class="p">(</span><span class="nx">stop</span><span class="w"> </span><span class="kd">chan</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">delay</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span></pre>
+  <p>SleepWithInterruption performs an interruptable sleep
+Similar to time.Sleep() but also interrupting when requested instead of blocking for the whole length of time.
+<h4 id="Transform">func Transform</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">Transform</span><span class="p">[</span><span class="nx">I</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">inputs</span><span class="w"> </span><a href="https://pkg.go.dev/iter"><span class="nx">iter</span></a><span class="p">.</span><a href="https://pkg.go.dev/iter#Seq"><span class="nx">Seq</span></a><span class="p">[</span><span class="nx">I</span><span class="p">],</span><span class="w"> </span><span class="nx">transform</span><span class="w"> </span><a href="#TransformFunc"><span class="nx">TransformFunc</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">],</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">O</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Transform transforms inputs into outputs using the transform function.
+<h4 id="TransformInOrder">func TransformInOrder</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">TransformInOrder</span><span class="p">[</span><span class="nx">I</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">inputs</span><span class="w"> </span><a href="https://pkg.go.dev/iter"><span class="nx">iter</span></a><span class="p">.</span><a href="https://pkg.go.dev/iter#Seq"><span class="nx">Seq</span></a><span class="p">[</span><span class="nx">I</span><span class="p">],</span><span class="w"> </span><span class="nx">transform</span><span class="w"> </span><a href="#TransformFunc"><span class="nx">TransformFunc</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">],</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">O</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>TransformInOrder transforms inputs into outputs using the transform function but returns the output in the same order as the input.
+<h4 id="WaitUntil">func WaitUntil</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WaitUntil</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">evalCondition</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx2</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">),</span><span class="w"> </span><span class="nx">pauseBetweenEvaluations</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>WaitUntil waits for a condition evaluated by evalCondition to be verified
+<h4 id="WaitWithContext">func WaitWithContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WaitWithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">wg</span><span class="w"> </span><a href="#IWaiter"><span class="nx">IWaiter</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="WaitWithContextAndError">func WaitWithContextAndError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WaitWithContextAndError</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">wg</span><span class="w"> </span><a href="#IErrorWaiter"><span class="nx">IErrorWaiter</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="WorkerPool">func WorkerPool</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">WorkerPool</span><span class="p">[</span><span class="nx">InputType</span><span class="p">,</span><span class="w"> </span><span class="nx">ResultType</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">numWorkers</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">jobs</span><span class="w"> </span><span class="p">[]</span><span class="nx">InputType</span><span class="p">,</span><span class="w"> </span><span class="nx">f</span><span class="w"> </span><a href="#TransformFunc"><span class="nx">TransformFunc</span></a><span class="p">[</span><span class="nx">InputType</span><span class="p">,</span><span class="w"> </span><span class="nx">ResultType</span><span class="p">])</span><span class="w"> </span><span class="p">(</span><span class="nx">results</span><span class="w"> </span><span class="p">[]</span><span class="nx">ResultType</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>WorkerPool parallelises an action using a worker pool of the size provided by numWorkers and retrieves all the results when all the actions have completed. It is similar to Parallelise but it uses generics instead of reflection and allows you to control the pool size
+<h4 id="WrapCloseToCancelFunc">func WrapCloseToCancelFunc</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapCloseToCancelFunc</span><span class="p">(</span><span class="nx">f</span><span class="w"> </span><a href="#CloseFunc"><span class="nx">CloseFunc</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#CancelFunc"><span class="nx">CancelFunc</span></a></pre>
+  <h4 id="WrapContextualToCancelFunc">func WrapContextualToCancelFunc</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapContextualToCancelFunc</span><span class="p">(</span><span class="nx">f</span><span class="w"> </span><a href="#ContextualFunc"><span class="nx">ContextualFunc</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#CancelFunc"><span class="nx">CancelFunc</span></a></pre>
+  <h3 id="pkg-types">Types</h3>
+  
+  <h4 id="ActionFunc">type ActionFunc</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ActionFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+    <h4 id="CancelFunctionStore">type CancelFunctionStore</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">CancelFunctionStore</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#CancelFunc"><span class="nx">CancelFunc</span></a><span class="p">]</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewCancelFunctionsStore">func NewCancelFunctionsStore</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewCancelFunctionsStore</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#CancelFunctionStore"><span class="nx">CancelFunctionStore</span></a></pre>
+  <p>NewCancelFunctionsStore creates a store for cancel functions. Whatever the options passed, all cancel functions will be executed and cleared. In other words, options `RetainAfterExecution` and `StopOnFirstError` would be discarded if selected to create the Cancel store
+<h5 id="CancelFunctionStore.Cancel">func (*CancelFunctionStore) Cancel</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CancelFunctionStore"><span class="nx">CancelFunctionStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Cancel</span><span class="p">()</span></pre>
+  <p>Cancel will execute the cancel functions in the store. Any errors will be ignored and Execute() is recommended if you need to know if a cancellation failed
+<h5 id="CancelFunctionStore.Clone">func (*CancelFunctionStore) Clone</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CancelFunctionStore"><span class="nx">CancelFunctionStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Clone</span><span class="p">()</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#CancelFunc"><span class="nx">CancelFunc</span></a><span class="p">]</span></pre>
+  <h5 id="CancelFunctionStore.Len">func (*CancelFunctionStore) Len</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CancelFunctionStore"><span class="nx">CancelFunctionStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Len</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a></pre>
+  <h5 id="CancelFunctionStore.RegisterCancelFunction">func (*CancelFunctionStore) RegisterCancelFunction</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CancelFunctionStore"><span class="nx">CancelFunctionStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">RegisterCancelFunction</span><span class="p">(</span><span class="nx">cancel</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#CancelFunc"><span class="nx">CancelFunc</span></a><span class="p">)</span></pre>
+  <h5 id="CancelFunctionStore.RegisterCancelStore">func (*CancelFunctionStore) RegisterCancelStore</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CancelFunctionStore"><span class="nx">CancelFunctionStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">RegisterCancelStore</span><span class="p">(</span><span class="nx">store</span><span class="w"> </span><span class="o">*</span><a href="#CancelFunctionStore"><span class="nx">CancelFunctionStore</span></a><span class="p">)</span></pre>
+  <h4 id="CheckFunc">type CheckFunc</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">CheckFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">ok</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span></pre>
+    <h4 id="CheckFuncWithErr">type CheckFuncWithErr</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">CheckFuncWithErr</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">ok</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+    <h4 id="CheckWithResultFunc">type CheckWithResultFunc</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">CheckWithResultFunc</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">]</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="nx">T</span><span class="p">,</span><span class="w"> </span><span class="nx">ok</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span></pre>
+    <h4 id="CloseFunc">type CloseFunc</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">CloseFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+    <h5 id="WrapCancelToCloseFunc">func WrapCancelToCloseFunc</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapCancelToCloseFunc</span><span class="p">(</span><span class="nx">f</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#CancelFunc"><span class="nx">CancelFunc</span></a><span class="p">)</span><span class="w"> </span><a href="#CloseFunc"><span class="nx">CloseFunc</span></a></pre>
+  <h5 id="WrapCloserIntoCloseFunc">func WrapCloserIntoCloseFunc</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapCloserIntoCloseFunc</span><span class="p">(</span><span class="nx">closer</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Closer"><span class="nx">Closer</span></a><span class="p">)</span><span class="w"> </span><a href="#CloseFunc"><span class="nx">CloseFunc</span></a></pre>
+  <h5 id="WrapContextualToCloseFunc">func WrapContextualToCloseFunc</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapContextualToCloseFunc</span><span class="p">(</span><span class="nx">f</span><span class="w"> </span><a href="#ContextualFunc"><span class="nx">ContextualFunc</span></a><span class="p">)</span><span class="w"> </span><a href="#CloseFunc"><span class="nx">CloseFunc</span></a></pre>
+  <h5 id="CloseFunc.Close">func (CloseFunc) Close</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><a href="#CloseFunc"><span class="nx">CloseFunc</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Close</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h4 id="CloseFunctionStore">type CloseFunctionStore</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">CloseFunctionStore</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><a href="#CloseFunc"><span class="nx">CloseFunc</span></a><span class="p">]</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewCloseFunctionStore">func NewCloseFunctionStore</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewCloseFunctionStore</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#CloseFunctionStore"><span class="nx">CloseFunctionStore</span></a></pre>
+  <p>NewCloseFunctionStore returns a store closing functions which will all be called on Close(). The first error received if any will be returned.
+<h5 id="NewCloseFunctionStoreStore">func NewCloseFunctionStoreStore</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewCloseFunctionStoreStore</span><span class="p">(</span><span class="nx">stopOnFirstError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#CloseFunctionStore"><span class="nx">CloseFunctionStore</span></a></pre>
+  <p>NewCloseFunctionStoreStore is exactly the same as NewConcurrentCloseFunctionStore but without a typo in the name.
+<h5 id="NewCloseOnceGroup">func NewCloseOnceGroup</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewCloseOnceGroup</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#CloseFunctionStore"><span class="nx">CloseFunctionStore</span></a></pre>
+  <p>NewCloseOnceGroup is the same as NewCloseFunctionStore but ensures any closing functions are only executed once.
+<h5 id="NewConcurrentCloseFunctionStore">func NewConcurrentCloseFunctionStore</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConcurrentCloseFunctionStore</span><span class="p">(</span><span class="nx">stopOnFirstError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#CloseFunctionStore"><span class="nx">CloseFunctionStore</span></a></pre>
+  <p>NewConcurrentCloseFunctionStore returns a store closing functions which will all be called concurrently on Close(). The first error received will be returned.
+Prefer using NewCloseFunctionStore where possible
+<h5 id="NewConcurrentCloseOnceFunctionStore">func NewConcurrentCloseOnceFunctionStore</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewConcurrentCloseOnceFunctionStore</span><span class="p">(</span><span class="nx">stopOnFirstError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#CloseFunctionStore"><span class="nx">CloseFunctionStore</span></a></pre>
+  <p>NewConcurrentCloseOnceFunctionStore returns a store closing functions once on Close(). It is similar to NewConcurrentCloseFunctionStore otherwise.
+<h5 id="CloseFunctionStore.Clone">func (*CloseFunctionStore) Clone</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CloseFunctionStore"><span class="nx">CloseFunctionStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Clone</span><span class="p">()</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><a href="#CloseFunc"><span class="nx">CloseFunc</span></a><span class="p">]</span></pre>
+  <h5 id="CloseFunctionStore.Close">func (*CloseFunctionStore) Close</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CloseFunctionStore"><span class="nx">CloseFunctionStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Close</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="CloseFunctionStore.Len">func (*CloseFunctionStore) Len</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CloseFunctionStore"><span class="nx">CloseFunctionStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Len</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a></pre>
+  <h5 id="CloseFunctionStore.RegisterCancelFunction">func (*CloseFunctionStore) RegisterCancelFunction</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CloseFunctionStore"><span class="nx">CloseFunctionStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">RegisterCancelFunction</span><span class="p">(</span><span class="nx">cancelFunc</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#CancelFunc"><span class="nx">CancelFunc</span></a><span class="p">)</span></pre>
+  <h5 id="CloseFunctionStore.RegisterCancelStore">func (*CloseFunctionStore) RegisterCancelStore</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CloseFunctionStore"><span class="nx">CloseFunctionStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">RegisterCancelStore</span><span class="p">(</span><span class="nx">cancelStore</span><span class="w"> </span><span class="o">*</span><a href="#CancelFunctionStore"><span class="nx">CancelFunctionStore</span></a><span class="p">)</span></pre>
+  <h5 id="CloseFunctionStore.RegisterCloseFunction">func (*CloseFunctionStore) RegisterCloseFunction</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CloseFunctionStore"><span class="nx">CloseFunctionStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">RegisterCloseFunction</span><span class="p">(</span><span class="nx">closerObj</span><span class="w"> </span><span class="o">...</span><a href="#CloseFunc"><span class="nx">CloseFunc</span></a><span class="p">)</span></pre>
+  <h4 id="CloserStore">type CloserStore</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">CloserStore</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Closer"><span class="nx">Closer</span></a><span class="p">]</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewCloserOnceStore">func NewCloserOnceStore</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewCloserOnceStore</span><span class="p">(</span><span class="nx">stopOnFirstError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#CloserStore"><span class="nx">CloserStore</span></a></pre>
+  <p>NewCloserOnceStore is similar to NewCloserStore but only close the closers once.
+<h5 id="NewCloserStore">func NewCloserStore</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewCloserStore</span><span class="p">(</span><span class="nx">stopOnFirstError</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#CloserStore"><span class="nx">CloserStore</span></a></pre>
+  <p>NewCloserStore returns a store of io.Closer object which will all be closed concurrently on Close(). The first error received will be returned
+<h5 id="NewCloserStoreWithOptions">func NewCloserStoreWithOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewCloserStoreWithOptions</span><span class="p">(</span><span class="nx">opts</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#CloserStore"><span class="nx">CloserStore</span></a></pre>
+  <p>NewCloserStoreWithOptions returns a store of io.Closer object which will all be closed on Close(). The first error received if any will be returned
+<h5 id="CloserStore.Clone">func (*CloserStore) Clone</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CloserStore"><span class="nx">CloserStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Clone</span><span class="p">()</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Closer"><span class="nx">Closer</span></a><span class="p">]</span></pre>
+  <h5 id="CloserStore.Close">func (*CloserStore) Close</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CloserStore"><span class="nx">CloserStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Close</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="CloserStore.Len">func (*CloserStore) Len</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CloserStore"><span class="nx">CloserStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Len</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a></pre>
+  <h5 id="CloserStore.RegisterCloser">func (*CloserStore) RegisterCloser</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#CloserStore"><span class="nx">CloserStore</span></a><span class="p">)</span><span class="w"> </span><span class="nf">RegisterCloser</span><span class="p">(</span><span class="nx">closerObj</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Closer"><span class="nx">Closer</span></a><span class="p">)</span></pre>
+  <h4 id="CompoundExecutionGroup">type CompoundExecutionGroup</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">CompoundExecutionGroup</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#ContextualFunctionGroup"><span class="nx">ContextualFunctionGroup</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewCompoundExecutionGroup">func NewCompoundExecutionGroup</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewCompoundExecutionGroup</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#CompoundExecutionGroup"><span class="nx">CompoundExecutionGroup</span></a></pre>
+  <p>NewCompoundExecutionGroup returns an execution group made of executors
+<h5 id="CompoundExecutionGroup.Clone">func (*CompoundExecutionGroup) Clone</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#CompoundExecutionGroup"><span class="nx">CompoundExecutionGroup</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Clone</span><span class="p">()</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><a href="#ContextualFunc"><span class="nx">ContextualFunc</span></a><span class="p">]</span></pre>
+  <h5 id="CompoundExecutionGroup.RegisterExecutor">func (*CompoundExecutionGroup) RegisterExecutor</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#CompoundExecutionGroup"><span class="nx">CompoundExecutionGroup</span></a><span class="p">)</span><span class="w"> </span><span class="nf">RegisterExecutor</span><span class="p">(</span><span class="nx">group</span><span class="w"> </span><span class="o">...</span><a href="#IExecutor"><span class="nx">IExecutor</span></a><span class="p">)</span></pre>
+  <p>RegisterExecutor registers executors
+<h4 id="ContextualFunc">type ContextualFunc</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ContextualFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+    <h5 id="WrapCancelToContextualFunc">func WrapCancelToContextualFunc</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapCancelToContextualFunc</span><span class="p">(</span><span class="nx">f</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#CancelFunc"><span class="nx">CancelFunc</span></a><span class="p">)</span><span class="w"> </span><a href="#ContextualFunc"><span class="nx">ContextualFunc</span></a></pre>
+  <h5 id="WrapCloseToContextualFunc">func WrapCloseToContextualFunc</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapCloseToContextualFunc</span><span class="p">(</span><span class="nx">f</span><span class="w"> </span><a href="#CloseFunc"><span class="nx">CloseFunc</span></a><span class="p">)</span><span class="w"> </span><a href="#ContextualFunc"><span class="nx">ContextualFunc</span></a></pre>
+  <h4 id="ContextualFunctionGroup">type ContextualFunctionGroup</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ContextualFunctionGroup</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><a href="#ContextualFunc"><span class="nx">ContextualFunc</span></a><span class="p">]</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewContextualGroup">func NewContextualGroup</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewContextualGroup</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#ContextualFunctionGroup"><span class="nx">ContextualFunctionGroup</span></a></pre>
+  <p>NewContextualGroup returns a group executing contextual functions.
+<h5 id="ContextualFunctionGroup.Clone">func (*ContextualFunctionGroup) Clone</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#ContextualFunctionGroup"><span class="nx">ContextualFunctionGroup</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Clone</span><span class="p">()</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><a href="#ContextualFunc"><span class="nx">ContextualFunc</span></a><span class="p">]</span></pre>
+  <h4 id="ExecuteFunc">type ExecuteFunc</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ExecuteFunc</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">]</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">element</span><span class="w"> </span><span class="nx">T</span><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+    <h4 id="ExecutionGroup">type ExecutionGroup</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ExecutionGroup</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">]</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewExecutionGroup">func NewExecutionGroup</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">NewExecutionGroup</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">executeFunc</span><span class="w"> </span><a href="#ExecuteFunc"><span class="nx">ExecuteFunc</span></a><span class="p">[</span><span class="nx">T</span><span class="p">],</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">]</span></pre>
+  <p>NewExecutionGroup returns an execution group which executes functions according to store options.
+<h5 id="NewOrderedExecutionGroup">func NewOrderedExecutionGroup</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">NewOrderedExecutionGroup</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">executeFunc</span><span class="w"> </span><a href="#OrderedExecuteFunc"><span class="nx">OrderedExecuteFunc</span></a><span class="p">[</span><span class="nx">T</span><span class="p">],</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">]</span></pre>
+  <p>NewOrderedExecutionGroup returns an execution group which executes functions according to store options. It also keeps track of the input index.
+<h5 id="ExecutionGroup.Clone">func (*ExecutionGroup[T]) Clone</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">Clone</span><span class="p">()</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">]</span></pre>
+  <h5 id="ExecutionGroup.CopyFunctions">func (*ExecutionGroup[T]) CopyFunctions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">CopyFunctions</span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span></pre>
+  <h5 id="ExecutionGroup.Execute">func (*ExecutionGroup[T]) Execute</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">Execute</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Execute executes all the function in the group according to store options.
+<h5 id="ExecutionGroup.Len">func (*ExecutionGroup[T]) Len</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">Len</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a></pre>
+  <h5 id="ExecutionGroup.RegisterFunction">func (*ExecutionGroup[T]) RegisterFunction</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">RegisterFunction</span><span class="p">(</span><span class="nx">function</span><span class="w"> </span><span class="o">...</span><span class="nx">T</span><span class="p">)</span></pre>
+  <p>RegisterFunction registers functions to the group.
+<h5 id="ExecutionGroup.RegisterFunctions">func (*ExecutionGroup[T]) RegisterFunctions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">RegisterFunctions</span><span class="p">(</span><span class="nx">function</span><span class="w"> </span><a href="https://pkg.go.dev/iter"><span class="nx">iter</span></a><span class="p">.</span><a href="https://pkg.go.dev/iter#Seq"><span class="nx">Seq</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span></pre>
+  <p>RegisterFunctions registers a sequence of functions to the group.
+<h4 id="ICompoundExecutionGroup">type ICompoundExecutionGroup</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ICompoundExecutionGroup</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">]</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">]</span><span class="w">
+</span><span class="w">	</span><span class="c1">// RegisterExecutor registers executors of any kind to the group: they could be functions or subgroups.</span><span class="w">
+</span><span class="w">	</span><span id="ICompoundExecutionGroup.RegisterExecutor"><span class="nf">RegisterExecutor</span></span><span class="p">(</span><span class="nx">executor</span><span class="w"> </span><span class="o">...</span><a href="#IExecutor"><span class="nx">IExecutor</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h4 id="IErrorWaiter">type IErrorWaiter</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IErrorWaiter</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="IErrorWaiter.Wait"><span class="nf">Wait</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IErrorWaiter can be used to wait on errgroups and similar types where Wait() returns an error
+This is used to support use in the WaitWithContextAndError function to wait but listen to contexts
+<h4 id="IExecutionGroup">type IExecutionGroup</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IExecutionGroup</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">]</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IExecutor"><span class="nx">IExecutor</span></a><span class="w">
+</span><span class="w">	</span><span id="IExecutionGroup.RegisterFunction"><span class="nf">RegisterFunction</span></span><span class="p">(</span><span class="nx">function</span><span class="w"> </span><span class="o">...</span><span class="nx">T</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// RegisterFunctions registers a sequence of functions to the group.</span><span class="w">
+</span><span class="w">	</span><span id="IExecutionGroup.RegisterFunctions"><span class="nf">RegisterFunctions</span></span><span class="p">(</span><span class="nx">function</span><span class="w"> </span><a href="https://pkg.go.dev/iter"><span class="nx">iter</span></a><span class="p">.</span><a href="https://pkg.go.dev/iter#Seq"><span class="nx">Seq</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w">
+</span><span class="w">	</span><span class="c1">// CopyFunctions copies the registered functions to group g</span><span class="w">
+</span><span class="w">	</span><span id="IExecutionGroup.CopyFunctions"><span class="nf">CopyFunctions</span></span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w">
+</span><span class="w">	</span><span id="IExecutionGroup.Len"><span class="nf">Len</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Clone returns a new execution group containing the same registered functions</span><span class="w">
+</span><span class="w">	</span><span class="c1">// as the original. The cloned group does not inherit any execution state, so</span><span class="w">
+</span><span class="w">	</span><span class="c1">// none of the functions are considered executed. Calling Execute on the clone</span><span class="w">
+</span><span class="w">	</span><span class="c1">// will run all registered functions again, regardless of whether they were</span><span class="w">
+</span><span class="w">	</span><span class="c1">// previously executed in the original group.</span><span class="w">
+</span><span class="w">	</span><span id="IExecutionGroup.Clone"><span class="nf">Clone</span></span><span class="p">()</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">]</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h4 id="IExecutor">type IExecutor</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IExecutor</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Execute executes all the functions in the group.</span><span class="w">
+</span><span class="w">	</span><span id="IExecutor.Execute"><span class="nf">Execute</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <h4 id="IWaiter">type IWaiter</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IWaiter</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="IWaiter.Wait"><span class="nf">Wait</span></span><span class="p">()</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IWaiter can be used to wait on sync WaitGroups and similar types where Wait() does not return an error
+This is used to support use in the WaitWithContext function to wait but listen to contexts
+<h4 id="OrderedExecuteFunc">type OrderedExecuteFunc</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">OrderedExecuteFunc</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">]</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">index</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">element</span><span class="w"> </span><span class="nx">T</span><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+    <h4 id="PriorityExecutionGroup">type PriorityExecutionGroup</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">PriorityExecutionGroup</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">]</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewPriorityContextualGroup">func NewPriorityContextualGroup</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewPriorityContextualGroup</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><a href="#ContextualFunc"><span class="nx">ContextualFunc</span></a><span class="p">]</span></pre>
+  <p>NewContextualGroupWithPriority returns a group executing contextual functions that will be run in priority order.
+<h5 id="NewPriorityExecutionGroup">func NewPriorityExecutionGroup</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewPriorityExecutionGroup</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><a href="#IExecutor"><span class="nx">IExecutor</span></a><span class="p">]</span></pre>
+  <p>NewPriorityExecutionGroup returns an execution group that can execute functions in order according to priority rules.
+Parallel commands with differing priorities will be executed in groups according to their priority.
+Sequential commands will be executed in order of their priority, no guarantees are made about the order of when
+the priority is the same as another command.
+<h5 id="PriorityExecutionGroup.Clone">func (*PriorityExecutionGroup[T]) Clone</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">Clone</span><span class="p">()</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">]</span></pre>
+  <h5 id="PriorityExecutionGroup.CopyAllPriorityFunctions">func (*PriorityExecutionGroup[T]) CopyAllPriorityFunctions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">CopyAllPriorityFunctions</span><span class="p">(</span><span class="nx">d</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span></pre>
+  <h5 id="PriorityExecutionGroup.CopyFunctions">func (*PriorityExecutionGroup[T]) CopyFunctions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">CopyFunctions</span><span class="p">(</span><span class="nx">d</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span></pre>
+  <h5 id="PriorityExecutionGroup.CopyPriorityFunctions">func (*PriorityExecutionGroup[T]) CopyPriorityFunctions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">CopyPriorityFunctions</span><span class="p">(</span><span class="nx">priority</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#uint"><span class="kt">uint</span></a><span class="p">,</span><span class="w"> </span><span class="nx">d</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span></pre>
+  <h5 id="PriorityExecutionGroup.Execute">func (*PriorityExecutionGroup[T]) Execute</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">Execute</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Execute will execute all the groups according to the priorities of the functions
+<h5 id="PriorityExecutionGroup.GetPriorityGroup">func (*PriorityExecutionGroup[T]) GetPriorityGroup</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">GetPriorityGroup</span><span class="p">(</span><span class="nx">priority</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#uint"><span class="kt">uint</span></a><span class="p">)</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">]</span></pre>
+  <h5 id="PriorityExecutionGroup.Len">func (*PriorityExecutionGroup[T]) Len</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">Len</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">n</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span></pre>
+  <h5 id="PriorityExecutionGroup.RegisterFunction">func (*PriorityExecutionGroup[T]) RegisterFunction</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">RegisterFunction</span><span class="p">(</span><span class="nx">function</span><span class="w"> </span><span class="o">...</span><span class="nx">T</span><span class="p">)</span></pre>
+  <p>RegisterExecutor registers executors with a priority of zero (highest priority)
+<h5 id="PriorityExecutionGroup.RegisterFunctionWithPriority">func (*PriorityExecutionGroup[T]) RegisterFunctionWithPriority</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">RegisterFunctionWithPriority</span><span class="p">(</span><span class="nx">priority</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#uint"><span class="kt">uint</span></a><span class="p">,</span><span class="w"> </span><span class="nx">function</span><span class="w"> </span><span class="o">...</span><span class="nx">T</span><span class="p">)</span></pre>
+  <p>RegisterExecutor registers executors with a specific priority (lower values indidcate higher priority)
+<h5 id="PriorityExecutionGroup.RegisterFunctions">func (*PriorityExecutionGroup[T]) RegisterFunctions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">RegisterFunctions</span><span class="p">(</span><span class="nx">functionSeq</span><span class="w"> </span><a href="https://pkg.go.dev/iter"><span class="nx">iter</span></a><span class="p">.</span><a href="https://pkg.go.dev/iter#Seq"><span class="nx">Seq</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span></pre>
+  <h5 id="PriorityExecutionGroup.RegisterFunctionsWithPriority">func (*PriorityExecutionGroup[T]) RegisterFunctionsWithPriority</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#PriorityExecutionGroup"><span class="nx">PriorityExecutionGroup</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><span class="nf">RegisterFunctionsWithPriority</span><span class="p">(</span><span class="nx">priority</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#uint"><span class="kt">uint</span></a><span class="p">,</span><span class="w"> </span><span class="nx">functionSeq</span><span class="w"> </span><a href="https://pkg.go.dev/iter"><span class="nx">iter</span></a><span class="p">.</span><a href="https://pkg.go.dev/iter#Seq"><span class="nx">Seq</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span></pre>
+  <h4 id="ResultCheckFunc">type ResultCheckFunc</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ResultCheckFunc</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">]</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">res</span><span class="w"> </span><span class="nx">T</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+    <h4 id="StoreOption">type StoreOption</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">StoreOption</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a></pre>
+    
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="AnyTimes"><span class="nx">AnyTimes</span></span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><span class="nx">o</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="nx">o</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#DefaultOptions"><span class="nf">DefaultOptions</span></a><span class="p">()</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">onlyOnce</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#false"><span class="kc">false</span></a><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">o</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>AnyTimes will allow the functions to be executed as often that they might be.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="ClearAfterExecution"><span class="nx">ClearAfterExecution</span></span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><span class="nx">o</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="nx">o</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#DefaultOptions"><span class="nf">DefaultOptions</span></a><span class="p">()</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">clearOnExecution</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#true"><span class="kc">true</span></a><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">o</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>ClearAfterExecution clears the ExecutionGroup after execution.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="ExecuteAll"><span class="nx">ExecuteAll</span></span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><span class="nx">o</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="nx">o</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#DefaultOptions"><span class="nf">DefaultOptions</span></a><span class="p">()</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">stopOnFirstError</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#false"><span class="kc">false</span></a><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">o</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>ExecuteAll executes all functions in the ExecutionGroup even if an error is raised. the first error raised is then returned.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="JoinErrors"><span class="nx">JoinErrors</span></span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><span class="nx">o</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="nx">o</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#DefaultOptions"><span class="nf">DefaultOptions</span></a><span class="p">()</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">stopOnFirstError</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#false"><span class="kc">false</span></a><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">joinErrors</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#true"><span class="kc">true</span></a><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">o</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>JoinErrors will collate any errors which happened when executing functions in ExecutionGroup.
+This option should not be used in combination to StopOnFirstError.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="OnlyOnce"><span class="nx">OnlyOnce</span></span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><span class="nx">o</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="nx">o</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#DefaultOptions"><span class="nf">DefaultOptions</span></a><span class="p">()</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">onlyOnce</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#true"><span class="kc">true</span></a><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">o</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>OnlyOnce will ensure the function are executed only once if they do.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="Parallel"><span class="nx">Parallel</span></span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><span class="nx">o</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="nx">o</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#DefaultOptions"><span class="nf">DefaultOptions</span></a><span class="p">()</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">sequential</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#false"><span class="kc">false</span></a><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">o</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>Parallel ensures every function registered in the ExecutionGroup is executed concurrently in the order they were registered.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="RetainAfterExecution"><span class="nx">RetainAfterExecution</span></span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><span class="nx">o</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="nx">o</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#DefaultOptions"><span class="nf">DefaultOptions</span></a><span class="p">()</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">clearOnExecution</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#false"><span class="kc">false</span></a><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">o</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>RetainAfterExecution keep the ExecutionGroup intact after execution (no reset).
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="Sequential"><span class="nx">Sequential</span></span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><span class="nx">o</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="nx">o</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#DefaultOptions"><span class="nf">DefaultOptions</span></a><span class="p">()</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">sequential</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#true"><span class="kc">true</span></a><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">o</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>Sequential ensures every function registered in the ExecutionGroup is executed sequentially in the order they were registered.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="SequentialInReverse"><span class="nx">SequentialInReverse</span></span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><span class="nx">o</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="nx">o</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#DefaultOptions"><span class="nf">DefaultOptions</span></a><span class="p">()</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">sequential</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#true"><span class="kc">true</span></a><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">reverse</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#true"><span class="kc">true</span></a><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">o</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>SequentialInReverse ensures every function registered in the ExecutionGroup is executed sequentially but in the reverse order they were registered.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="StopOnFirstError"><span class="nx">StopOnFirstError</span></span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><span class="nx">o</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="nx">o</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#DefaultOptions"><span class="nf">DefaultOptions</span></a><span class="p">()</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">stopOnFirstError</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#true"><span class="kc">true</span></a><span class="w">
+</span><span class="w">	</span><span class="nx">o</span><span class="p">.</span><span class="nx">joinErrors</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#false"><span class="kc">false</span></a><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">o</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>StopOnFirstError stops ExecutionGroup execution on first error.
+<h5 id="Workers">func Workers</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Workers</span><span class="p">(</span><span class="nx">workers</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a></pre>
+  <p>Workers defines a limit number of workers for executing the function registered in the ExecutionGroup.
+<h4 id="StoreOptions">type StoreOptions</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">StoreOptions</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="DefaultOptions">func DefaultOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultOptions</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a></pre>
+  <p>DefaultOptions returns the default store configuration
+<h5 id="WithOptions">func WithOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithOptions</span><span class="p">(</span><span class="nx">option</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">opts</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span></pre>
+  <p>WithOptions defines a store configuration.
+<h5 id="StoreOptions.Apply">func (*StoreOptions) Apply</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Apply</span><span class="p">(</span><span class="nx">opt</span><span class="w"> </span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a></pre>
+  <h5 id="StoreOptions.Default">func (*StoreOptions) Default</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Default</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a></pre>
+  <h5 id="StoreOptions.Merge">func (*StoreOptions) Merge</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Merge</span><span class="p">(</span><span class="nx">opts</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a></pre>
+  <h5 id="StoreOptions.MergeWithOptions">func (*StoreOptions) MergeWithOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="nf">MergeWithOptions</span><span class="p">(</span><span class="nx">opt</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a></pre>
+  <h5 id="StoreOptions.Options">func (*StoreOptions) Options</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Options</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><a href="#StoreOption"><span class="nx">StoreOption</span></a></pre>
+  <h5 id="StoreOptions.Overwrite">func (*StoreOptions) Overwrite</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Overwrite</span><span class="p">(</span><span class="nx">opts</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a></pre>
+  <h5 id="StoreOptions.WithOptions">func (*StoreOptions) WithOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a><span class="p">)</span><span class="w"> </span><span class="nf">WithOptions</span><span class="p">(</span><span class="nx">opts</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#StoreOptions"><span class="nx">StoreOptions</span></a></pre>
+  <h4 id="TransformFunc">type TransformFunc</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">TransformFunc</span><span class="p">[</span><span class="nx">I</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">]</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">I</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">output</span><span class="w"> </span><span class="nx">O</span><span class="p">,</span><span class="w"> </span><span class="nx">success</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+    <p>TransformFunc defines a transformation function which converts an input into an output.
+<h4 id="TransformGroup">type TransformGroup</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">TransformGroup</span><span class="p">[</span><span class="nx">I</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">]</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#ExecutionGroup"><span class="nx">ExecutionGroup</span></a><span class="p">[</span><span class="nx">I</span><span class="p">]</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewTransformGroup">func NewTransformGroup</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">NewTransformGroup</span><span class="p">[</span><span class="nx">I</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">transform</span><span class="w"> </span><a href="#TransformFunc"><span class="nx">TransformFunc</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">],</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#StoreOption"><span class="nx">StoreOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#TransformGroup"><span class="nx">TransformGroup</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">]</span></pre>
+  <p>NewTransformGroup returns a group transforming inputs into outputs.
+To register inputs, call the Input function
+To perform the transformation of inputs, then call Transform
+To retrieve the output, then call Output
+<h5 id="TransformGroup.Clone">func (*TransformGroup[I, O]) Clone</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#TransformGroup"><span class="nx">TransformGroup</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">])</span><span class="w"> </span><span class="nf">Clone</span><span class="p">()</span><span class="w"> </span><a href="#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><span class="nx">I</span><span class="p">]</span></pre>
+  <h5 id="TransformGroup.InputSequence">func (*TransformGroup[I, O]) InputSequence</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#TransformGroup"><span class="nx">TransformGroup</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">])</span><span class="w"> </span><span class="nf">InputSequence</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">i</span><span class="w"> </span><a href="https://pkg.go.dev/iter"><span class="nx">iter</span></a><span class="p">.</span><a href="https://pkg.go.dev/iter#Seq"><span class="nx">Seq</span></a><span class="p">[</span><span class="nx">I</span><span class="p">])</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>InputSequence registers inputs to transform.
+<h5 id="TransformGroup.Inputs">func (*TransformGroup[I, O]) Inputs</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#TransformGroup"><span class="nx">TransformGroup</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">])</span><span class="w"> </span><span class="nf">Inputs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">i</span><span class="w"> </span><span class="o">...</span><span class="nx">I</span><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Inputs registers inputs to transform.
+<h5 id="TransformGroup.OrderedOutputs">func (*TransformGroup[I, O]) OrderedOutputs</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#TransformGroup"><span class="nx">TransformGroup</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">])</span><span class="w"> </span><span class="nf">OrderedOutputs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">O</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>OrderedOutputs returns any input which have been transformed when the Transform function was called. The returned output is in the same order as the input slice.
+<h5 id="TransformGroup.Outputs">func (*TransformGroup[I, O]) Outputs</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#TransformGroup"><span class="nx">TransformGroup</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">])</span><span class="w"> </span><span class="nf">Outputs</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><span class="nx">O</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Outputs returns any input which have been transformed when the Transform function was called.
+<h5 id="TransformGroup.Transform">func (*TransformGroup[I, O]) Transform</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><span class="o">*</span><a href="#TransformGroup"><span class="nx">TransformGroup</span></a><span class="p">[</span><span class="nx">I</span><span class="p">,</span><span class="w"> </span><span class="nx">O</span><span class="p">])</span><span class="w"> </span><span class="nf">Transform</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Transform actually performs the transformation over all registered inputs.
+<h3 id="pkg-directories">Directories</h3>
+
+<table>
+  <tbody>
+    <tr>
+        <td><a href="mocks">mocks</a></td>
+        <td>Package mocks is a generated GoMock package.</td>
+      </tr>
+    </tbody>
+</table>
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>semver</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/semver<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package semver</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/semver&#34;</span></pre>
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-constants">Constants</a></li><li><a href="#Canonical">func Canonical(v string) (canonical string, err error)</a></li>
+  <li><a href="#CanonicalWithGoPrefix">func CanonicalWithGoPrefix(v string) (canonical string, err error)</a></li>
+  <li><a href="#DetermineEmbeddedVersion">func DetermineEmbeddedVersion(ctx context.Context, fs *embed.FS, versionFilePath *string) (version string, err error)</a></li>
+  <li><a href="#DetermineVersionFromFile">func DetermineVersionFromFile(ctx context.Context, fs filesystem.FS, versionFilePath string) (version string, err error)</a></li>
+  <li><a href="#SanitiseVersionMajor">func SanitiseVersionMajor(version string) (majorMinor string, err error)</a></li>
+  <li><a href="#SanitiseVersionMajorMinor">func SanitiseVersionMajorMinor(version string) (majorMinor string, err error)</a></li>
+  <li><a href="#TrimGoPrefix">func TrimGoPrefix(v string) string</a></li>
+  </ul><h3 id="pkg-constants">Constants</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">const</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="DefaultVersionFile"><span class="nx">DefaultVersionFile</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;module.properties&#34;</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="Canonical">func Canonical</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Canonical</span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">canonical</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Canonical will return the canonical form of the version with the .MAJOR .MINOR and .PATCH whilst discarding build information
+It will return an error if the version is not valid semver (unlike Canonical() in golang.org/x/mod/semver)
+Use CanonicalWithGoPrefix() if you want the &apos;v&apos; prefix for compatibility with golang.org/x/mod/semver
+<h4 id="CanonicalWithGoPrefix">func CanonicalWithGoPrefix</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CanonicalWithGoPrefix</span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">canonical</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>CanonicalWithGoPrefix will return the canonical form of the version with the .MAJOR .MINOR and .PATCH whilst discarding build information
+It will return an error if the version is not valid semver (unlike Canonical() in golang.org/x/mod/semver)
+It will prepend &apos;v&apos; if necessary for compatibility with &apos;golang.org/x/mod/semver&apos;. Use Canonical() if you don&apos;t want the &apos;v&apos; prefix
+<h4 id="DetermineEmbeddedVersion">func DetermineEmbeddedVersion</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DetermineEmbeddedVersion</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fs</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/embed"><span class="nx">embed</span></a><span class="p">.</span><a href="https://pkg.go.dev/embed#FS"><span class="nx">FS</span></a><span class="p">,</span><span class="w"> </span><span class="nx">versionFilePath</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">version</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>DetermineEmbeddedVersion retrieves the version information of a project from embedded files.
+<h4 id="DetermineVersionFromFile">func DetermineVersionFromFile</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DetermineVersionFromFile</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fs</span><span class="w"> </span><a href="../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../filesystem#FS"><span class="nx">FS</span></a><span class="p">,</span><span class="w"> </span><span class="nx">versionFilePath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">version</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>DetermineVersionFromFile retrieves the information about the version of a project based on a version file generated by [autoversion](<a href="https://github.com/ARMmbed/autoversion">https://github.com/ARMmbed/autoversion</a>).
+The Canonical version is returned.
+<h4 id="SanitiseVersionMajor">func SanitiseVersionMajor</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SanitiseVersionMajor</span><span class="p">(</span><span class="nx">version</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">majorMinor</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>SanitiseVersionMajor will return the major part of the version with the &apos;v&apos; prefix
+<h4 id="SanitiseVersionMajorMinor">func SanitiseVersionMajorMinor</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SanitiseVersionMajorMinor</span><span class="p">(</span><span class="nx">version</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">majorMinor</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>SanitiseVersionMajorMinor will return the major and minor parts of the version with the &apos;v&apos; prefix
+<h4 id="TrimGoPrefix">func TrimGoPrefix</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">TrimGoPrefix</span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>TrimGoPrefix will trim the &apos;v&apos; prefix from a string
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

@@ -1,0 +1,222 @@
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Use the Go multimodules action</title>
+  <meta name="description" content="Use the Go multimodules action — Golang Utilities.">
+  <style>
+    body{font:1.1rem/1.6 system-ui,sans-serif;max-width:76ch;margin:2rem auto;padding:0 1rem}
+    a{color:#075985}pre{overflow:auto;background:#f3f4f6;padding:1rem}code{overflow-wrap:anywhere}
+    nav{border-bottom:1px solid #ccc;padding-bottom:1rem}li{margin:.4rem 0}
+  </style>
+  
+</head>
+<body>
+  <nav><a href="../index.html">Overview</a> · <a href="../api.html">API reference</a></nav>
+  <main><!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+<h1>Use the Go multimodules action</h1>
+<p>The <a href="https://github.com/ARM-software/golang-utils/tree/master/actions/go-multimodules"><code>go-multimodules</code> composite action</a>
+orchestrates independently reusable actions for discovery, per-module commands,
+and tests/coverage. They read <code>go.work</code> when present; otherwise they find
+<code>go.mod</code> files directly. If a workspace omits a module, discovery fails rather
+than silently skipping it. All actions use Bash and standard Go tooling. Some specific actions may rely on additional tools and dependencies though.</p>
+<h2>Call it from this repository</h2>
+<p>This repository's workflows use:</p>
+<pre><code class="language-yaml">- uses: $/actions/go-multimodules
+  with:
+    task: build
+</code></pre>
+<p><code>$/actions/...</code> resolves an action from the
+<strong>repository containing the workflow</strong>, at the <strong>same revision</strong> as that
+workflow. This keeps the workflow and action together when a reusable workflow
+is called by another repository. It also lets a pull request exercise its own
+changes to the action. The action lives at <code>actions/go-multimodules/action.yml</code>.</p>
+<p>The top-level action composes <code>detect-go-modules</code>, <code>run-go-modules</code> (for
+generation and lint), and <code>test-go-modules</code> (for JUnit and merged coverage).
+Use it for the complete pipeline, or call any of its components on their own.</p>
+<h2>Call it from another repository</h2>
+<p>Use a repository-qualified reference in the other repository's workflow. Pin
+it to a full commit SHA or a version number available in <code>ARM-software/golang-utils</code>:</p>
+<pre><code class="language-yaml">name: Go modules
+on: [push, pull_request]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.26.1' # Choose the version required by your modules.
+          cache-dependency-path: '**/go.sum'
+      - uses: ARM-software/golang-utils/actions/sync-go-workspace@&lt;full-commit-sha&gt;
+        if: ${{ hashFiles('go.work') != '' }}
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+          install-only: true
+      - uses: ARM-software/golang-utils/actions/setup-gotestsum@&lt;full-commit-sha&gt;
+        with:
+          version: v1.13.0
+      - uses: ARM-software/golang-utils/actions/go-multimodules@&lt;full-commit-sha&gt;
+        with:
+          task: verify
+          build-tags: integration
+          artifact-prefix: '${{ github.job }}-'
+</code></pre>
+<p>Replace <code>&lt;full-commit-sha&gt;</code> with a real commit SHA or a version number from this repository. The
+<code>$/actions/...</code> reference is for actions <strong>in the workflow's repository</strong>; in
+the example above it would point at the calling repository, so the
+repository-qualified reference is required instead. <code>artifact-prefix</code> is
+optional; it helps prevent name collisions if several action invocations
+upload reports in the same run.</p>
+<h2>Choose an individual action</h2>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Standalone purpose</th>
+<th>Useful inputs and outputs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/ARM-software/golang-utils/tree/master/actions/detect-go-modules"><code>detect-go-modules</code></a></td>
+<td>Verify that no module is omitted.</td>
+<td>Outputs <code>modules</code> (newline-delimited) and <code>modules-json</code> for a matrix.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/ARM-software/golang-utils/tree/master/actions/sync-go-workspace"><code>sync-go-workspace</code></a></td>
+<td>Run <code>go work sync</code> at the checked-out repository root.</td>
+<td>No inputs; requires Go and <code>go.work</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/ARM-software/golang-utils/tree/master/actions/setup-gotestsum"><code>setup-gotestsum</code></a></td>
+<td>Install the <code>gotestsum</code> test runner and put it on <code>PATH</code>.</td>
+<td><code>version</code> defaults to <code>v1.13.0</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/ARM-software/golang-utils/tree/master/actions/run-go-modules"><code>run-go-modules</code></a></td>
+<td>Run one task across all modules.</td>
+<td>Set <code>task</code> to <code>generate</code>, <code>lint</code>, <code>build</code>, <code>download</code>, or <code>analyze</code>; optionally supply <code>modules</code>, <code>results-file</code>, <code>skip-results-file</code>, and <code>build-tags</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/ARM-software/golang-utils/tree/master/actions/test-go-modules"><code>test-go-modules</code></a></td>
+<td>Test modules with <code>gotestsum</code>, merge coverage and publish reports.</td>
+<td>Optionally supply <code>modules</code>, <code>generation-results</code>, <code>lint-results</code>, <code>artifact-prefix</code>, and <code>build-tags</code>; outputs <code>combined-coverage</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/ARM-software/golang-utils/tree/master/actions/go-multimodules"><code>go-multimodules</code></a></td>
+<td>Compose discovery, generation, lint and testing in one call.</td>
+<td>Set <code>task</code> (default <code>verify</code>) and optionally <code>build-tags</code>; outputs <code>modules-json</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>The individual actions can be used independently. If <code>modules</code> is omitted,
+<code>run-go-modules</code> and <code>test-go-modules</code> call the discovery action themselves.
+In this repository use <code>$/actions/&lt;name&gt;</code> to call each action; from another
+repository use <code>ARM-software/golang-utils/actions/&lt;name&gt;@&lt;full-commit-sha&gt;</code>.</p>
+<p>For example, to choose the stages separately in another repository, add the
+following steps after checkout, Go setup, optional workspace sync, and the
+<code>setup-gotestsum</code> and <code>golangci-lint-action</code> installation steps (as in the
+complete example above):</p>
+<pre><code class="language-yaml">- id: modules
+  uses: ARM-software/golang-utils/actions/detect-go-modules@&lt;full-commit-sha&gt;
+- id: generate
+  continue-on-error: true
+  uses: ARM-software/golang-utils/actions/run-go-modules@&lt;full-commit-sha&gt;
+  with:
+    task: generate
+    build-tags: integration
+    modules: ${{ steps.modules.outputs.modules }}
+    results-file: artifacts/generate.tsv
+- id: lint
+  if: ${{ always() }}
+  continue-on-error: true
+  uses: ARM-software/golang-utils/actions/run-go-modules@&lt;full-commit-sha&gt;
+  with:
+    task: lint
+    build-tags: integration
+    modules: ${{ steps.modules.outputs.modules }}
+    results-file: artifacts/lint.tsv
+    skip-results-file: artifacts/generate.tsv
+- id: test
+  if: ${{ always() }}
+  uses: ARM-software/golang-utils/actions/test-go-modules@&lt;full-commit-sha&gt;
+  with:
+    build-tags: integration
+    modules: ${{ steps.modules.outputs.modules }}
+    generation-results: artifacts/generate.tsv
+    lint-results: artifacts/lint.tsv
+    artifact-prefix: '${{ github.job }}-'
+</code></pre>
+<p>The TSV results allow later stages to report generation and lint failures
+without concealing test results. Use the same pinned SHA/version for every component
+so their interfaces stay in sync. Build, analysis, generation, lint, and tests
+include the <code>integration</code> build tag by default; <code>download</code> and discovery do not
+compile tagged packages. Override <code>build-tags</code> if the calling project needs
+additional tags.</p>
+<h2>Tasks and reports</h2>
+<table>
+<thead>
+<tr>
+<th>Top-level <code>task</code></th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>list</code></td>
+<td>List the modules selected from <code>go.work</code> or <code>go.mod</code> files.</td>
+</tr>
+<tr>
+<td><code>download</code></td>
+<td>Run <code>go mod download</code> for each module with <code>GOWORK=off</code>.</td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td>Build every module.</td>
+</tr>
+<tr>
+<td><code>analyze</code></td>
+<td>Compile tests in every module without running test cases (for CodeQL).</td>
+</tr>
+<tr>
+<td><code>generate</code></td>
+<td>Run <code>go generate</code> in every module.</td>
+</tr>
+<tr>
+<td><code>lint</code></td>
+<td>Run <code>golangci-lint</code> in every module.</td>
+</tr>
+<tr>
+<td><code>verify</code> (default)</td>
+<td>Generate, lint and test each module with <code>gotestsum</code>; collect coverage and reports.</td>
+</tr>
+</tbody>
+</table>
+<p><code>verify</code> calls the granular generation, lint and test actions in order. The
+test action uploads one JUnit XML file and one coverage profile per module,
+plus a project-wide <code>combined.out</code> coverage profile. Test results are rendered
+in the workflow summary and, for same-repository pull requests, PR comments via
+<code>EnricoMi/publish-unit-test-result-action</code>. The JUnit artifact keeps the raw
+per-module XML plus EnricoMi's combined JSON report, while the local summary
+keeps every module's generate, lint and test status, per-module coverage, and
+links to the uploaded reports. Artifact uploads and summaries also run when
+verification fails, so available failure reports remain accessible.</p>
+<p>Set up Go before using any task. For <code>verify</code> or <code>lint</code>, install
+<code>golangci-lint</code>; for <code>verify</code>, also install <code>gotestsum</code>. GitHub-hosted runners
+provide the Bash and standard Unix tools used by the action.</p></main>
+</body>
+</html>

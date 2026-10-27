@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>value</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/value<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package value</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/value&#34;</span></pre>
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#IsEmpty">func IsEmpty(value any) bool</a></li>
+  <li><a href="#IsNilInterface">func IsNilInterface(i any) bool</a></li>
+  <li><a href="#IsNotEmpty">func IsNotEmpty(value any) bool</a></li>
+  <li>
+      <a href="#IValueConverter">type IValueConverter</a>
+      </li>
+  <li>
+      <a href="#ValueConverterFunc">type ValueConverterFunc</a>
+      <ul>
+          <li><a href="#ValueConverterFunc.ConvertValue">func (f ValueConverterFunc) ConvertValue(ctx context.Context, value any) (any, error)</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="IsEmpty">func IsEmpty</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsEmpty</span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsEmpty checks whether a value is empty i.e. &quot;&quot;, nil, 0, [], {}, false, etc.
+For Strings, a string is considered empty if it is &quot;&quot; or if it only contains whitespaces
+<h4 id="IsNilInterface">func IsNilInterface</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsNilInterface</span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsNilInterface checks whether an interface value is nil even when it has been
+passed around as `any`.
+<h4 id="IsNotEmpty">func IsNotEmpty</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsNotEmpty</span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsNotEmpty checks whether a value is not empty. See IsEmpty for more details about what is considered empty.
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="IValueConverter">type IValueConverter</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IValueConverter</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="IValueConverter.ConvertValue"><span class="nf">ConvertValue</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IValueConverter converts a value before it is consumed by a caller.
+<p>Implementations may use ctx to observe cancellation, access request-scoped
+metadata, or carry other conversion-time state. The returned value replaces
+the original input. A non-nil error reports that conversion failed and should
+usually stop the caller&apos;s processing.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="IdentityConverter"><span class="nx">IdentityConverter</span></span><span class="w"> </span><a href="#IValueConverter"><span class="nx">IValueConverter</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#ValueConverterFunc"><span class="nf">ValueConverterFunc</span></a><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">_</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nx">value</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w">
+</span><span class="p">})</span></pre>
+  <p>IdentityConverter returns values unchanged.
+<p>It ignores ctx and always succeeds.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="StringConverter"><span class="nx">StringConverter</span></span><span class="w"> </span><a href="#IValueConverter"><span class="nx">IValueConverter</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#ValueConverterFunc"><span class="nf">ValueConverterFunc</span></a><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">_</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="nf">stringifyValue</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span><span class="w">
+</span><span class="p">})</span></pre>
+  <p>StringConverter converts values to strings.
+<p>Nil interface and pointer values are rendered as `&lt;nil&gt;`. For non-nil
+values, it prefers <a href="https://pkg.go.dev/fmt#Stringer">fmt.Stringer</a>, then <a href="https://pkg.go.dev/encoding#TextMarshaler">encoding.TextMarshaler</a>. If neither
+applies, scalar values use the same formatting as flattening, structs use `%+v`,
+arrays and slices stringify each item recursively, maps stringify each key and
+value recursively, pointers use `&lt;pointer&gt; -&gt; &lt;converted pointed value&gt;`, and
+everything else falls back to <a href="https://pkg.go.dev/fmt#Sprint">fmt.Sprint</a>. Errors returned by
+<a href="https://pkg.go.dev/encoding#TextMarshaler.MarshalText">encoding.TextMarshaler.MarshalText</a> are propagated to the caller.
+<h4 id="ValueConverterFunc">type ValueConverterFunc</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ValueConverterFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+    <p>ValueConverterFunc adapts a function into <a href="#IValueConverter">IValueConverter</a>.
+<p>A nil function behaves like <a href="#IdentityConverter">IdentityConverter</a>: it returns the input value
+unchanged and reports no error.
+<h5 id="ValueConverterFunc.ConvertValue">func (ValueConverterFunc) ConvertValue</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">f</span><span class="w"> </span><a href="#ValueConverterFunc"><span class="nx">ValueConverterFunc</span></a><span class="p">)</span><span class="w"> </span><span class="nf">ConvertValue</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>ConvertValue applies f to value.
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

@@ -1,0 +1,162 @@
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Go modules</title>
+  <meta name="description" content="Go modules — Golang Utilities.">
+  <style>
+    body{font:1.1rem/1.6 system-ui,sans-serif;max-width:76ch;margin:2rem auto;padding:0 1rem}
+    a{color:#075985}pre{overflow:auto;background:#f3f4f6;padding:1rem}code{overflow-wrap:anywhere}
+    nav{border-bottom:1px solid #ccc;padding-bottom:1rem}li{margin:.4rem 0}
+  </style>
+  
+</head>
+<body>
+  <nav><a href="../index.html">Overview</a> · <a href="../api.html">API reference</a></nav>
+  <main><!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+<h1>Go modules</h1>
+<p>This repository uses a single repository-wide <code>go.work</code> file at the repository root and a set of Go modules under <code>utils/</code>.</p>
+<h2>Consumer usage</h2>
+<p>Depend on the specific submodule that provides the package you import.</p>
+<p>Examples:</p>
+<pre><code class="language-bash">go get github.com/ARM-software/golang-utils/utils/http@latest
+go get github.com/ARM-software/golang-utils/utils/filesystem@latest
+go get github.com/ARM-software/golang-utils/utils/validation@latest
+</code></pre>
+<blockquote>
+<p><strong>Compatibility note:</strong> The <code>github.com/ARM-software/golang-utils/utils</code>
+module remains a lightweight umbrella for compatibility and tooling. New
+consumers should depend on the narrower submodule they actually import.
+Submodule tags start with the next <a href="https://github.com/ARMmbed/continuous-delivery-scripts">CDS</a> project release; <code>v1.170.7</code> and
+earlier published only the original umbrella module.
+If using dependabot, the upgrade and change should be transparent.</p>
+<p>If your <code>go.mod</code> still requires a pre-split umbrella version such as
+<code>github.com/ARM-software/golang-utils/utils v1.170.7</code>, first upgrade that
+requirement to the first split-aware umbrella release, then add the narrower
+module you actually import, for example
+<code>github.com/ARM-software/golang-utils/utils/collection</code>. In a local test,
+mixing <code>v1.170.7</code> with the split <code>collection</code> module caused Go to fail with:
+<code>ambiguous import: found package github.com/ARM-software/golang-utils/utils/collection in multiple modules</code>.
+Remove the umbrella requirement entirely if you no longer import packages from
+it. See <a href="#ambiguous-imports">Ambiguous Imports</a> below for the generic cause
+and fix pattern.</p>
+</blockquote>
+<h2>Ambiguous imports</h2>
+<p>Go reports an <code>ambiguous import</code> error when the build list contains two modules
+that both appear to provide the same package import path.</p>
+<p>In this repository, the most likely cause is a mixed pre-split and post-split
+dependency set, for example:</p>
+<ul>
+<li>the umbrella module at a pre-split version such as
+  <code>github.com/ARM-software/golang-utils/utils v1.170.7</code></li>
+<li>a newer split module such as
+  <code>github.com/ARM-software/golang-utils/utils/collection</code></li>
+</ul>
+<p>In that situation, Go sees <code>github.com/ARM-software/golang-utils/utils/collection</code>
+inside both modules and fails instead of guessing which one you meant.</p>
+<p>Example error:</p>
+<pre><code class="language-text">go: example.com/my-project imports
+    github.com/ARM-software/golang-utils/utils/collection: ambiguous import: found package github.com/ARM-software/golang-utils/utils/collection in multiple modules:
+    github.com/ARM-software/golang-utils/utils v1.170.7
+    github.com/ARM-software/golang-utils/utils/collection v1.171.0
+</code></pre>
+<p>To fix it:</p>
+<ol>
+<li>Upgrade <code>github.com/ARM-software/golang-utils/utils</code> to the first
+   split-aware umbrella release, or remove it entirely if you no longer import
+   packages from that umbrella module.</li>
+<li>Add or keep only the narrower modules that match the packages you actually
+   import, such as <code>github.com/ARM-software/golang-utils/utils/collection</code>.</li>
+<li>Run <code>go mod tidy</code> and confirm the older umbrella version no longer pulls the
+   same package path into the build list.</li>
+</ol>
+<p>If you still see the error, inspect <code>go mod graph</code> or <code>go list -m all</code> to find
+which dependency is still selecting the older umbrella module.</p>
+<h2>Workspace structure</h2>
+<ul>
+<li><code>go.work</code> lives at the repository root.</li>
+<li><code>utils/</code> is the umbrella module.</li>
+<li>Each top-level consumable package under <code>utils/</code> has its own <code>go.mod</code>.</li>
+<li>Shared helper packages that are reused across module boundaries also have their own <code>go.mod</code> when keeping them separate prevents test-only dependencies from leaking into production modules.</li>
+</ul>
+<p>CI uses the reusable <code>sync-go-workspace</code> action to run <code>go work sync</code>, then the
+Go multimodules action to discover modules from <code>go.work</code>. It checks that every
+<code>go.mod</code> is listed.</p>
+<h2>Internal dependencies</h2>
+<p>Internal module dependencies must follow this pattern:</p>
+<ol>
+<li>Add a normal <code>require</code> on the repository release version, for example <code>github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7</code> while preparing the first multi-module release.</li>
+<li>Add a local <code>replace</code> pointing at the sibling checkout path, for example <code>replace github.com/ARM-software/golang-utils/utils/commonerrors =&gt; ../commonerrors</code>.</li>
+<li>Keep <code>replace</code> directives suitable for local development with <code>GOWORK=off</code>.</li>
+</ol>
+<p>This keeps local development working before publication. <a href="https://github.com/ARMmbed/continuous-delivery-scripts">CDS</a> 4.8.0+ is responsible
+for preparing the versioned internal requirements and tagging all workspace
+modules as part of the single project release. Go consumers ignore dependency
+modules' local <code>replace</code> directives and resolve versioned requirements from
+published <a href="https://github.com/ARMmbed/continuous-delivery-scripts">CDS</a> tags.</p>
+<h2>Adding a new module</h2>
+<ol>
+<li>Create the package directory under <code>utils/</code>.</li>
+<li>Add a <code>go.mod</code> whose module path matches the import path.</li>
+<li>Add the module path to the repository <code>go.work</code>.</li>
+<li>Add versioned <code>require</code> plus local <code>replace</code> directives for internal dependencies.</li>
+<li>If the module contains <code>go:generate</code> directives, use <code>go tool</code> and declare
+   only the needed tools in that module's <code>tool</code> block.</li>
+<li>Update <code>.github/dependabot.yml</code> so the new <code>go.mod</code> directory is covered.</li>
+<li>Ensure CI still discovers the module from <code>go.work</code>.</li>
+</ol>
+<p>If the module root would otherwise contain no Go source file, add a small <code>doc.go</code> so Go tooling can still address the module cleanly.</p>
+<p>When splitting an existing package into a module, follow the
+<a href="migrations/refactoring-go-modules.md">backward-compatible module refactoring guide</a>
+to preserve consumer imports and dependencies.</p>
+<h2>Running checks across all modules</h2>
+<p>From the repository root:</p>
+<pre><code class="language-bash">go work sync
+go work edit -json |
+  sed -n 's/^[[:space:]]*&quot;DiskPath&quot;: &quot;\([^&quot;]*\)&quot;.*$/\1/p' |
+  while IFS= read -r module; do
+    (cd &quot;$module&quot; &amp;&amp; go generate -tags integration ./... &amp;&amp; golangci-lint run --build-tags integration ./... &amp;&amp; go test -tags integration ./...)
+  done
+</code></pre>
+<p>The composite action's <code>verify</code> task runs those checks with <code>gotestsum</code>, then
+produces per-module JUnit XML and coverage profiles, plus combined reports,
+under <code>artifacts/</code>. Local commands use Bash on Linux and macOS; on Windows, use
+WSL with Go and <code>golangci-lint</code> installed.
+To confirm that one module builds without workspace resolution, run
+<code>GOWORK=off go test ./...</code> from its directory.</p>
+<h2>CI behaviour</h2>
+<p>The CI workflows call the local <a href="action-go-multimodules.html">Go multimodules composite action</a>
+with <code>uses: $/actions/go-multimodules</code>. It:</p>
+<ol>
+<li>Reads the module list from the repository <code>go.work</code>.</li>
+<li>Runs <code>go generate</code> per module.</li>
+<li>Runs <code>golangci-lint</code> per module.</li>
+<li>Runs tests per module with <code>gotestsum</code> and writes per-module and combined JUnit XML reports.</li>
+<li>Writes one coverage profile per module and merges them into a combined profile.</li>
+<li>Uploads JUnit and coverage artifacts.</li>
+<li>Publishes a GitHub Actions summary listing each module's coverage, failed
+   test cases, and links to the JUnit and coverage artifacts.</li>
+</ol>
+<p>See the <a href="action-go-multimodules.html">Go multimodules action guide</a> for a full
+example using the action from another repository, including the difference
+between <code>$</code> and a repository-qualified <code>uses:</code> reference.</p>
+<h2><a href="https://github.com/ARMmbed/continuous-delivery-scripts">CDS</a> releases</h2>
+<p><a href="https://github.com/ARMmbed/continuous-delivery-scripts">CDS</a> remains the only project release mechanism.</p>
+<ul>
+<li>All modules share the same repository release version.</li>
+<li>Submodules are not versioned or released independently.</li>
+<li><code>cd-tag-and-release</code> remains the release entry point.</li>
+<li>In <a href="https://github.com/ARMmbed/continuous-delivery-scripts">CDS</a> 4.8.0+, <code>cd-tag-and-release</code> updates versioned internal <code>require</code>
+  directives and includes them in the shared release commit before tagging
+  and publication. The repository's <code>release.yml</code> requires this version.</li>
+</ul></main>
+</body>
+</html>

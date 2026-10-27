@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../../_/icons/favicon.ico"><title>saga</title>
+</head>
+  <body>
+    <nav><a href="../../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../../..">github.com</a>/<a href="../../../..">ARM-software</a>/<a href="../../..">golang-utils</a>/<a href="../..">utils</a>/<a href="..">transaction</a>/saga<span class="navbar-right">
+          <a href="../../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package saga</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/transaction/saga&#34;</span></pre>
+<p>Package saga provides an implementation for the [SAGA pattern](<a href="https://microservices.io/patterns/data/saga.html">https://microservices.io/patterns/data/saga.html</a>) for [transaction like distribution processes](<a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/saga">https://learn.microsoft.com/en-us/azure/architecture/patterns/saga</a>) across multiple services without relying on a global ACID transaction.
+The SAGA orchestration pattern breaks a distributed business operation into a sequence of local transactions coordinated by a central orchestrator. Each step executes independently, and if any step fails, the orchestrator triggers compensating transactions in reverse order to undo completed work, following the [Compensating Transaction pattern](<a href="https://en.wikipedia.org/wiki/Compensating_transaction?utm_source=chatgpt.com">https://en.wikipedia.org/wiki/Compensating_transaction?utm_source=chatgpt.com</a>) (<a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction">https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction</a>).
+To make sagas safe across retries, failures, or orchestrator crashes, compensating transactions must themselves be designed to be idempotent and retryable. That way if a compensation fails (or the orchestrator crashes mid-rollback), they can be resumed/ retried without risk of double-undo or inconsistent state.  For that purpose, idempotency keys are used, ensuring repeated “execute” or “compensate” calls do not duplicate effects, as described in [idempotency practices](<a href="https://brandur.org/idempotency-keys">https://brandur.org/idempotency-keys</a>)
+<ul>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li>
+      <a href="#IActionArguments">type IActionArguments</a>
+      <ul>
+          <li><a href="#NewStepArguments">func NewStepArguments(args map[string]any) IActionArguments</a></li>
+          <li><a href="#NewStepArgumentsWithIdempotentKey">func NewStepArgumentsWithIdempotentKey(idemKey string, args map[string]any) IActionArguments</a></li>
+          <li><a href="#NoStepArguments">func NoStepArguments() IActionArguments</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IActionIdentifier">type IActionIdentifier</a>
+      <ul>
+          <li><a href="#NewStepIdentifier">func NewStepIdentifier(name, namespace string) IActionIdentifier</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#ISagaOrchestrator">type ISagaOrchestrator</a>
+      </li>
+  <li>
+      <a href="#ITransactionStep">type ITransactionStep</a>
+      </li>
+  <li>
+      <a href="#MinimalSaga">type MinimalSaga</a>
+      <ul>
+          <li><a href="#NewMinimalSaga">func NewMinimalSaga(args IActionArguments) *MinimalSaga</a></li>
+          <li><a href="#MinimalSaga.Clone">func (s *MinimalSaga) Clone() parallelisation.IExecutionGroup[ITransactionStep]</a></li>
+          <li><a href="#MinimalSaga.CopyFunctions">func (s *MinimalSaga) CopyFunctions(g parallelisation.IExecutionGroup[ITransactionStep])</a></li>
+          <li><a href="#MinimalSaga.Execute">func (s *MinimalSaga) Execute(ctx context.Context) error</a></li>
+          <li><a href="#MinimalSaga.GetCompensation">func (s *MinimalSaga) GetCompensation() parallelisation.IExecutionGroup[ITransactionStep]</a></li>
+          <li><a href="#MinimalSaga.GetTransaction">func (s *MinimalSaga) GetTransaction() parallelisation.IExecutionGroup[ITransactionStep]</a></li>
+          <li><a href="#MinimalSaga.Len">func (s *MinimalSaga) Len() int</a></li>
+          <li><a href="#MinimalSaga.NewSaga">func (s *MinimalSaga) NewSaga(args IActionArguments) *MinimalSaga</a></li>
+          <li><a href="#MinimalSaga.RegisterFunction">func (s *MinimalSaga) RegisterFunction(function ...ITransactionStep)</a></li>
+          <li><a href="#MinimalSaga.RegisterFunctions">func (s *MinimalSaga) RegisterFunctions(function iter.Seq[ITransactionStep])</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-types">Types</h3>
+  
+  <h4 id="IActionArguments">type IActionArguments</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IActionArguments</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// GetIdemKey return idempotent key to ensure safe</span><span class="w">
+</span><span class="w">	</span><span class="c1">// retries and crash recovery, preventing duplicate side effects.</span><span class="w">
+</span><span class="w">	</span><span id="IActionArguments.GetIdemKey"><span class="nf">GetIdemKey</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="IActionArguments.GetArguments"><span class="nf">GetArguments</span></span><span class="p">()</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">]</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewStepArguments">func NewStepArguments</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewStepArguments</span><span class="p">(</span><span class="nx">args</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">]</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="#IActionArguments"><span class="nx">IActionArguments</span></a></pre>
+  <h5 id="NewStepArgumentsWithIdempotentKey">func NewStepArgumentsWithIdempotentKey</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewStepArgumentsWithIdempotentKey</span><span class="p">(</span><span class="nx">idemKey</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">]</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="#IActionArguments"><span class="nx">IActionArguments</span></a></pre>
+  <h5 id="NoStepArguments">func NoStepArguments</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NoStepArguments</span><span class="p">()</span><span class="w"> </span><a href="#IActionArguments"><span class="nx">IActionArguments</span></a></pre>
+  <h4 id="IActionIdentifier">type IActionIdentifier</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IActionIdentifier</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/fmt"><span class="nx">fmt</span></a><span class="p">.</span><a href="https://pkg.go.dev/fmt#Stringer"><span class="nx">Stringer</span></a><span class="w">
+</span><span class="w">	</span><span id="IActionIdentifier.GetName"><span class="nf">GetName</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="IActionIdentifier.GetNamespace"><span class="nf">GetNamespace</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewStepIdentifier">func NewStepIdentifier</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewStepIdentifier</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">namespace</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#IActionIdentifier"><span class="nx">IActionIdentifier</span></a></pre>
+  <h4 id="ISagaOrchestrator">type ISagaOrchestrator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ISagaOrchestrator</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="../../parallelisation"><span class="nx">parallelisation</span></a><span class="p">.</span><a href="../../parallelisation#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><a href="#ITransactionStep"><span class="nx">ITransactionStep</span></a><span class="p">]</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>ISagaOrchestrator coordinates a sequence of local transactions (ITransactionStep) to
+achieve an eventually consistent distributed workflow without relying on a
+global ACID transaction. Each step has a forward action (Execute) and a
+compensating action (Compensate). The orchestrator executes steps in order;
+if any step fails, it triggers compensating actions in reverse order to undo
+previously completed steps.
+<p>This pattern is useful for long-running or cross-service operations where
+traditional two-phase commit is impractical.
+<p>References:
+<ul>
+<li>Saga Pattern:
+<a href="https://en.wikipedia.org/wiki/Long-running_transaction">https://en.wikipedia.org/wiki/Long-running_transaction</a>
+<a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/saga">https://learn.microsoft.com/en-us/azure/architecture/patterns/saga</a>
+<li>Compensating Transaction Pattern:
+<a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction">https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction</a>
+<li>Saga Pattern (microservices.io):
+<a href="https://microservices.io/patterns/data/saga.html">https://microservices.io/patterns/data/saga.html</a>
+</ul>
+<h4 id="ITransactionStep">type ITransactionStep</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ITransactionStep</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// GetID returns an identifier of the action</span><span class="w">
+</span><span class="w">	</span><span id="ITransactionStep.GetID"><span class="nf">GetID</span></span><span class="p">()</span><span class="w"> </span><a href="#IActionIdentifier"><span class="nx">IActionIdentifier</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Execute performs the forward action.</span><span class="w">
+</span><span class="w">	</span><span id="ITransactionStep.Execute"><span class="nf">Execute</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><a href="#IActionArguments"><span class="nx">IActionArguments</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Compensate performs the compensating/rollback action.</span><span class="w">
+</span><span class="w">	</span><span id="ITransactionStep.Compensate"><span class="nf">Compensate</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">args</span><span class="w"> </span><a href="#IActionArguments"><span class="nx">IActionArguments</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>ITransactionStep describes a step in the transaction across a distributed system.
+<h4 id="MinimalSaga">type MinimalSaga</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">MinimalSaga</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewMinimalSaga">func NewMinimalSaga</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewMinimalSaga</span><span class="p">(</span><span class="nx">args</span><span class="w"> </span><a href="#IActionArguments"><span class="nx">IActionArguments</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#MinimalSaga"><span class="nx">MinimalSaga</span></a></pre>
+  <p>NewMinimalSaga
+<h5 id="MinimalSaga.Clone">func (*MinimalSaga) Clone</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#MinimalSaga"><span class="nx">MinimalSaga</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Clone</span><span class="p">()</span><span class="w"> </span><a href="../../parallelisation"><span class="nx">parallelisation</span></a><span class="p">.</span><a href="../../parallelisation#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><a href="#ITransactionStep"><span class="nx">ITransactionStep</span></a><span class="p">]</span></pre>
+  <p>Clone returns a clone of the orchestrator and its execution state.
+<h5 id="MinimalSaga.CopyFunctions">func (*MinimalSaga) CopyFunctions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#MinimalSaga"><span class="nx">MinimalSaga</span></a><span class="p">)</span><span class="w"> </span><span class="nf">CopyFunctions</span><span class="p">(</span><span class="nx">g</span><span class="w"> </span><a href="../../parallelisation"><span class="nx">parallelisation</span></a><span class="p">.</span><a href="../../parallelisation#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><a href="#ITransactionStep"><span class="nx">ITransactionStep</span></a><span class="p">])</span></pre>
+  <h5 id="MinimalSaga.Execute">func (*MinimalSaga) Execute</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#MinimalSaga"><span class="nx">MinimalSaga</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Execute</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="MinimalSaga.GetCompensation">func (*MinimalSaga) GetCompensation</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#MinimalSaga"><span class="nx">MinimalSaga</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetCompensation</span><span class="p">()</span><span class="w"> </span><a href="../../parallelisation"><span class="nx">parallelisation</span></a><span class="p">.</span><a href="../../parallelisation#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><a href="#ITransactionStep"><span class="nx">ITransactionStep</span></a><span class="p">]</span></pre>
+  <h5 id="MinimalSaga.GetTransaction">func (*MinimalSaga) GetTransaction</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#MinimalSaga"><span class="nx">MinimalSaga</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetTransaction</span><span class="p">()</span><span class="w"> </span><a href="../../parallelisation"><span class="nx">parallelisation</span></a><span class="p">.</span><a href="../../parallelisation#IExecutionGroup"><span class="nx">IExecutionGroup</span></a><span class="p">[</span><a href="#ITransactionStep"><span class="nx">ITransactionStep</span></a><span class="p">]</span></pre>
+  <h5 id="MinimalSaga.Len">func (*MinimalSaga) Len</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#MinimalSaga"><span class="nx">MinimalSaga</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Len</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a></pre>
+  <h5 id="MinimalSaga.NewSaga">func (*MinimalSaga) NewSaga</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#MinimalSaga"><span class="nx">MinimalSaga</span></a><span class="p">)</span><span class="w"> </span><span class="nf">NewSaga</span><span class="p">(</span><span class="nx">args</span><span class="w"> </span><a href="#IActionArguments"><span class="nx">IActionArguments</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#MinimalSaga"><span class="nx">MinimalSaga</span></a></pre>
+  <h5 id="MinimalSaga.RegisterFunction">func (*MinimalSaga) RegisterFunction</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#MinimalSaga"><span class="nx">MinimalSaga</span></a><span class="p">)</span><span class="w"> </span><span class="nf">RegisterFunction</span><span class="p">(</span><span class="nx">function</span><span class="w"> </span><span class="o">...</span><a href="#ITransactionStep"><span class="nx">ITransactionStep</span></a><span class="p">)</span></pre>
+  <h5 id="MinimalSaga.RegisterFunctions">func (*MinimalSaga) RegisterFunctions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#MinimalSaga"><span class="nx">MinimalSaga</span></a><span class="p">)</span><span class="w"> </span><span class="nf">RegisterFunctions</span><span class="p">(</span><span class="nx">function</span><span class="w"> </span><a href="https://pkg.go.dev/iter"><span class="nx">iter</span></a><span class="p">.</span><a href="https://pkg.go.dev/iter#Seq"><span class="nx">Seq</span></a><span class="p">[</span><a href="#ITransactionStep"><span class="nx">ITransactionStep</span></a><span class="p">])</span></pre>
+  </main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../../_/js/permalink.js"></script></body>
+</html>

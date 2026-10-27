@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/bombsimon/logrusr/v4 v4.2.0
-	github.com/go-faker/faker/v4 v4.7.0
+	github.com/go-faker/faker/v4 v4.12.0
 	github.com/go-logr/logr v1.4.4
 	github.com/sirupsen/logrus v1.10.2
 )
@@ -23,8 +23,8 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7
-	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.170.7
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
+	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.171.0
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 )

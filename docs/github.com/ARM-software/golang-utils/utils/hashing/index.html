@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>hashing</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/hashing<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package hashing</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/hashing&#34;</span></pre>
+<p>Package hashing provides utilities for calculating hashes.
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-constants">Constants</a></li><li><a href="#pkg-variables">Variables</a></li><li><a href="#CalculateBytesHash">func CalculateBytesHash(ctx context.Context, htype string, array []byte) (string, error)</a></li>
+  <li><a href="#CalculateHash">func CalculateHash(text, htype string) string</a></li>
+  <li><a href="#CalculateHashFromReader">func CalculateHashFromReader(ctx context.Context, htype string, reader io.Reader) (hash string, err error)</a></li>
+  <li><a href="#CalculateHashOfListOfStrings">func CalculateHashOfListOfStrings(ctx context.Context, htype string, text ...string) string</a></li>
+  <li><a href="#CalculateHashWithContext">func CalculateHashWithContext(ctx context.Context, text, htype string) string</a></li>
+  <li><a href="#CalculateMD5Hash">func CalculateMD5Hash(text string) string</a></li>
+  <li><a href="#CalculateStringHash">func CalculateStringHash(hashingAlgo IHash, text string) string</a></li>
+  <li><a href="#CalculateStringHashList">func CalculateStringHashList(ctx context.Context, hashingAlgo IHash, text ...string) string</a></li>
+  <li><a href="#CalculateStringHashWithContext">func CalculateStringHashWithContext(ctx context.Context, hashingAlgo IHash, text string) string</a></li>
+  <li><a href="#DetermineHashingAlgorithmCanonicalReference">func DetermineHashingAlgorithmCanonicalReference(name string) (ref string, err error)</a></li>
+  <li><a href="#HasLikelyHexHashStringEntropy">func HasLikelyHexHashStringEntropy(str string) bool</a></li>
+  <li><a href="#IsLikelyHexHashString">func IsLikelyHexHashString(str string) bool</a></li>
+  <li>
+      <a href="#IHash">type IHash</a>
+      <ul>
+          <li><a href="#DetermineHashingAlgorithm">func DetermineHashingAlgorithm(algorithm string) (IHash, error)</a></li>
+          <li><a href="#NewBespokeHashingAlgorithm">func NewBespokeHashingAlgorithm(algorithm hash.Hash) (IHash, error)</a></li>
+          <li><a href="#NewHashingAlgorithm">func NewHashingAlgorithm(htype string) (IHash, error)</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-constants">Constants</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">const</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="HashMd5"><span class="nx">HashMd5</span></span><span class="w">       </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;MD5&#34;</span><span class="w">
+</span><span class="w">	</span><span id="HashSha256"><span class="nx">HashSha256</span></span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;SHA256&#34;</span><span class="w">
+</span><span class="w">	</span><span id="HashSha1"><span class="nx">HashSha1</span></span><span class="w">      </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;SHA1&#34;</span><span class="w">
+</span><span class="w">	</span><span id="HashMurmur"><span class="nx">HashMurmur</span></span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;Murmur&#34;</span><span class="w">
+</span><span class="w">	</span><span id="HashXXHash"><span class="nx">HashXXHash</span></span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;xxhash&#34;</span><span class="w">     </span><span class="c1">// https://github.com/OneOfOne/xxhash</span><span class="w">
+</span><span class="w">	</span><span id="HashBlake2256"><span class="nx">HashBlake2256</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;blake2b256&#34;</span><span class="w"> </span><span class="c1">// https://www.blake2.net/</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="SupportedHashingAlgorithms"><span class="nx">SupportedHashingAlgorithms</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">{</span><a href="#HashMd5"><span class="nx">HashMd5</span></a><span class="p">,</span><span class="w"> </span><a href="#HashXXHash"><span class="nx">HashXXHash</span></a><span class="p">,</span><span class="w"> </span><a href="#HashSha1"><span class="nx">HashSha1</span></a><span class="p">,</span><span class="w"> </span><a href="#HashSha256"><span class="nx">HashSha256</span></a><span class="p">,</span><span class="w"> </span><a href="#HashMurmur"><span class="nx">HashMurmur</span></a><span class="p">,</span><span class="w"> </span><a href="#HashBlake2256"><span class="nx">HashBlake2256</span></a><span class="p">}</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="CalculateBytesHash">func CalculateBytesHash</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CalculateBytesHash</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">htype</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">array</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>CalculateBytesHash returns the hash of a byte array
+<h4 id="CalculateHash">func CalculateHash</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CalculateHash</span><span class="p">(</span><span class="nx">text</span><span class="p">,</span><span class="w"> </span><span class="nx">htype</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>CalculateHash calculates the hash of some text using the requested htype hashing algorithm.
+<h4 id="CalculateHashFromReader">func CalculateHashFromReader</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CalculateHashFromReader</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">htype</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">reader</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">hash</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>CalculateHashFromReader returns the hash of element coming from a reader.
+<h4 id="CalculateHashOfListOfStrings">func CalculateHashOfListOfStrings</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CalculateHashOfListOfStrings</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">htype</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">text</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>CalculateHashOfListOfStrings calculates the hash of some text using the requested htype hashing algorithm.
+<h4 id="CalculateHashWithContext">func CalculateHashWithContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CalculateHashWithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">text</span><span class="p">,</span><span class="w"> </span><span class="nx">htype</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>CalculateHashWithContext calculates the hash of some text using the requested htype hashing algorithm.
+<h4 id="CalculateMD5Hash">func CalculateMD5Hash</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CalculateMD5Hash</span><span class="p">(</span><span class="nx">text</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h4 id="CalculateStringHash">func CalculateStringHash</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CalculateStringHash</span><span class="p">(</span><span class="nx">hashingAlgo</span><span class="w"> </span><a href="#IHash"><span class="nx">IHash</span></a><span class="p">,</span><span class="w"> </span><span class="nx">text</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>CalculateStringHash returns the hash of some text using a particular hashing algorithm
+<h4 id="CalculateStringHashList">func CalculateStringHashList</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CalculateStringHashList</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">hashingAlgo</span><span class="w"> </span><a href="#IHash"><span class="nx">IHash</span></a><span class="p">,</span><span class="w"> </span><span class="nx">text</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>CalculateStringHashList returns the hash of a list of strings using a particular hashing algorithm
+<h4 id="CalculateStringHashWithContext">func CalculateStringHashWithContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CalculateStringHashWithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">hashingAlgo</span><span class="w"> </span><a href="#IHash"><span class="nx">IHash</span></a><span class="p">,</span><span class="w"> </span><span class="nx">text</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>CalculateStringHashWithContext returns the hash of some text using a particular hashing algorithm
+<h4 id="DetermineHashingAlgorithmCanonicalReference">func DetermineHashingAlgorithmCanonicalReference</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DetermineHashingAlgorithmCanonicalReference</span><span class="p">(</span><span class="nx">name</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">ref</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>DetermineHashingAlgorithmCanonicalReference determines the hashing algorithm reference from a string.
+<h4 id="HasLikelyHexHashStringEntropy">func HasLikelyHexHashStringEntropy</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">HasLikelyHexHashStringEntropy</span><span class="p">(</span><span class="nx">str</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>HasLikelyHexHashStringEntropy states whether a string has an entropy which may entail it is a hexadecimal hash
+This is based on the work done by `detect-secrets` <a href="https://github.com/Yelp/detect-secrets/blob/2fc0e31f067af98d97ad0f507dac032c9506f667/detect_secrets/plugins/high_entropy_strings.py#L150">https://github.com/Yelp/detect-secrets/blob/2fc0e31f067af98d97ad0f507dac032c9506f667/detect_secrets/plugins/high_entropy_strings.py#L150</a>
+<h4 id="IsLikelyHexHashString">func IsLikelyHexHashString</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsLikelyHexHashString</span><span class="p">(</span><span class="nx">str</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsLikelyHexHashString determines whether the string is likely to be a hexadecimal hash or not.
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="IHash">type IHash</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IHash</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="IHash.Calculate"><span class="nf">Calculate</span></span><span class="p">(</span><span class="nx">reader</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="IHash.CalculateWithContext"><span class="nf">CalculateWithContext</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">reader</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="IHash.GetType"><span class="nf">GetType</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IHash defines a hashing algorithm.
+<h5 id="DetermineHashingAlgorithm">func DetermineHashingAlgorithm</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DetermineHashingAlgorithm</span><span class="p">(</span><span class="nx">algorithm</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IHash"><span class="nx">IHash</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>DetermineHashingAlgorithm returns a hashing algorithm based on a string reference. Similar to NewHashingAlgorithm but more flexible.
+<h5 id="NewBespokeHashingAlgorithm">func NewBespokeHashingAlgorithm</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewBespokeHashingAlgorithm</span><span class="p">(</span><span class="nx">algorithm</span><span class="w"> </span><a href="https://pkg.go.dev/hash"><span class="nx">hash</span></a><span class="p">.</span><a href="https://pkg.go.dev/hash#Hash"><span class="nx">Hash</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IHash"><span class="nx">IHash</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewBespokeHashingAlgorithm defines a bespoke hashing algorithm
+<h5 id="NewHashingAlgorithm">func NewHashingAlgorithm</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewHashingAlgorithm</span><span class="p">(</span><span class="nx">htype</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IHash"><span class="nx">IHash</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h3 id="pkg-directories">Directories</h3>
+
+<table>
+  <tbody>
+    <tr>
+        <td><a href="mocks">mocks</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    </tbody>
+</table>
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

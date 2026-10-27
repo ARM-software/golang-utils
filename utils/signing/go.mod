@@ -3,7 +3,7 @@ module github.com/ARM-software/golang-utils/utils/signing
 go 1.26.0
 
 require (
-	github.com/go-faker/faker/v4 v4.7.0
+	github.com/go-faker/faker/v4 v4.12.0
 	github.com/stretchr/testify v1.12.1
 )
 
@@ -16,9 +16,9 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.170.7
-	github.com/ARM-software/golang-utils/utils/encryption v1.170.7
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.0
+	github.com/ARM-software/golang-utils/utils/encryption v1.171.0
 	golang.org/x/text v0.43.0 // indirect
 )
 

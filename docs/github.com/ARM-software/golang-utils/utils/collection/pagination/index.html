@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../../_/icons/favicon.ico"><title>pagination</title>
+</head>
+  <body>
+    <nav><a href="../../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../../..">github.com</a>/<a href="../../../..">ARM-software</a>/<a href="../../..">golang-utils</a>/<a href="../..">utils</a>/<a href="..">collection</a>/pagination<span class="navbar-right">
+          <a href="../../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package pagination</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/collection/pagination&#34;</span></pre>
+<p>Package pagination provides a ways to iterate over collections.
+For that purposes, it defines iterators and paginators, which act as an abstraction over the process of iterating over an entire result set of a truncated API operation returning pages.
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li>
+      <a href="#AbstractPaginator">type AbstractPaginator</a>
+      <ul>
+          <li><a href="#NewAbstractPaginator">func NewAbstractPaginator(ctx context.Context, firstPage IStaticPage, ...) (p *AbstractPaginator, err error)</a></li>
+          <li><a href="#AbstractPaginator.Close">func (a *AbstractPaginator) Close() error</a></li>
+          <li><a href="#AbstractPaginator.FetchCurrentPage">func (a *AbstractPaginator) FetchCurrentPage() (page IStaticPage, err error)</a></li>
+          <li><a href="#AbstractPaginator.FetchCurrentPageIterator">func (a *AbstractPaginator) FetchCurrentPageIterator() (it IIterator, err error)</a></li>
+          <li><a href="#AbstractPaginator.FetchNextPage">func (a *AbstractPaginator) FetchNextPage(ctx context.Context, currentPage IStaticPage) (IStaticPage, error)</a></li>
+          <li><a href="#AbstractPaginator.GetContext">func (a *AbstractPaginator) GetContext() context.Context</a></li>
+          <li><a href="#AbstractPaginator.GetNext">func (a *AbstractPaginator) GetNext() (item interface{}, err error)</a></li>
+          <li><a href="#AbstractPaginator.HasNext">func (a *AbstractPaginator) HasNext() bool</a></li>
+          <li><a href="#AbstractPaginator.SetCurrentPage">func (a *AbstractPaginator) SetCurrentPage(page IStaticPage) (err error)</a></li>
+          <li><a href="#AbstractPaginator.Stop">func (a *AbstractPaginator) Stop() context.CancelFunc</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#AbstractStreamPaginator">type AbstractStreamPaginator</a>
+      <ul>
+          <li><a href="#AbstractStreamPaginator.Close">func (s *AbstractStreamPaginator) Close() error</a></li>
+          <li><a href="#AbstractStreamPaginator.DryUp">func (s *AbstractStreamPaginator) DryUp() error</a></li>
+          <li><a href="#AbstractStreamPaginator.FetchFuturePage">func (s *AbstractStreamPaginator) FetchFuturePage(ctx context.Context, currentPage IStaticPageStream) (IStaticPageStream, error)</a></li>
+          <li><a href="#AbstractStreamPaginator.GetNext">func (s *AbstractStreamPaginator) GetNext() (interface{}, error)</a></li>
+          <li><a href="#AbstractStreamPaginator.HasNext">func (s *AbstractStreamPaginator) HasNext() bool</a></li>
+          <li><a href="#AbstractStreamPaginator.IsRunningDry">func (s *AbstractStreamPaginator) IsRunningDry() bool</a></li>
+          <li><a href="#AbstractStreamPaginator.Stop">func (s *AbstractStreamPaginator) Stop() context.CancelFunc</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#DynamicPagePaginator">type DynamicPagePaginator</a>
+      <ul>
+          <li><a href="#DynamicPagePaginator.GetCurrentPage">func (d *DynamicPagePaginator) GetCurrentPage() (dynamicPage IPage, err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#DynamicPageStreamPaginator">type DynamicPageStreamPaginator</a>
+      <ul>
+          <li><a href="#DynamicPageStreamPaginator.GetCurrentPage">func (d *DynamicPageStreamPaginator) GetCurrentPage() (dynamicPage IPage, err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IGenericPaginator">type IGenericPaginator</a>
+      </li>
+  <li>
+      <a href="#IGenericStreamPaginator">type IGenericStreamPaginator</a>
+      </li>
+  <li>
+      <a href="#IIterator">type IIterator</a>
+      <ul>
+          <li><a href="#NewMockPageIterator">func NewMockPageIterator(page *MockPage) (IIterator, error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IPage">type IPage</a>
+      </li>
+  <li>
+      <a href="#IPaginator">type IPaginator</a>
+      <ul>
+          <li><a href="#NewCollectionPaginator">func NewCollectionPaginator(ctx context.Context, fetchFirstPageFunc func(context.Context) (IPage, error)) (paginator IPaginator, err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IPaginatorAndPageFetcher">type IPaginatorAndPageFetcher</a>
+      <ul>
+          <li><a href="#NewStaticPagePaginator">func NewStaticPagePaginator(ctx context.Context, ...) (paginator IPaginatorAndPageFetcher, err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IStaticPage">type IStaticPage</a>
+      </li>
+  <li>
+      <a href="#IStaticPageStream">type IStaticPageStream</a>
+      </li>
+  <li>
+      <a href="#IStream">type IStream</a>
+      <ul>
+          <li><a href="#GenerateEmptyPage">func GenerateEmptyPage() IStream</a></li>
+          <li><a href="#GenerateMockCollection">func GenerateMockCollection() (firstPage IStream, itemTotal int64, err error)</a></li>
+          <li><a href="#GenerateMockEmptyStream">func GenerateMockEmptyStream() (firstPage IStream, itemTotal int64, err error)</a></li>
+          <li><a href="#GenerateMockPage">func GenerateMockPage() (IStream, int64, error)</a></li>
+          <li><a href="#GenerateMockStream">func GenerateMockStream() (firstPage IStream, itemTotal int64, err error)</a></li>
+          <li><a href="#GenerateMockStreamWithEnding">func GenerateMockStreamWithEnding() (firstPage IStream, itemTotal int64, err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IStreamPaginator">type IStreamPaginator</a>
+      <ul>
+          <li><a href="#NewStreamPaginator">func NewStreamPaginator(ctx context.Context, runOutTimeOut, backoff time.Duration, ...) (paginator IStreamPaginator, err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#IStreamPaginatorAndPageFetcher">type IStreamPaginatorAndPageFetcher</a>
+      <ul>
+          <li><a href="#NewStaticPageStreamPaginator">func NewStaticPageStreamPaginator(ctx context.Context, runOutTimeOut, backoff time.Duration, ...) (paginator IStreamPaginatorAndPageFetcher, err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#MockItem">type MockItem</a>
+      <ul>
+          <li><a href="#GenerateMockItem">func GenerateMockItem() *MockItem</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#MockPage">type MockPage</a>
+      <ul>
+          <li><a href="#MockPage.AppendItem">func (m *MockPage) AppendItem(i *MockItem) error</a></li>
+          <li><a href="#MockPage.GetFuture">func (m *MockPage) GetFuture(ctx context.Context) (future IStream, err error)</a></li>
+          <li><a href="#MockPage.GetItemCount">func (m *MockPage) GetItemCount() (int64, error)</a></li>
+          <li><a href="#MockPage.GetItemIterator">func (m *MockPage) GetItemIterator() (IIterator, error)</a></li>
+          <li><a href="#MockPage.GetNext">func (m *MockPage) GetNext(ctx context.Context) (page IPage, err error)</a></li>
+          <li><a href="#MockPage.HasFuture">func (m *MockPage) HasFuture() bool</a></li>
+          <li><a href="#MockPage.HasNext">func (m *MockPage) HasNext() bool</a></li>
+          <li><a href="#MockPage.SetFuture">func (m *MockPage) SetFuture(future IStream) error</a></li>
+          <li><a href="#MockPage.SetIndexes">func (m *MockPage) SetIndexes(firstIndex int)</a></li>
+          <li><a href="#MockPage.SetNext">func (m *MockPage) SetNext(next IStream) error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#MockPageIterator">type MockPageIterator</a>
+      <ul>
+          <li><a href="#MockPageIterator.GetNext">func (m *MockPageIterator) GetNext() (item interface{}, err error)</a></li>
+          <li><a href="#MockPageIterator.HasNext">func (m *MockPageIterator) HasNext() bool</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#StaticPagePaginator">type StaticPagePaginator</a>
+      <ul>
+          <li><a href="#StaticPagePaginator.GetCurrentPage">func (d *StaticPagePaginator) GetCurrentPage() (IStaticPage, error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#StaticPageStreamPaginator">type StaticPageStreamPaginator</a>
+      <ul>
+          <li><a href="#StaticPageStreamPaginator.GetCurrentPage">func (d *StaticPageStreamPaginator) GetCurrentPage() (IStaticPage, error)</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-types">Types</h3>
+  
+  <h4 id="AbstractPaginator">type AbstractPaginator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">AbstractPaginator</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="NewAbstractPaginator">func NewAbstractPaginator</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewAbstractPaginator</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">firstPage</span><span class="w"> </span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fetchNextFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><span class="o">*</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="AbstractPaginator.Close">func (*AbstractPaginator) Close</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="o">*</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Close</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="AbstractPaginator.FetchCurrentPage">func (*AbstractPaginator) FetchCurrentPage</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="o">*</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">FetchCurrentPage</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">page</span><span class="w"> </span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="AbstractPaginator.FetchCurrentPageIterator">func (*AbstractPaginator) FetchCurrentPageIterator</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="o">*</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">FetchCurrentPageIterator</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">it</span><span class="w"> </span><a href="#IIterator"><span class="nx">IIterator</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="AbstractPaginator.FetchNextPage">func (*AbstractPaginator) FetchNextPage</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="o">*</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">FetchNextPage</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">currentPage</span><span class="w"> </span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="AbstractPaginator.GetContext">func (*AbstractPaginator) GetContext</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="o">*</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetContext</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a></pre>
+  <h5 id="AbstractPaginator.GetNext">func (*AbstractPaginator) GetNext</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="o">*</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetNext</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="kd">interface</span><span class="p">{},</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="AbstractPaginator.HasNext">func (*AbstractPaginator) HasNext</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="o">*</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">HasNext</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h5 id="AbstractPaginator.SetCurrentPage">func (*AbstractPaginator) SetCurrentPage</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="o">*</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">SetCurrentPage</span><span class="p">(</span><span class="nx">page</span><span class="w"> </span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="AbstractPaginator.Stop">func (*AbstractPaginator) Stop</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">a</span><span class="w"> </span><span class="o">*</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Stop</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#CancelFunc"><span class="nx">CancelFunc</span></a></pre>
+  <h4 id="AbstractStreamPaginator">type AbstractStreamPaginator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">AbstractStreamPaginator</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="AbstractStreamPaginator.Close">func (*AbstractStreamPaginator) Close</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#AbstractStreamPaginator"><span class="nx">AbstractStreamPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Close</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="AbstractStreamPaginator.DryUp">func (*AbstractStreamPaginator) DryUp</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#AbstractStreamPaginator"><span class="nx">AbstractStreamPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">DryUp</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="AbstractStreamPaginator.FetchFuturePage">func (*AbstractStreamPaginator) FetchFuturePage</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#AbstractStreamPaginator"><span class="nx">AbstractStreamPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">FetchFuturePage</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">currentPage</span><span class="w"> </span><a href="#IStaticPageStream"><span class="nx">IStaticPageStream</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPageStream"><span class="nx">IStaticPageStream</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="AbstractStreamPaginator.GetNext">func (*AbstractStreamPaginator) GetNext</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#AbstractStreamPaginator"><span class="nx">AbstractStreamPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetNext</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="kd">interface</span><span class="p">{},</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="AbstractStreamPaginator.HasNext">func (*AbstractStreamPaginator) HasNext</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#AbstractStreamPaginator"><span class="nx">AbstractStreamPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">HasNext</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h5 id="AbstractStreamPaginator.IsRunningDry">func (*AbstractStreamPaginator) IsRunningDry</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#AbstractStreamPaginator"><span class="nx">AbstractStreamPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">IsRunningDry</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h5 id="AbstractStreamPaginator.Stop">func (*AbstractStreamPaginator) Stop</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#AbstractStreamPaginator"><span class="nx">AbstractStreamPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Stop</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#CancelFunc"><span class="nx">CancelFunc</span></a></pre>
+  <h4 id="DynamicPagePaginator">type DynamicPagePaginator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">DynamicPagePaginator</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>DynamicPagePaginator defines a paginator over dynamic pages i.e. pages from which it is possible to access the next one.
+<h5 id="DynamicPagePaginator.GetCurrentPage">func (*DynamicPagePaginator) GetCurrentPage</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">d</span><span class="w"> </span><span class="o">*</span><a href="#DynamicPagePaginator"><span class="nx">DynamicPagePaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetCurrentPage</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">dynamicPage</span><span class="w"> </span><a href="#IPage"><span class="nx">IPage</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="DynamicPageStreamPaginator">type DynamicPageStreamPaginator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">DynamicPageStreamPaginator</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#AbstractStreamPaginator"><span class="nx">AbstractStreamPaginator</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>DynamicPageStreamPaginator defines a paginator over a stream of dynamic pages i.e. pages from which it is possible to access the next one.
+<h5 id="DynamicPageStreamPaginator.GetCurrentPage">func (*DynamicPageStreamPaginator) GetCurrentPage</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">d</span><span class="w"> </span><span class="o">*</span><a href="#DynamicPageStreamPaginator"><span class="nx">DynamicPageStreamPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetCurrentPage</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">dynamicPage</span><span class="w"> </span><a href="#IPage"><span class="nx">IPage</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="IGenericPaginator">type IGenericPaginator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IGenericPaginator</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Closer"><span class="nx">Closer</span></a><span class="w">
+</span><span class="w">	</span><a href="#IIterator"><span class="nx">IIterator</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Stop returns a stop function which stops the iteration.</span><span class="w">
+</span><span class="w">	</span><span id="IGenericPaginator.Stop"><span class="nf">Stop</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#CancelFunc"><span class="nx">CancelFunc</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IGenericPaginator defines a generic paginator.
+<h4 id="IGenericStreamPaginator">type IGenericStreamPaginator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IGenericStreamPaginator</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IGenericPaginator"><span class="nx">IGenericPaginator</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// DryUp indicates to the stream that it will soon run out.</span><span class="w">
+</span><span class="w">	</span><span id="IGenericStreamPaginator.DryUp"><span class="nf">DryUp</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// IsRunningDry indicates whether the stream is about to run out.</span><span class="w">
+</span><span class="w">	</span><span id="IGenericStreamPaginator.IsRunningDry"><span class="nf">IsRunningDry</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IGenericStreamPaginator is an iterator over a stream. A stream is a collection without any known ending.
+<h4 id="IIterator">type IIterator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IIterator</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// HasNext returns whether there are more items available or not.</span><span class="w">
+</span><span class="w">	</span><span id="IIterator.HasNext"><span class="nf">HasNext</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetNext returns the next item.</span><span class="w">
+</span><span class="w">	</span><span id="IIterator.GetNext"><span class="nf">GetNext</span></span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="kd">interface</span><span class="p">{},</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IIterator defines an iterator over a collection of items.
+<h5 id="NewMockPageIterator">func NewMockPageIterator</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewMockPageIterator</span><span class="p">(</span><span class="nx">page</span><span class="w"> </span><span class="o">*</span><a href="#MockPage"><span class="nx">MockPage</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IIterator"><span class="nx">IIterator</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="IPage">type IPage</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IPage</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetNext returns the next page.</span><span class="w">
+</span><span class="w">	</span><span id="IPage.GetNext"><span class="nf">GetNext</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IPage"><span class="nx">IPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IPage defines a page with the ability to access next pages.
+<h4 id="IPaginator">type IPaginator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IPaginator</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IGenericPaginator"><span class="nx">IGenericPaginator</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetCurrentPage returns the current page.</span><span class="w">
+</span><span class="w">	</span><span id="IPaginator.GetCurrentPage"><span class="nf">GetCurrentPage</span></span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="#IPage"><span class="nx">IPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IPaginator is an iterator over multiple pages
+<h5 id="NewCollectionPaginator">func NewCollectionPaginator</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewCollectionPaginator</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fetchFirstPageFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IPage"><span class="nx">IPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nx">paginator</span><span class="w"> </span><a href="#IPaginator"><span class="nx">IPaginator</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewCollectionPaginator creates a paginator over a collection of dynamic pages.
+<h4 id="IPaginatorAndPageFetcher">type IPaginatorAndPageFetcher</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IPaginatorAndPageFetcher</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IGenericPaginator"><span class="nx">IGenericPaginator</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetCurrentPage returns the current page.</span><span class="w">
+</span><span class="w">	</span><span id="IPaginatorAndPageFetcher.GetCurrentPage"><span class="nf">GetCurrentPage</span></span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// FetchNextPage fetches the next page.</span><span class="w">
+</span><span class="w">	</span><span id="IPaginatorAndPageFetcher.FetchNextPage"><span class="nf">FetchNextPage</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">currentPage</span><span class="w"> </span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IPaginatorAndPageFetcher is a paginator dealing with static pages
+<h5 id="NewStaticPagePaginator">func NewStaticPagePaginator</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewStaticPagePaginator</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fetchFirstPageFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">),</span><span class="w"> </span><span class="nx">fetchNextPageFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nx">paginator</span><span class="w"> </span><a href="#IPaginatorAndPageFetcher"><span class="nx">IPaginatorAndPageFetcher</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewStaticPagePaginator creates a paginator over a collection but only dealing with static pages i.e. pages from which it is not possible to access the next one and the paginator must define how to fetch them using the fetchNextPageFunc function.
+<h4 id="IStaticPage">type IStaticPage</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IStaticPage</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// HasNext states whether more pages are accessible.</span><span class="w">
+</span><span class="w">	</span><span id="IStaticPage.HasNext"><span class="nf">HasNext</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetItemIterator returns a new iterator over the page&#39;s items.</span><span class="w">
+</span><span class="w">	</span><span id="IStaticPage.GetItemIterator"><span class="nf">GetItemIterator</span></span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="#IIterator"><span class="nx">IIterator</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// GetItemCount returns the number of items in this page</span><span class="w">
+</span><span class="w">	</span><span id="IStaticPage.GetItemCount"><span class="nf">GetItemCount</span></span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IStaticPage defines a generic page for a collection. A page is marked as static when it cannot retrieve next pages on its own.
+<h4 id="IStaticPageStream">type IStaticPageStream</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IStaticPageStream</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// HasFuture states whether there may be future items.</span><span class="w">
+</span><span class="w">	</span><span id="IStaticPageStream.HasFuture"><span class="nf">HasFuture</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IStaticPageStream defines a page for a collection which does not have any known ending.
+<h4 id="IStream">type IStream</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IStream</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IPage"><span class="nx">IPage</span></a><span class="w">
+</span><span class="w">	</span><a href="#IStaticPageStream"><span class="nx">IStaticPageStream</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// GetFuture returns the future page.</span><span class="w">
+</span><span class="w">	</span><span id="IStream.GetFuture"><span class="nf">GetFuture</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStream"><span class="nx">IStream</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IStream defines a stream with the ability to access future pages.
+<h5 id="GenerateEmptyPage">func GenerateEmptyPage</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">GenerateEmptyPage</span><span class="p">()</span><span class="w"> </span><a href="#IStream"><span class="nx">IStream</span></a></pre>
+  <h5 id="GenerateMockCollection">func GenerateMockCollection</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">GenerateMockCollection</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">firstPage</span><span class="w"> </span><a href="#IStream"><span class="nx">IStream</span></a><span class="p">,</span><span class="w"> </span><span class="nx">itemTotal</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="GenerateMockEmptyStream">func GenerateMockEmptyStream</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">GenerateMockEmptyStream</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">firstPage</span><span class="w"> </span><a href="#IStream"><span class="nx">IStream</span></a><span class="p">,</span><span class="w"> </span><span class="nx">itemTotal</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>GenerateMockEmptyStream generates an empty stream (as in stream of pages with no element).
+<h5 id="GenerateMockPage">func GenerateMockPage</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">GenerateMockPage</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="#IStream"><span class="nx">IStream</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="GenerateMockStream">func GenerateMockStream</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">GenerateMockStream</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">firstPage</span><span class="w"> </span><a href="#IStream"><span class="nx">IStream</span></a><span class="p">,</span><span class="w"> </span><span class="nx">itemTotal</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>GenerateMockStream creates a mock stream which could never end (as in, a future link will be always present)
+<h5 id="GenerateMockStreamWithEnding">func GenerateMockStreamWithEnding</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">GenerateMockStreamWithEnding</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">firstPage</span><span class="w"> </span><a href="#IStream"><span class="nx">IStream</span></a><span class="p">,</span><span class="w"> </span><span class="nx">itemTotal</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>GenerateMockStreamWithEnding generates a stream which will end itself (as in the future link will disappear).
+<h4 id="IStreamPaginator">type IStreamPaginator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IStreamPaginator</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IGenericStreamPaginator"><span class="nx">IGenericStreamPaginator</span></a><span class="w">
+</span><span class="w">	</span><a href="#IPaginator"><span class="nx">IPaginator</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IStreamPaginator is stream paginator over dynamic pages.
+<h5 id="NewStreamPaginator">func NewStreamPaginator</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewStreamPaginator</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">runOutTimeOut</span><span class="p">,</span><span class="w"> </span><span class="nx">backoff</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fetchFirstPageFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStream"><span class="nx">IStream</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nx">paginator</span><span class="w"> </span><a href="#IStreamPaginator"><span class="nx">IStreamPaginator</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewStreamPaginator creates a paginator over a stream of dynamic pages i.e. pages can access next and future pages.
+runOutTimeOut corresponds to the grace period between the stream being marked as running dry and the iteration actually ending
+backoff corresponds to the backoff time between page iteration.
+<h4 id="IStreamPaginatorAndPageFetcher">type IStreamPaginatorAndPageFetcher</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IStreamPaginatorAndPageFetcher</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#IGenericStreamPaginator"><span class="nx">IGenericStreamPaginator</span></a><span class="w">
+</span><span class="w">	</span><a href="#IPaginatorAndPageFetcher"><span class="nx">IPaginatorAndPageFetcher</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// FetchFuturePage returns the future page.</span><span class="w">
+</span><span class="w">	</span><span id="IStreamPaginatorAndPageFetcher.FetchFuturePage"><span class="nf">FetchFuturePage</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">currentPage</span><span class="w"> </span><a href="#IStaticPageStream"><span class="nx">IStaticPageStream</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPageStream"><span class="nx">IStaticPageStream</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IStreamPaginatorAndPageFetcher is a stream paginator over static pages.
+<h5 id="NewStaticPageStreamPaginator">func NewStaticPageStreamPaginator</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewStaticPageStreamPaginator</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">runOutTimeOut</span><span class="p">,</span><span class="w"> </span><span class="nx">backoff</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fetchFirstPageFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPageStream"><span class="nx">IStaticPageStream</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">),</span><span class="w"> </span><span class="nx">fetchNextPageFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">),</span><span class="w"> </span><span class="nx">fetchFutureFunc</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="#IStaticPageStream"><span class="nx">IStaticPageStream</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPageStream"><span class="nx">IStaticPageStream</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nx">paginator</span><span class="w"> </span><a href="#IStreamPaginatorAndPageFetcher"><span class="nx">IStreamPaginatorAndPageFetcher</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewStaticPageStreamPaginator creates a paginator over a stream but the pages are static i.e. they cannot access future and next pages from themselves.
+runOutTimeOut corresponds to the grace period between the stream being marked as running dry and the iteration actually ending
+backoff corresponds to the backoff time between page iteration.
+<h4 id="MockItem">type MockItem</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">MockItem</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="MockItem.Index"><span class="nx">Index</span></span><span class="w">  </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w">
+</span><span class="w">	</span><span id="MockItem.ID"><span class="nx">ID</span></span><span class="w">     </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="MockItem.Value1"><span class="nx">Value1</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="MockItem.Value2"><span class="nx">Value2</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="GenerateMockItem">func GenerateMockItem</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">GenerateMockItem</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#MockItem"><span class="nx">MockItem</span></a></pre>
+  <h4 id="MockPage">type MockPage</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">MockPage</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="MockPage.AppendItem">func (*MockPage) AppendItem</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPage"><span class="nx">MockPage</span></a><span class="p">)</span><span class="w"> </span><span class="nf">AppendItem</span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="o">*</span><a href="#MockItem"><span class="nx">MockItem</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="MockPage.GetFuture">func (*MockPage) GetFuture</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPage"><span class="nx">MockPage</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetFuture</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">future</span><span class="w"> </span><a href="#IStream"><span class="nx">IStream</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="MockPage.GetItemCount">func (*MockPage) GetItemCount</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPage"><span class="nx">MockPage</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetItemCount</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#int64"><span class="kt">int64</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="MockPage.GetItemIterator">func (*MockPage) GetItemIterator</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPage"><span class="nx">MockPage</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetItemIterator</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="#IIterator"><span class="nx">IIterator</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="MockPage.GetNext">func (*MockPage) GetNext</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPage"><span class="nx">MockPage</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetNext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">page</span><span class="w"> </span><a href="#IPage"><span class="nx">IPage</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="MockPage.HasFuture">func (*MockPage) HasFuture</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPage"><span class="nx">MockPage</span></a><span class="p">)</span><span class="w"> </span><span class="nf">HasFuture</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h5 id="MockPage.HasNext">func (*MockPage) HasNext</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPage"><span class="nx">MockPage</span></a><span class="p">)</span><span class="w"> </span><span class="nf">HasNext</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h5 id="MockPage.SetFuture">func (*MockPage) SetFuture</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPage"><span class="nx">MockPage</span></a><span class="p">)</span><span class="w"> </span><span class="nf">SetFuture</span><span class="p">(</span><span class="nx">future</span><span class="w"> </span><a href="#IStream"><span class="nx">IStream</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h5 id="MockPage.SetIndexes">func (*MockPage) SetIndexes</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPage"><span class="nx">MockPage</span></a><span class="p">)</span><span class="w"> </span><span class="nf">SetIndexes</span><span class="p">(</span><span class="nx">firstIndex</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span></pre>
+  <h5 id="MockPage.SetNext">func (*MockPage) SetNext</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPage"><span class="nx">MockPage</span></a><span class="p">)</span><span class="w"> </span><span class="nf">SetNext</span><span class="p">(</span><span class="nx">next</span><span class="w"> </span><a href="#IStream"><span class="nx">IStream</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h4 id="MockPageIterator">type MockPageIterator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">MockPageIterator</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <h5 id="MockPageIterator.GetNext">func (*MockPageIterator) GetNext</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPageIterator"><span class="nx">MockPageIterator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetNext</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">item</span><span class="w"> </span><span class="kd">interface</span><span class="p">{},</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h5 id="MockPageIterator.HasNext">func (*MockPageIterator) HasNext</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">m</span><span class="w"> </span><span class="o">*</span><a href="#MockPageIterator"><span class="nx">MockPageIterator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">HasNext</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h4 id="StaticPagePaginator">type StaticPagePaginator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">StaticPagePaginator</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#AbstractPaginator"><span class="nx">AbstractPaginator</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>StaticPagePaginator defines a paginator over static pages i.e. pages from which it is not possible to access the next one and the paginator must define how to fetch it.
+<h5 id="StaticPagePaginator.GetCurrentPage">func (*StaticPagePaginator) GetCurrentPage</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">d</span><span class="w"> </span><span class="o">*</span><a href="#StaticPagePaginator"><span class="nx">StaticPagePaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetCurrentPage</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="StaticPageStreamPaginator">type StaticPageStreamPaginator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">StaticPageStreamPaginator</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#AbstractStreamPaginator"><span class="nx">AbstractStreamPaginator</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>StaticPageStreamPaginator defines a paginator over a stream of static pages i.e. pages from which it is not possible to access the next nor the future pages.
+<h5 id="StaticPageStreamPaginator.GetCurrentPage">func (*StaticPageStreamPaginator) GetCurrentPage</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">d</span><span class="w"> </span><span class="o">*</span><a href="#StaticPageStreamPaginator"><span class="nx">StaticPageStreamPaginator</span></a><span class="p">)</span><span class="w"> </span><span class="nf">GetCurrentPage</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="#IStaticPage"><span class="nx">IStaticPage</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  </main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../../_/js/permalink.js"></script></body>
+</html>

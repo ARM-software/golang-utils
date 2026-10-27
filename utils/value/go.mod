@@ -3,7 +3,7 @@ module github.com/ARM-software/golang-utils/utils/value
 go 1.26.0
 
 require (
-	github.com/go-faker/faker/v4 v4.7.0
+	github.com/go-faker/faker/v4 v4.12.0
 	github.com/stretchr/testify v1.12.1
 )
 
@@ -15,8 +15,8 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.170.7
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.0
 )
 
 replace github.com/ARM-software/golang-utils/utils/commonerrors => ../commonerrors

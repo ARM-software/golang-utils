@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../../_/icons/favicon.ico"><title>jsonschema</title>
+</head>
+  <body>
+    <nav><a href="../../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../../..">github.com</a>/<a href="../../../..">ARM-software</a>/<a href="../../..">golang-utils</a>/<a href="../..">utils</a>/<a href="..">validation</a>/jsonschema<span class="navbar-right">
+          <a href="../../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package jsonschema</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/validation/jsonschema&#34;</span></pre>
+<ul>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<p>Package jsonschema provides helpers for validating JSON and YAML content
+against JSON Schema documents.
+<p>The package wraps github.com/santhosh-tekuri/jsonschema/v6 and standardises
+a few behaviours used across this repository:
+<ul>
+<li>schema definitions can be described as files and loaded from either the
+normal filesystem or an embedded filesystem
+<li>raw JSON values, raw YAML bytes, JSON files, and YAML files can all be
+validated through the same schema abstraction
+<li>validation and loading failures are wrapped with the repository&apos;s common
+error types so callers can test and report them consistently
+<li>when a schema is composed of multiple schema documents, callers may pass
+an optional schema ID to select the root schema to compile; otherwise it
+should be left as nil
+</ul>
+<p>In normal use, callers describe one or more schema files with Schema values,
+optionally pass a schema ID when the schema set is composed of multiple
+documents, and then validate either raw content or files through the helper
+functions in this package.
+<ul>
+<li>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li>SPDX-License-Identifier: Apache-2.0
+</ul>
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#ValidateJSONFileAgainstSchema">func ValidateJSONFileAgainstSchema(ctx context.Context, filePath string, schemaID *string, schema ...Schema) error</a></li>
+  <li><a href="#ValidateJSONFileAgainstSchemaFS">func ValidateJSONFileAgainstSchemaFS(ctx context.Context, fileSystem filesystem.FS, filePath string, ...) error</a></li>
+  <li><a href="#ValidateJSONFileAgainstSchemaFSWithOptions">func ValidateJSONFileAgainstSchemaFSWithOptions(ctx context.Context, fileSystem filesystem.FS, filePath string, ...) error</a></li>
+  <li><a href="#ValidateJSONFileAgainstSchemaOptions">func ValidateJSONFileAgainstSchemaOptions(ctx context.Context, filePath string, options ...SchemaOption) error</a></li>
+  <li><a href="#ValidateRawJSONAgainstSchema">func ValidateRawJSONAgainstSchema(ctx context.Context, content any, schemaID *string, schema ...Schema) error</a></li>
+  <li><a href="#ValidateRawJSONAgainstSchemaOptions">func ValidateRawJSONAgainstSchemaOptions(ctx context.Context, content any, options ...SchemaOption) error</a></li>
+  <li><a href="#ValidateRawYAMLAgainstSchema">func ValidateRawYAMLAgainstSchema(ctx context.Context, content []byte, schemaID *string, schema ...Schema) error</a></li>
+  <li><a href="#ValidateRawYAMLAgainstSchemaOptions">func ValidateRawYAMLAgainstSchemaOptions(ctx context.Context, content []byte, options ...SchemaOption) error</a></li>
+  <li><a href="#ValidateYAMLFileAgainstSchema">func ValidateYAMLFileAgainstSchema(ctx context.Context, filePath string, schemaID *string, schema ...Schema) error</a></li>
+  <li><a href="#ValidateYAMLFileAgainstSchemaFS">func ValidateYAMLFileAgainstSchemaFS(ctx context.Context, fileSystem filesystem.FS, filePath string, ...) error</a></li>
+  <li><a href="#ValidateYAMLFileAgainstSchemaFSWithOptions">func ValidateYAMLFileAgainstSchemaFSWithOptions(ctx context.Context, fileSystem filesystem.FS, filePath string, ...) error</a></li>
+  <li><a href="#ValidateYAMLFileAgainstSchemaOptions">func ValidateYAMLFileAgainstSchemaOptions(ctx context.Context, filePath string, options ...SchemaOption) error</a></li>
+  <li>
+      <a href="#ISchemaValidator">type ISchemaValidator</a>
+      <ul>
+          <li><a href="#NewJSONFileValidator">func NewJSONFileValidator(schemaID *string, schema ...Schema) (v ISchemaValidator, err error)</a></li>
+          <li><a href="#NewJSONFileValidatorWithOptions">func NewJSONFileValidatorWithOptions(options ...SchemaOption) (ISchemaValidator, error)</a></li>
+          <li><a href="#NewYAMLFileValidator">func NewYAMLFileValidator(schemaID *string, schema ...Schema) (v ISchemaValidator, err error)</a></li>
+          <li><a href="#NewYAMLFileValidatorWithOptions">func NewYAMLFileValidatorWithOptions(options ...SchemaOption) (ISchemaValidator, error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#Schema">type Schema</a>
+      <ul>
+          <li><a href="#DefaultSchema">func DefaultSchema() *Schema</a></li>
+          <li><a href="#NewJSONSchemaFile">func NewJSONSchemaFile(options ...SchemaOption) *Schema</a></li>
+          <li><a href="#Schema.Apply">func (s *Schema) Apply(option SchemaOption) *Schema</a></li>
+          <li><a href="#Schema.Default">func (s *Schema) Default() *Schema</a></li>
+          <li><a href="#Schema.ShouldStripAliases">func (s *Schema) ShouldStripAliases() bool</a></li>
+          <li><a href="#Schema.Validate">func (s *Schema) Validate() error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#SchemaOption">type SchemaOption</a>
+      <ul>
+          <li><a href="#IgnoreYAMLAliases">func IgnoreYAMLAliases() SchemaOption</a></li>
+          <li><a href="#WithFileLimits">func WithFileLimits(limits filesystem.ILimits) SchemaOption</a></li>
+          <li><a href="#WithFilesystem">func WithFilesystem(fs filesystem.FS) SchemaOption</a></li>
+          <li><a href="#WithID">func WithID(id string) SchemaOption</a></li>
+          <li><a href="#WithLocalPath">func WithLocalPath(localPath string) SchemaOption</a></li>
+          <li><a href="#WithStripXAliases">func WithStripXAliases(enabled bool) SchemaOption</a></li>
+          <li><a href="#WithTitle">func WithTitle(title string) SchemaOption</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#SchemaSpec">type SchemaSpec</a>
+      <ul>
+          <li><a href="#LoadSchemaSpec">func LoadSchemaSpec(ctx context.Context, schema *Schema) (*SchemaSpec, error)</a></li>
+          <li><a href="#SchemaSpec.Validate">func (s *SchemaSpec) Validate() error</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="ValidateJSONFileAgainstSchema">func ValidateJSONFileAgainstSchema</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateJSONFileAgainstSchema</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filePath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schemaID</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schema</span><span class="w"> </span><span class="o">...</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateJSONFileAgainstSchema validates a JSON file from the global
+filesystem against the supplied schema definitions.
+<p>`schemaID` is the optional schema ID to compile when the schema is composed
+of multiple schema documents. Otherwise, leave it as nil.
+<h4 id="ValidateJSONFileAgainstSchemaFS">func ValidateJSONFileAgainstSchemaFS</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateJSONFileAgainstSchemaFS</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fileSystem</span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#FS"><span class="nx">FS</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filePath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schemaID</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schema</span><span class="w"> </span><span class="o">...</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateJSONFileAgainstSchemaFS validates a JSON file from the supplied
+filesystem against the supplied schema definitions.
+<p>`schemaID` is the optional schema ID to compile when the schema is composed
+of multiple schema documents. Otherwise, leave it as nil.
+<h4 id="ValidateJSONFileAgainstSchemaFSWithOptions">func ValidateJSONFileAgainstSchemaFSWithOptions</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateJSONFileAgainstSchemaFSWithOptions</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fileSystem</span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#FS"><span class="nx">FS</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filePath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateJSONFileAgainstSchemaFSWithOptions validates a JSON file from the
+supplied filesystem against a Schema built from the supplied options.
+<h4 id="ValidateJSONFileAgainstSchemaOptions">func ValidateJSONFileAgainstSchemaOptions</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateJSONFileAgainstSchemaOptions</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filePath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateJSONFileAgainstSchemaOptions validates a JSON file against a Schema
+built from the supplied options.
+<h4 id="ValidateRawJSONAgainstSchema">func ValidateRawJSONAgainstSchema</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateRawJSONAgainstSchema</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schemaID</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schema</span><span class="w"> </span><span class="o">...</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateRawJSONAgainstSchema validates JSON-compatible content against the
+supplied schema definitions.
+<p>`schemaID` is the optional schema ID to compile when the schema is composed
+of multiple schema documents. Otherwise, leave it as nil.
+<p>The content may already be decoded into Go values, or any other value that
+can be passed directly to the underlying JSON Schema validator.
+<h4 id="ValidateRawJSONAgainstSchemaOptions">func ValidateRawJSONAgainstSchemaOptions</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateRawJSONAgainstSchemaOptions</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateRawJSONAgainstSchemaOptions validates JSON-compatible content against
+a Schema built from the supplied options.
+<h4 id="ValidateRawYAMLAgainstSchema">func ValidateRawYAMLAgainstSchema</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateRawYAMLAgainstSchema</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schemaID</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schema</span><span class="w"> </span><span class="o">...</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateRawYAMLAgainstSchema validates raw YAML bytes against the supplied
+schema definitions.
+<p>`schemaID` is the optional schema ID to compile when the schema is composed
+of multiple schema documents. Otherwise, leave it as nil.
+<p>The YAML content is converted to JSON first and then validated against the
+compiled JSON Schema.
+<h4 id="ValidateRawYAMLAgainstSchemaOptions">func ValidateRawYAMLAgainstSchemaOptions</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateRawYAMLAgainstSchemaOptions</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateRawYAMLAgainstSchemaOptions validates raw YAML bytes against a Schema
+built from the supplied options.
+<h4 id="ValidateYAMLFileAgainstSchema">func ValidateYAMLFileAgainstSchema</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateYAMLFileAgainstSchema</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filePath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schemaID</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schema</span><span class="w"> </span><span class="o">...</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateYAMLFileAgainstSchema validates a YAML file from the global
+filesystem against the supplied schema definitions.
+<p>`schemaID` is the optional schema ID to compile when the schema is composed
+of multiple schema documents. Otherwise, leave it as nil.
+<h4 id="ValidateYAMLFileAgainstSchemaFS">func ValidateYAMLFileAgainstSchemaFS</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateYAMLFileAgainstSchemaFS</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fileSystem</span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#FS"><span class="nx">FS</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filePath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schemaID</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schema</span><span class="w"> </span><span class="o">...</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateYAMLFileAgainstSchemaFS validates a YAML file from the supplied
+filesystem against the supplied schema definitions.
+<p>`schemaID` is the optional schema ID to compile when the schema is composed
+of multiple schema documents. Otherwise, leave it as nil.
+<h4 id="ValidateYAMLFileAgainstSchemaFSWithOptions">func ValidateYAMLFileAgainstSchemaFSWithOptions</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateYAMLFileAgainstSchemaFSWithOptions</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fileSystem</span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#FS"><span class="nx">FS</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filePath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateYAMLFileAgainstSchemaFSWithOptions validates a YAML file from the
+supplied filesystem against a Schema built from the supplied options.
+<h4 id="ValidateYAMLFileAgainstSchemaOptions">func ValidateYAMLFileAgainstSchemaOptions</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateYAMLFileAgainstSchemaOptions</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filePath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateYAMLFileAgainstSchemaOptions validates a YAML file against a Schema
+built from the supplied options.
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="ISchemaValidator">type ISchemaValidator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ISchemaValidator</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// ValidateContent validates already-loaded content against the compiled</span><span class="w">
+</span><span class="w">	</span><span class="c1">// schema definition.</span><span class="w">
+</span><span class="w">	</span><span id="ISchemaValidator.ValidateContent"><span class="nf">ValidateContent</span></span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// ValidateFile validates a file from the global filesystem against the</span><span class="w">
+</span><span class="w">	</span><span class="c1">// compiled schema definition.</span><span class="w">
+</span><span class="w">	</span><span id="ISchemaValidator.ValidateFile"><span class="nf">ValidateFile</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filepath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// ValidateFileWithLimits validates a file from the global filesystem against the</span><span class="w">
+</span><span class="w">	</span><span class="c1">// compiled schema definition.</span><span class="w">
+</span><span class="w">	</span><span id="ISchemaValidator.ValidateFileWithLimits"><span class="nf">ValidateFileWithLimits</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filepath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fileLimits</span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#ILimits"><span class="nx">ILimits</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// ValidateFileInFS validates a file from the supplied filesystem against the</span><span class="w">
+</span><span class="w">	</span><span class="c1">// compiled schema definition.</span><span class="w">
+</span><span class="w">	</span><span id="ISchemaValidator.ValidateFileInFS"><span class="nf">ValidateFileInFS</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fs</span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#FS"><span class="nx">FS</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filepath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// ValidateFileInFSWithLimits validates a file from the supplied filesystem against the</span><span class="w">
+</span><span class="w">	</span><span class="c1">// compiled schema definition.</span><span class="w">
+</span><span class="w">	</span><span id="ISchemaValidator.ValidateFileInFSWithLimits"><span class="nf">ValidateFileInFSWithLimits</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fs</span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#FS"><span class="nx">FS</span></a><span class="p">,</span><span class="w"> </span><span class="nx">filepath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fileLimits</span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#ILimits"><span class="nx">ILimits</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>ISchemaValidator validates content against a compiled JSON
+Schema definition.
+<p>Implementations may support different source formats such as JSON or YAML,
+but all expose the same three entry points: validating already-loaded
+content, validating a file from the global filesystem, and validating a file
+from a supplied filesystem.
+<h5 id="NewJSONFileValidator">func NewJSONFileValidator</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewJSONFileValidator</span><span class="p">(</span><span class="nx">schemaID</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schema</span><span class="w"> </span><span class="o">...</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="#ISchemaValidator"><span class="nx">ISchemaValidator</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewJSONFileValidator returns a validator for JSON content and `.json` files.
+<p>`schemaID` is the optional schema ID to compile when the schema is composed
+of multiple schema documents. Otherwise, leave it as nil.
+<p>The returned validator compiles its schema set lazily and caches the result
+for reuse across subsequent validations.
+<h5 id="NewJSONFileValidatorWithOptions">func NewJSONFileValidatorWithOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewJSONFileValidatorWithOptions</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#ISchemaValidator"><span class="nx">ISchemaValidator</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewJSONFileValidatorWithOptions returns a JSON validator using a Schema built
+from the supplied options.
+<h5 id="NewYAMLFileValidator">func NewYAMLFileValidator</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewYAMLFileValidator</span><span class="p">(</span><span class="nx">schemaID</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schema</span><span class="w"> </span><span class="o">...</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="#ISchemaValidator"><span class="nx">ISchemaValidator</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewYAMLFileValidator returns a validator for YAML content and `.yaml` or
+`.yml` files.
+<p>`schemaID` is the optional schema ID to compile when the schema is composed
+of multiple schema documents. Otherwise, leave it as nil.
+<p>The returned validator compiles its schema set lazily and caches the result
+for reuse across subsequent validations.
+<h5 id="NewYAMLFileValidatorWithOptions">func NewYAMLFileValidatorWithOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewYAMLFileValidatorWithOptions</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#ISchemaValidator"><span class="nx">ISchemaValidator</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewYAMLFileValidatorWithOptions returns a YAML validator using a Schema built
+from the supplied options.
+<h4 id="Schema">type Schema</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Schema</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Title is a human-readable title of the schema.</span><span class="w">
+</span><span class="w">	</span><span id="Schema.Title"><span class="nx">Title</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// LocalPath is the path to the schema file. It should be available on the</span><span class="w">
+</span><span class="w">	</span><span class="c1">// filesystem or an embedded filesystem.</span><span class="w">
+</span><span class="w">	</span><span id="Schema.LocalPath"><span class="nx">LocalPath</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// ID should match the $id field within the schema.</span><span class="w">
+</span><span class="w">	</span><span id="Schema.ID"><span class="nx">ID</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Filesystem is the filesystem to use to load the schema file.</span><span class="w">
+</span><span class="w">	</span><span id="Schema.Filesystem"><span class="nx">Filesystem</span></span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#FS"><span class="nx">FS</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Limits defines the filesystem read limits used when loading the schema</span><span class="w">
+</span><span class="w">	</span><span class="c1">// file.</span><span class="w">
+</span><span class="w">	</span><span id="Schema.Limits"><span class="nx">Limits</span></span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#ILimits"><span class="nx">ILimits</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// StripXAliases removes decoded object keys using the `x-...` convention</span><span class="w">
+</span><span class="w">	</span><span class="c1">// before validation.</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	// This is useful for YAML manifests that carry helper fields such as</span><span class="w">
+</span><span class="w">	</span><span class="c1">// `x-aliases`, `x-anchors`, or similar extension-like structures whose only</span><span class="w">
+</span><span class="w">	</span><span class="c1">// purpose is to materialise YAML anchors, aliases, or merge-like expansion</span><span class="w">
+</span><span class="w">	</span><span class="c1">// before validation. Those helper fields are not part of the actual schema,</span><span class="w">
+</span><span class="w">	</span><span class="c1">// and if they are left in place they can cause otherwise valid documents to</span><span class="w">
+</span><span class="w">	</span><span class="c1">// fail schema validation because the schema does not declare them.</span><span class="w">
+</span><span class="w">	</span><span id="Schema.StripXAliases"><span class="nx">StripXAliases</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Schema describes a schema file that can be loaded and registered for
+validation.
+<p>It is intended to be a lightweight wrapper around a schema file so callers
+can build validators from normal or embedded filesystems without passing raw
+schema bytes around manually.
+<h5 id="DefaultSchema">func DefaultSchema</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultSchema</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#Schema"><span class="nx">Schema</span></a></pre>
+  <p>DefaultSchema returns a Schema initialised with the package defaults.
+<p>The default filesystem is the global filesystem, and the schema ID is derived
+from the local path when it has not been set explicitly.
+<h5 id="NewJSONSchemaFile">func NewJSONSchemaFile</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewJSONSchemaFile</span><span class="p">(</span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Schema"><span class="nx">Schema</span></a></pre>
+  <p>NewJSONSchemaFile constructs a Schema from the supplied options.
+<p>Options are applied in order, after which the package defaults are
+materialised.
+<h5 id="Schema.Apply">func (*Schema) Apply</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Apply</span><span class="p">(</span><span class="nx">option</span><span class="w"> </span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Schema"><span class="nx">Schema</span></a></pre>
+  <p>Apply applies a single option to a Schema and then reapplies defaults.
+<h5 id="Schema.Default">func (*Schema) Default</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Default</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#Schema"><span class="nx">Schema</span></a></pre>
+  <p>Default applies the package defaults to a Schema.
+<h5 id="Schema.ShouldStripAliases">func (*Schema) ShouldStripAliases</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><span class="nf">ShouldStripAliases</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>ShouldStripAliases returns whether extension-style alias or anchor helper
+fields should be removed before validation.
+<h5 id="Schema.Validate">func (*Schema) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Validate checks that the schema definition contains the required fields
+needed to load a schema file.
+<h4 id="SchemaOption">type SchemaOption</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">SchemaOption</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="o">*</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Schema"><span class="nx">Schema</span></a></pre>
+    <p>SchemaOption configures a Schema during construction.
+<h5 id="IgnoreYAMLAliases">func IgnoreYAMLAliases</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IgnoreYAMLAliases</span><span class="p">()</span><span class="w"> </span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a></pre>
+  <p>IgnoreYAMLAliases enables removal of decoded object keys that follow the
+`x-...` convention before validation.
+<p>This is intended for YAML documents that use extension-like helper fields to
+hold alias or anchor material which should be ignored once the document has
+been decoded into plain objects for schema validation.
+<p>Example:
+<pre>schema := NewJSONSchemaFile(
+	WithTitle(&quot;manifest&quot;),
+	WithLocalPath(&quot;schema.yaml&quot;),
+	IgnoreYAMLAliases(),
+)
+</pre>
+<p>For example, a document may use helper fields only to define YAML anchors and
+merges:
+<pre>x-shared: &amp;x-shared
+  count: 2
+name: Alice
+&lt;&lt;: *x-shared
+</pre>
+<p>After YAML decoding, `name` and `count` are the real data to validate, but
+the extra `x-shared` field may still be present in the decoded object. If the
+JSON Schema does not allow that helper field, validation can fail even though
+the effective manifest content is otherwise valid. Enabling this option strips
+such helper fields before validation.
+<p>The option always enables this behaviour; there is no boolean argument because
+callers can simply omit the option when they do not want alias helper fields
+removed.
+<h5 id="WithFileLimits">func WithFileLimits</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithFileLimits</span><span class="p">(</span><span class="nx">limits</span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#ILimits"><span class="nx">ILimits</span></a><span class="p">)</span><span class="w"> </span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a></pre>
+  <p>WithFileLimits sets the filesystem read limits used when loading the Schema
+file.
+<p>A nil limits value falls back to filesystem.NoLimits().
+<h5 id="WithFilesystem">func WithFilesystem</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithFilesystem</span><span class="p">(</span><span class="nx">fs</span><span class="w"> </span><a href="../../filesystem"><span class="nx">filesystem</span></a><span class="p">.</span><a href="../../filesystem#FS"><span class="nx">FS</span></a><span class="p">)</span><span class="w"> </span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a></pre>
+  <p>WithFilesystem sets the filesystem used to load the Schema file.
+<p>A nil filesystem falls back to the global filesystem, and the current local
+path is cleaned for that filesystem.
+<h5 id="WithID">func WithID</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithID</span><span class="p">(</span><span class="nx">id</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a></pre>
+  <p>WithID sets the schema ID of a Schema.
+<p>If the supplied ID is empty, schemaID falls back to the current local path.
+<h5 id="WithLocalPath">func WithLocalPath</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithLocalPath</span><span class="p">(</span><span class="nx">localPath</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a></pre>
+  <p>WithLocalPath sets the local path of a Schema file.
+<p>The path is trimmed, and the schema ID is recalculated with schemaID when no
+explicit ID has been provided.
+<h5 id="WithStripXAliases">func WithStripXAliases</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithStripXAliases</span><span class="p">(</span><span class="nx">enabled</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a></pre>
+  <p>WithStripXAliases explicitly sets whether decoded `x-...` helper fields are
+removed before validation.
+<p>This is the general form of the option and is useful when schema options are
+composed dynamically and the caller wants to control the setting explicitly.
+`IgnoreYAMLAliases()` is the convenience form for simply enabling it.
+<h5 id="WithTitle">func WithTitle</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithTitle</span><span class="p">(</span><span class="nx">title</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#SchemaOption"><span class="nx">SchemaOption</span></a></pre>
+  <p>WithTitle sets the human-readable title of a Schema.
+<h4 id="SchemaSpec">type SchemaSpec</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">SchemaSpec</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="SchemaSpec.ID"><span class="nx">ID</span></span><span class="w">            </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="SchemaSpec.Specification"><span class="nx">Specification</span></span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// Title is a human-readable title of the schema.</span><span class="w">
+</span><span class="w">	</span><span id="SchemaSpec.Title"><span class="nx">Title</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>SchemaSpec contains the raw JSON schema document and the identifier used to
+register it with the JSON Schema compiler.
+<h5 id="LoadSchemaSpec">func LoadSchemaSpec</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">LoadSchemaSpec</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">schema</span><span class="w"> </span><span class="o">*</span><a href="#Schema"><span class="nx">Schema</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="#SchemaSpec"><span class="nx">SchemaSpec</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>LoadSchemaSpec reads and returns the raw schema specification described by
+schema.
+<p>The schema file is read from the filesystem attached to the Schema, which may
+be a normal or embedded filesystem.
+<h5 id="SchemaSpec.Validate">func (*SchemaSpec) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#SchemaSpec"><span class="nx">SchemaSpec</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Validate checks that the schema specification contains the required fields
+needed to register and compile a schema.
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../../_/js/permalink.js"></script></body>
+</html>
