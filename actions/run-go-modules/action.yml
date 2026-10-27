@@ -27,12 +27,11 @@ runs:
       if: ${{ inputs.modules == '' }}
       id: detect
       uses: $/actions/detect-go-modules
-    - name: Run task in each module
+    - name: Validate task inputs
       shell: bash
       env:
         MODULES: ${{ inputs.modules || steps.detect.outputs.modules }}
         GO_MODULE_TASK: ${{ inputs.task }}
-        BUILD_TAGS: ${{ inputs.build-tags }}
         RESULTS_FILE: ${{ inputs.results-file }}
         SKIP_RESULTS_FILE: ${{ inputs.skip-results-file }}
       run: |
@@ -51,6 +50,17 @@ runs:
           echo "Missing prerequisite results: $SKIP_RESULTS_FILE" >&2
           exit 1
         fi
+    - name: Run task in each module
+      shell: bash
+      env:
+        MODULES: ${{ inputs.modules || steps.detect.outputs.modules }}
+        GO_MODULE_TASK: ${{ inputs.task }}
+        BUILD_TAGS: ${{ inputs.build-tags }}
+        RESULTS_FILE: ${{ inputs.results-file }}
+        SKIP_RESULTS_FILE: ${{ inputs.skip-results-file }}
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
         failed=0
         while IFS= read -r module; do
           [[ -n "$module" ]] || continue

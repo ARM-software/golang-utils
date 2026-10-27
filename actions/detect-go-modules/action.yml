@@ -3,50 +3,68 @@ description: Discover all Go modules from go.work or the repository layout and f
 outputs:
   modules:
     description: Newline-delimited module directories, relative to the repository root.
-    value: ${{ steps.detect.outputs.modules }}
+    value: ${{ steps.publish.outputs.modules }}
   modules-json:
     description: JSON array of module directories for matrix and reusable workflows.
-    value: ${{ steps.detect.outputs.modules-json }}
+    value: ${{ steps.publish.outputs.modules-json }}
 runs:
   using: composite
   steps:
-    - name: Discover and validate modules
-      id: detect
+    - name: Discover repository modules
+      id: discover
       shell: bash
       run: |
         set -euo pipefail
         cd "$GITHUB_WORKSPACE"
-        found="$(mktemp)"
-        modules="$(mktemp)"
-        trap 'rm -f "$found" "$modules"' EXIT
+        state_dir="$(mktemp -d)"
+        printf 'state-dir=%s\n' "$state_dir" >> "$GITHUB_OUTPUT"
         find . -type f -name go.mod -not -path './.git/*' -not -path './artifacts/*' -print |
-          sed 's@/go.mod$@@' | LC_ALL=C sort > "$found"
+          sed 's@/go.mod$@@' | LC_ALL=C sort > "$state_dir/found"
+    - name: Read workspace modules
+      shell: bash
+      env:
+        STATE_DIR: ${{ steps.discover.outputs.state-dir }}
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
         if [[ -f go.work ]]; then
-          workspace="$(go work edit -json)"
-          printf '%s\n' "$workspace" |
+          go work edit -json |
             sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p' |
-            LC_ALL=C sort > "$modules"
+            LC_ALL=C sort > "$STATE_DIR/modules"
         else
-          cp "$found" "$modules"
+          cp "$STATE_DIR/found" "$STATE_DIR/modules"
         fi
-        if [[ ! -s "$modules" ]] || ! diff -u "$found" "$modules"; then
+    - name: Validate and publish modules
+      id: publish
+      shell: bash
+      env:
+        STATE_DIR: ${{ steps.discover.outputs.state-dir }}
+      run: |
+        set -euo pipefail
+        if [[ ! -s "$STATE_DIR/modules" ]] || ! diff -u "$STATE_DIR/found" "$STATE_DIR/modules"; then
           echo 'go.work must enumerate every go.mod directory' >&2
           exit 1
         fi
-
         json='['
         while IFS= read -r module; do
           escaped="${module//\\/\\\\}"
           escaped="${escaped//\"/\\\"}"
           if [[ "$json" != '[' ]]; then json+=','; fi
           json+="\"$escaped\""
-        done < "$modules"
+        done < "$STATE_DIR/modules"
         json+=']'
         {
           printf 'modules<<GO_MODULE_PATHS\n'
-          cat "$modules"
+          cat "$STATE_DIR/modules"
           printf 'GO_MODULE_PATHS\n'
           printf 'modules-json=%s\n' "$json"
         } >> "$GITHUB_OUTPUT"
-        echo "Discovered $(wc -l < "$modules") Go modules"
-        cat "$modules"
+        echo "Discovered $(wc -l < "$STATE_DIR/modules") Go modules"
+        cat "$STATE_DIR/modules"
+    - name: Clean up module discovery state
+      if: ${{ always() }}
+      shell: bash
+      env:
+        STATE_DIR: ${{ steps.discover.outputs.state-dir }}
+      run: |
+        if [[ -n "$STATE_DIR" ]]; then rm -rf "$STATE_DIR"; fi
