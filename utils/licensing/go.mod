@@ -3,7 +3,7 @@ module github.com/ARM-software/golang-utils/utils/licensing
 go 1.26.0
 
 require (
-	github.com/git-pkgs/spdx v0.1.4
+	github.com/git-pkgs/spdx v0.3.3
 	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
 	github.com/stretchr/testify v1.12.1
 )
