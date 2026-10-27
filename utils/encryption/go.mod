@@ -3,7 +3,7 @@ module github.com/ARM-software/golang-utils/utils/encryption
 go 1.26.0
 
 require (
-	github.com/go-faker/faker/v4 v4.7.0
+	github.com/go-faker/faker/v4 v4.12.0
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.58.0
