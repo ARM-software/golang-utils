@@ -3,7 +3,7 @@ module github.com/ARM-software/golang-utils/utils/logs
 go 1.26.0
 
 require (
-	github.com/DeRuina/timberjack v1.4.5
+	github.com/DeRuina/timberjack v1.4.9
 	github.com/go-faker/faker/v4 v4.12.0
 	github.com/go-logr/logr v1.4.4
 	github.com/go-logr/stdr v1.2.2
