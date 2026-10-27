@@ -40,6 +40,14 @@ go get github.com/ARM-software/golang-utils/utils/validation@latest
 > consumers should depend on an individual submodule. The first submodule tags
 > will be published by the next [CDS](https://github.com/ARMmbed/continuous-delivery-scripts)
 > project release; `v1.170.7` and earlier contain only the original umbrella module.
+>
+> If a project still requires a pre-split umbrella version such as
+> `github.com/ARM-software/golang-utils/utils v1.170.7`, upgrade that
+> requirement to the first split-aware umbrella release before adding an
+> individual module such as
+> `github.com/ARM-software/golang-utils/utils/collection`. Mixing a pre-split
+> umbrella version with a split module causes Go to fail with an `ambiguous
+> import` error because both modules appear to provide the same package path.
 
 See the [Go modules guide](guides/go-modules.md) for consumer and developer guidance.
 

@@ -24,6 +24,55 @@ go get github.com/ARM-software/golang-utils/utils/validation@latest
 > Submodule tags start with the next [CDS] project release; `v1.170.7` and
 > earlier published only the original umbrella module.
 > If using dependabot, the upgrade and change should be transparent.
+>
+> If your `go.mod` still requires a pre-split umbrella version such as
+> `github.com/ARM-software/golang-utils/utils v1.170.7`, first upgrade that
+> requirement to the first split-aware umbrella release, then add the narrower
+> module you actually import, for example
+> `github.com/ARM-software/golang-utils/utils/collection`. In a local test,
+> mixing `v1.170.7` with the split `collection` module caused Go to fail with:
+> `ambiguous import: found package github.com/ARM-software/golang-utils/utils/collection in multiple modules`.
+> Remove the umbrella requirement entirely if you no longer import packages from
+> it. See [Ambiguous Imports](#ambiguous-imports) below for the generic cause
+> and fix pattern.
+
+## Ambiguous imports
+
+Go reports an `ambiguous import` error when the build list contains two modules
+that both appear to provide the same package import path.
+
+In this repository, the most likely cause is a mixed pre-split and post-split
+dependency set, for example:
+
+- the umbrella module at a pre-split version such as
+  `github.com/ARM-software/golang-utils/utils v1.170.7`
+- a newer split module such as
+  `github.com/ARM-software/golang-utils/utils/collection`
+
+In that situation, Go sees `github.com/ARM-software/golang-utils/utils/collection`
+inside both modules and fails instead of guessing which one you meant.
+
+Example error:
+
+```text
+go: example.com/my-project imports
+	github.com/ARM-software/golang-utils/utils/collection: ambiguous import: found package github.com/ARM-software/golang-utils/utils/collection in multiple modules:
+	github.com/ARM-software/golang-utils/utils v1.170.7
+	github.com/ARM-software/golang-utils/utils/collection v1.171.0
+```
+
+To fix it:
+
+1. Upgrade `github.com/ARM-software/golang-utils/utils` to the first
+   split-aware umbrella release, or remove it entirely if you no longer import
+   packages from that umbrella module.
+2. Add or keep only the narrower modules that match the packages you actually
+   import, such as `github.com/ARM-software/golang-utils/utils/collection`.
+3. Run `go mod tidy` and confirm the older umbrella version no longer pulls the
+   same package path into the build list.
+
+If you still see the error, inspect `go mod graph` or `go list -m all` to find
+which dependency is still selecting the older umbrella module.
 
 ## Workspace structure
 

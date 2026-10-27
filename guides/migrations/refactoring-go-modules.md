@@ -25,14 +25,19 @@ that subtree at the new revision.
    requirement or replacement. Go consumers ignore replacements in dependency
    modules, so the required versions must be published together.
 3. Account for consumers that previously required only the parent module.
-   Their import path may be unchanged, but Go must still find the new nested
-   module in the build list. Where the parent serves as a compatibility
-   umbrella, have it require the nested module at the shared release version;
-   otherwise document the new module requirement for consumers.
+    Their import path may be unchanged, but Go must still find the new nested
+    module in the build list. Where the parent serves as a compatibility
+    umbrella, have it require the nested module at the shared release version;
+    otherwise document the new module requirement for consumers.
+    Tell consumers to upgrade the parent requirement to the first split-aware
+    release before adding the new nested module themselves. A local consumer
+    test that mixed `github.com/ARM-software/golang-utils/utils v1.170.7` with
+    `github.com/ARM-software/golang-utils/utils/collection` failed with Go's
+    `ambiguous import` error because both modules claimed the same package path.
 4. Keep `.github/dependabot.yml` coverage, generator `tool` declarations, and
-   generated files with the module that now owns each package. Check that
-   [CDS](https://github.com/ARMmbed/continuous-delivery-scripts) prepares and
-   tags every module in the same project release.
+    generated files with the module that now owns each package. Check that
+    [CDS](https://github.com/ARMmbed/continuous-delivery-scripts) prepares and
+    tags every module in the same project release.
 
 ## Preserve an old path when changing imports
 

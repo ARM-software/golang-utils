@@ -34,6 +34,13 @@ The JSON and YAML frontmatter subpackages are separate Go modules. Depend on
 the specific module you import, for example
 `go get github.com/ARM-software/golang-utils/utils/serialisation/json/frontmatter@latest`.
 
+If a consumer still requires a pre-split umbrella version such as
+`github.com/ARM-software/golang-utils/utils v1.170.7`, upgrade that umbrella
+requirement to the first split-aware release before adding one of the new
+individual modules. Mixing a pre-split umbrella version with a split module
+causes Go to report an `ambiguous import` error because both modules provide the
+same package path.
+
 The legacy packages remain available so existing imports do not need to change
 immediately. Their `doc.go` files mark them as deprecated and point to the new
 packages. All legacy helpers delegate to their `serialisation` counterparts;
