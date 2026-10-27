@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+# 1.171.2 (2026-10-27)
+
+## Bugfixes
+
+- Dependency upgrade: v5-5.19.3 (#20261027175141428358884)
+- Dependency upgrade: spdx-0.3.3 (#20261027175159598934607)
+- Dependency upgrade: timberjack-1.4.9 (#20261027175208639643150)
+- Dependency upgrade: oauth2-0.37.0 (#20261027175250232464677)
+- Dependency upgrade: v4-4.26.9 (#20261027175305973430533, #20261027175827514394215)
+
+## Misc
+
+- #202610271735
+
+
 # 1.171.1 (2026-10-27)
 
 ## Bugfixes

@@ -3,8 +3,8 @@ module github.com/ARM-software/golang-utils/utils/serialization/maps/testing
 go 1.26.0
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/serialisation/maps/testing v1.171.1
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/serialisation/maps/testing v1.171.2
 )
 
 require (

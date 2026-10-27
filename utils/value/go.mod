@@ -15,8 +15,8 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.1
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.2
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.2
 )
 
 replace github.com/ARM-software/golang-utils/utils/commonerrors => ../commonerrors

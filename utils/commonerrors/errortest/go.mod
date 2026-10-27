@@ -3,7 +3,7 @@ module github.com/ARM-software/golang-utils/utils/commonerrors/errortest
 go 1.26.0
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.2
 	github.com/stretchr/testify v1.12.1
 )
 

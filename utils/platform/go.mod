@@ -13,11 +13,11 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/encoding v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/field v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/url v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/encoding v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/url v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.171.2 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -32,15 +32,15 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.171.1
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.1
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.1
-	github.com/ARM-software/golang-utils/utils/proc v1.171.1
-	github.com/ARM-software/golang-utils/utils/reflection v1.171.1
-	github.com/ARM-software/golang-utils/utils/safecast v1.171.1
-	github.com/ARM-software/golang-utils/utils/subprocess/command v1.171.1
-	github.com/ARM-software/golang-utils/utils/validation v1.171.1
+	github.com/ARM-software/golang-utils/utils/collection v1.171.2
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.2
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.2
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.2
+	github.com/ARM-software/golang-utils/utils/proc v1.171.2
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.2
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.2
+	github.com/ARM-software/golang-utils/utils/subprocess/command v1.171.2
+	github.com/ARM-software/golang-utils/utils/validation v1.171.2
 	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/google/cabbie v1.0.2 // indirect

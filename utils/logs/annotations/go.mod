@@ -10,36 +10,36 @@ tool (
 replace github.com/ARM-software/golang-utils/utils => ../../
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.171.1
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.1
-	github.com/ARM-software/golang-utils/utils/field v1.171.1
-	github.com/ARM-software/golang-utils/utils/logs v1.171.1
-	github.com/ARM-software/golang-utils/utils/reflection v1.171.1
+	github.com/ARM-software/golang-utils/utils/collection v1.171.2
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.2
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.2
+	github.com/ARM-software/golang-utils/utils/field v1.171.2
+	github.com/ARM-software/golang-utils/utils/logs v1.171.2
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.2
 	github.com/stretchr/testify v1.12.1
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/diodes v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/encoding v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/platform v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/proc v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/subprocess/command v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/units/multiplication v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/units/size v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/url v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/validation v1.171.1 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.171.1 // indirect
-	github.com/DeRuina/timberjack v1.4.5 // indirect
+	github.com/ARM-software/golang-utils/utils/diodes v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/encoding v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/platform v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/proc v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/subprocess/command v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/units/multiplication v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/units/size v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/url v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/validation v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.171.2 // indirect
+	github.com/DeRuina/timberjack v1.4.9 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/bombsimon/logrusr/v4 v4.2.0 // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
 	github.com/dmarkham/enumer v1.6.3 // indirect
-	github.com/ebitengine/purego v0.10.0 // indirect
+	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/evanphx/hclogr v0.2.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -60,15 +60,15 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/pascaldekloe/name v1.0.0 // indirect
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe // indirect
-	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
+	github.com/power-devops/perfstat v0.0.0-20260805114148-88456608a4f6 // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 // indirect
 	github.com/rs/zerolog v1.35.1 // indirect
 	github.com/sasha-s/go-deadlock v0.3.9 // indirect
 	github.com/scjalliance/comshim v0.0.0-20190308082608-cf06d2532c4e // indirect
-	github.com/shirou/gopsutil/v4 v4.26.5 // indirect
+	github.com/shirou/gopsutil/v4 v4.26.9 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
-	github.com/tklauser/go-sysconf v0.3.16 // indirect
-	github.com/tklauser/numcpus v0.11.0 // indirect
+	github.com/tklauser/go-sysconf v0.4.0 // indirect
+	github.com/tklauser/numcpus v0.12.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.mongodb.org/mongo-driver v1.17.7 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
