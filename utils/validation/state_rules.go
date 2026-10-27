@@ -179,6 +179,11 @@ func isNotEmptyValue(value any) bool {
 
 // IsRequiredLegacy preserves the pre-v4.4 ozzo Required semantics where zero-valued
 // structs other than time.Time{} are still considered present.
+//
+// ozzo-validation v4.4.0 changed its empty-value detection so zero-valued
+// structs now count as empty for Required/Empty semantics. See:
+//   - https://github.com/go-ozzo/ozzo-validation/releases/tag/v4.4.0
+//   - https://github.com/go-ozzo/ozzo-validation#empty-values
 var IsRequiredLegacy = validation.By(func(value any) error {
 	value, isNil := validation.Indirect(value)
 	if isNil || isEmptyLegacy(value) {

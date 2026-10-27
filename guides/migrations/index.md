@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0
 
 These guides describe transitions between supported APIs and import paths:
 
+- [Replacing ozzo `validation.Required`](ozzo-required.md): preserve pre-v4.4
+  zero-valued struct semantics with `utils/validation.IsRequired`.
 - [Refactoring Go modules without breaking imports](refactoring-go-modules.md):
   split modules, preserve old paths, and verify compatibility.
 - [Serialisation packages](serialisation.md): new import paths and existing
