@@ -7,7 +7,7 @@ require (
 	github.com/bmatcuk/doublestar/v3 v3.0.0
 	github.com/djherbis/times v1.6.0
 	github.com/go-faker/faker/v4 v4.12.0
-	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
+	github.com/go-ozzo/ozzo-validation/v4 v4.5.0
 	github.com/shirou/gopsutil/v4 v4.26.9
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.12.1
