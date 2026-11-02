@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/go-faker/faker/v4 v4.12.0
-	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
+	github.com/go-ozzo/ozzo-validation/v4 v4.5.0
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/mock v0.6.0
