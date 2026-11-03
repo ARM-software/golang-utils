@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/go-faker/faker/v4 v4.12.0
 	github.com/stretchr/testify v1.12.1
-	golang.org/x/mod v0.41.0
+	golang.org/x/mod v0.42.0
 )
 
 require (
