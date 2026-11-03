@@ -8,7 +8,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/mock v0.6.0
-	golang.org/x/net v0.61.0
+	golang.org/x/net v0.62.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
