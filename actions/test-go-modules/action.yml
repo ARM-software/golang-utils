@@ -140,7 +140,7 @@ runs:
         failed=0
         while IFS=$'\t' read -r module generation lint test junit_name profile_name; do
           coverage='not available'
-          if [[ "$generation" != fail && "$generation" != skipped && "$generation" != missing ]]; then
+          if [[ "$generation" != fail && "$generation" != skipped && "$generation" != missing && "$test" == pass ]]; then
             profile="$artifacts/coverage/$profile_name"
             if [[ -f "$profile" ]]; then
               if [[ $(wc -l < "$profile") -le 1 ]]; then
@@ -155,6 +155,8 @@ runs:
               coverage='missing profile'
               failed=1
             fi
+          elif [[ "$test" == fail ]]; then
+            coverage='not available (tests failed)'
           fi
           printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$module" "$generation" "$lint" "$test" "$coverage" "$junit_name" "$profile_name" >> "$artifacts/module-results.tsv"
         done < "$artifacts/module-tests.tsv"
