@@ -9,7 +9,6 @@ package platform
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/user"
 
