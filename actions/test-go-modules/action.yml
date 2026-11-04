@@ -79,16 +79,9 @@ runs:
         artifacts="$PWD/artifacts"
         results="$artifacts/module-tests.tsv"
         failed=0
-        go_env=()
-        if [[ -n "$TEST_GOOS" ]]; then
-          go_env+=("GOOS=$TEST_GOOS")
-        fi
-        if [[ -n "$TEST_GOARCH" ]]; then
-          go_env+=("GOARCH=$TEST_GOARCH")
-        fi
-        race_args=()
+        race_arg=''
         if [[ "$ENABLE_RACE" == 'true' ]]; then
-          race_args=(-race)
+          race_arg='-race'
         fi
         while IFS= read -r module; do
           [[ -n "$module" ]] || continue
@@ -119,7 +112,7 @@ runs:
           if [[ "$generation" == fail || "$generation" == skipped || "$generation" == missing ]]; then
             test=skipped
           else
-            if ! (cd "$module" && env "${go_env[@]}" gotestsum --format standard-verbose --junitfile "$junit" -- "${race_args[@]}" -covermode=atomic -coverprofile "$profile" -tags "$BUILD_TAGS" -timeout 30m ./...); then
+            if ! (cd "$module" && if [[ -n "$TEST_GOOS" ]]; then export GOOS="$TEST_GOOS"; fi; if [[ -n "$TEST_GOARCH" ]]; then export GOARCH="$TEST_GOARCH"; fi; gotestsum --format standard-verbose --junitfile "$junit" -- $race_arg -covermode=atomic -coverprofile "$profile" -tags "$BUILD_TAGS" -timeout 30m ./...); then
               test=fail
               failed=1
             fi
