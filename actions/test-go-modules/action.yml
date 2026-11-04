@@ -199,8 +199,28 @@ runs:
         printf '%s\n' "$total" > "$artifacts/combined-coverage.txt"
         printf 'combined-coverage=%s\n' "$total" >> "$GITHUB_OUTPUT"
         exit "$failed"
+    - name: Detect generated reports
+      id: reports
+      if: ${{ always() && steps.prepare.outcome == 'success' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
+        shopt -s nullglob
+        junit=(artifacts/junit/*.xml)
+        coverage=(artifacts/coverage/*.out)
+        if [[ ${#junit[@]} -gt 0 ]]; then
+          printf 'has-junit=true\n' >> "$GITHUB_OUTPUT"
+        else
+          printf 'has-junit=false\n' >> "$GITHUB_OUTPUT"
+        fi
+        if [[ ${#coverage[@]} -gt 0 ]]; then
+          printf 'has-coverage=true\n' >> "$GITHUB_OUTPUT"
+        else
+          printf 'has-coverage=false\n' >> "$GITHUB_OUTPUT"
+        fi
     - name: Publish JUnit test results
-      if: ${{ always() }}
+      if: ${{ always() && runner.os == 'Linux' && steps.reports.outputs.has-junit == 'true' }}
       uses: EnricoMi/publish-unit-test-result-action@v2
       with:
         files: artifacts/junit/*.xml
@@ -211,7 +231,7 @@ runs:
         compare_to_earlier_commit: false
         action_fail: false
     - name: Upload JUnit reports
-      if: ${{ always() }}
+      if: ${{ always() && steps.reports.outputs.has-junit == 'true' }}
       id: junit
       uses: actions/upload-artifact@v4
       with:
@@ -219,7 +239,7 @@ runs:
         path: ${{ github.workspace }}/artifacts/junit
         if-no-files-found: error
     - name: Upload coverage profiles
-      if: ${{ always() }}
+      if: ${{ always() && steps.reports.outputs.has-coverage == 'true' }}
       id: coverage
       uses: actions/upload-artifact@v4
       with:
