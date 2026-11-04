@@ -1,0 +1,639 @@
+# Golang Utilities
+
+> Published task guides for Golang Utilities.
+
+
+## Golang utilities guides
+
+<!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+
+Use these task guides alongside the generated Go API reference.
+
+- [Go modules](https://arm-software.github.io/golang-utils/guides/go-modules.html): consuming individual modules, developing with
+  the repository workspace, running checks, and preparing [CDS](https://github.com/ARMmbed/continuous-delivery-scripts) releases.
+- [Reusable Go multimodules actions](https://arm-software.github.io/golang-utils/guides/action-go-multimodules.html): choose the
+  orchestrator or individual discovery, tool setup, command, and test/coverage actions for
+  this repository or another Go project.
+- [Migration guides](https://arm-software.github.io/golang-utils/guides/migrations/index.html): backward-compatible module
+  refactoring and supported import-path transitions.
+
+
+## Use the Go multimodules action
+
+<!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+
+The [`go-multimodules` composite action](https://github.com/ARM-software/golang-utils/tree/master/actions/go-multimodules)
+orchestrates independently reusable actions for discovery, per-module commands,
+and tests/coverage. They read `go.work` when present; otherwise they find
+`go.mod` files directly. If a workspace omits a module, discovery fails rather
+than silently skipping it. All actions use Bash and standard Go tooling. Some specific actions may rely on additional tools and dependencies though.
+
+### Call it from this repository
+
+This repository's workflows use:
+
+```yaml
+- uses: $/actions/go-multimodules
+  with:
+    task: build
+```
+
+`$/actions/...` resolves an action from the
+**repository containing the workflow**, at the **same revision** as that
+workflow. This keeps the workflow and action together when a reusable workflow
+is called by another repository. It also lets a pull request exercise its own
+changes to the action. The action lives at `actions/go-multimodules/action.yml`.
+
+The top-level action composes `detect-go-modules`, `run-go-modules` (for
+generation and lint), and `test-go-modules` (for JUnit and merged coverage).
+Use it for the complete pipeline, or call any of its components on their own.
+
+### Call it from another repository
+
+Use a repository-qualified reference in the other repository's workflow. Pin
+it to a full commit SHA or a version number available in `ARM-software/golang-utils`:
+
+```yaml
+name: Go modules
+on: [push, pull_request]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.26.1' # Choose the version required by your modules.
+          cache-dependency-path: '**/go.sum'
+      - uses: ARM-software/golang-utils/actions/sync-go-workspace@<full-commit-sha>
+        if: ${{ hashFiles('go.work') != '' }}
+      - uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+          install-only: true
+      - uses: ARM-software/golang-utils/actions/setup-gotestsum@<full-commit-sha>
+        with:
+          version: v1.13.0
+      - uses: ARM-software/golang-utils/actions/go-multimodules@<full-commit-sha>
+        with:
+          task: verify
+          build-tags: integration
+          artifact-prefix: '${{ github.job }}-'
+```
+
+Replace `<full-commit-sha>` with a real commit SHA or a version number from this repository. The
+`$/actions/...` reference is for actions **in the workflow's repository**; in
+the example above it would point at the calling repository, so the
+repository-qualified reference is required instead. `artifact-prefix` is
+optional; it helps prevent name collisions if several action invocations
+upload reports in the same run.
+
+### Choose an individual action
+
+| Action | Standalone purpose | Useful inputs and outputs |
+| --- | --- | --- |
+| [`detect-go-modules`](https://github.com/ARM-software/golang-utils/tree/master/actions/detect-go-modules) | Verify that no module is omitted. | Outputs `modules` (newline-delimited) and `modules-json` for a matrix. |
+| [`sync-go-workspace`](https://github.com/ARM-software/golang-utils/tree/master/actions/sync-go-workspace) | Run `go work sync` at the checked-out repository root. | No inputs; requires Go and `go.work`. |
+| [`setup-gotestsum`](https://github.com/ARM-software/golang-utils/tree/master/actions/setup-gotestsum) | Install the `gotestsum` test runner and put it on `PATH`. | `version` defaults to `v1.13.0`. |
+| [`run-go-modules`](https://github.com/ARM-software/golang-utils/tree/master/actions/run-go-modules) | Run one task across all modules. | Set `task` to `generate`, `lint`, `build`, `download`, or `analyze`; optionally supply `modules`, `results-file`, `skip-results-file`, and `build-tags`. |
+| [`test-go-modules`](https://github.com/ARM-software/golang-utils/tree/master/actions/test-go-modules) | Test modules with `gotestsum`, merge coverage and publish reports. | Optionally supply `modules`, `generation-results`, `lint-results`, `artifact-prefix`, and `build-tags`; outputs `combined-coverage`. |
+| [`go-multimodules`](https://github.com/ARM-software/golang-utils/tree/master/actions/go-multimodules) | Compose discovery, generation, lint and testing in one call. | Set `task` (default `verify`) and optionally `build-tags`; outputs `modules-json`. |
+
+The individual actions can be used independently. If `modules` is omitted,
+`run-go-modules` and `test-go-modules` call the discovery action themselves.
+In this repository use `$/actions/<name>` to call each action; from another
+repository use `ARM-software/golang-utils/actions/<name>@<full-commit-sha>`.
+
+For example, to choose the stages separately in another repository, add the
+following steps after checkout, Go setup, optional workspace sync, and the
+`setup-gotestsum` and `golangci-lint-action` installation steps (as in the
+complete example above):
+
+```yaml
+- id: modules
+  uses: ARM-software/golang-utils/actions/detect-go-modules@<full-commit-sha>
+- id: generate
+  continue-on-error: true
+  uses: ARM-software/golang-utils/actions/run-go-modules@<full-commit-sha>
+  with:
+    task: generate
+    build-tags: integration
+    modules: ${{ steps.modules.outputs.modules }}
+    results-file: artifacts/generate.tsv
+- id: lint
+  if: ${{ always() }}
+  continue-on-error: true
+  uses: ARM-software/golang-utils/actions/run-go-modules@<full-commit-sha>
+  with:
+    task: lint
+    build-tags: integration
+    modules: ${{ steps.modules.outputs.modules }}
+    results-file: artifacts/lint.tsv
+    skip-results-file: artifacts/generate.tsv
+- id: test
+  if: ${{ always() }}
+  uses: ARM-software/golang-utils/actions/test-go-modules@<full-commit-sha>
+  with:
+    build-tags: integration
+    modules: ${{ steps.modules.outputs.modules }}
+    generation-results: artifacts/generate.tsv
+    lint-results: artifacts/lint.tsv
+    artifact-prefix: '${{ github.job }}-'
+```
+
+The TSV results allow later stages to report generation and lint failures
+without concealing test results. Use the same pinned SHA/version for every component
+so their interfaces stay in sync. Build, analysis, generation, lint, and tests
+include the `integration` build tag by default; `download` and discovery do not
+compile tagged packages. Override `build-tags` if the calling project needs
+additional tags.
+
+### Tasks and reports
+
+| Top-level `task` | Result |
+| --- | --- |
+| `list` | List the modules selected from `go.work` or `go.mod` files. |
+| `download` | Run `go mod download` for each module with `GOWORK=off`. |
+| `build` | Build every module. |
+| `analyze` | Compile tests in every module without running test cases (for CodeQL). |
+| `generate` | Run `go generate` in every module. |
+| `lint` | Run `golangci-lint` in every module. |
+| `verify` (default) | Generate, lint and test each module with `gotestsum`; collect coverage and reports. |
+
+`verify` calls the granular generation, lint and test actions in order. The
+test action uploads one JUnit XML file and one coverage profile per module,
+plus a project-wide `combined.out` coverage profile. Test results are rendered
+in the workflow summary and, for same-repository pull requests, PR comments via
+`EnricoMi/publish-unit-test-result-action`. The JUnit artifact keeps the raw
+per-module XML plus EnricoMi's combined JSON report, while the local summary
+keeps every module's generate, lint and test status, per-module coverage, and
+links to the uploaded reports. Artifact uploads and summaries also run when
+verification fails, so available failure reports remain accessible.
+
+Set up Go before using any task. For `verify` or `lint`, install
+`golangci-lint`; for `verify`, also install `gotestsum`. GitHub-hosted runners
+provide the Bash and standard Unix tools used by the action.
+
+
+## Go modules
+
+<!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+
+This repository uses a single repository-wide `go.work` file at the repository root and a set of Go modules under `utils/`.
+
+### Consumer usage
+
+Depend on the specific submodule that provides the package you import.
+
+Examples:
+
+```bash
+go get github.com/ARM-software/golang-utils/utils/http@latest
+go get github.com/ARM-software/golang-utils/utils/filesystem@latest
+go get github.com/ARM-software/golang-utils/utils/validation@latest
+```
+
+> **Compatibility note:** The `github.com/ARM-software/golang-utils/utils`
+> module remains a lightweight umbrella for compatibility and tooling. New
+> consumers should depend on the narrower submodule they actually import.
+> Submodule tags start with the next [CDS] project release; `v1.170.7` and
+> earlier published only the original umbrella module.
+> If using dependabot, the upgrade and change should be transparent.
+>
+> If your `go.mod` still requires a pre-split umbrella version such as
+> `github.com/ARM-software/golang-utils/utils v1.170.7`, first upgrade that
+> requirement to the first split-aware umbrella release, then add the narrower
+> module you actually import, for example
+> `github.com/ARM-software/golang-utils/utils/collection`. In a local test,
+> mixing `v1.170.7` with the split `collection` module caused Go to fail with:
+> `ambiguous import: found package github.com/ARM-software/golang-utils/utils/collection in multiple modules`.
+> Remove the umbrella requirement entirely if you no longer import packages from
+> it. See [Ambiguous Imports](#ambiguous-imports) below for the generic cause
+> and fix pattern.
+
+### Ambiguous imports
+
+Go reports an `ambiguous import` error when the build list contains two modules
+that both appear to provide the same package import path.
+
+In this repository, the most likely cause is a mixed pre-split and post-split
+dependency set, for example:
+
+- the umbrella module at a pre-split version such as
+  `github.com/ARM-software/golang-utils/utils v1.170.7`
+- a newer split module such as
+  `github.com/ARM-software/golang-utils/utils/collection`
+
+In that situation, Go sees `github.com/ARM-software/golang-utils/utils/collection`
+inside both modules and fails instead of guessing which one you meant.
+
+Example error:
+
+```text
+go: example.com/my-project imports
+	github.com/ARM-software/golang-utils/utils/collection: ambiguous import: found package github.com/ARM-software/golang-utils/utils/collection in multiple modules:
+	github.com/ARM-software/golang-utils/utils v1.170.7
+	github.com/ARM-software/golang-utils/utils/collection v1.171.0
+```
+
+To fix it:
+
+1. Upgrade `github.com/ARM-software/golang-utils/utils` to the first
+   split-aware umbrella release, or remove it entirely if you no longer import
+   packages from that umbrella module.
+2. Add or keep only the narrower modules that match the packages you actually
+   import, such as `github.com/ARM-software/golang-utils/utils/collection`.
+3. Run `go mod tidy` and confirm the older umbrella version no longer pulls the
+   same package path into the build list.
+
+If you still see the error, inspect `go mod graph` or `go list -m all` to find
+which dependency is still selecting the older umbrella module.
+
+### Workspace structure
+
+- `go.work` lives at the repository root.
+- `utils/` is the umbrella module.
+- Each top-level consumable package under `utils/` has its own `go.mod`.
+- Shared helper packages that are reused across module boundaries also have their own `go.mod` when keeping them separate prevents test-only dependencies from leaking into production modules.
+
+CI uses the reusable `sync-go-workspace` action to run `go work sync`, then the
+Go multimodules action to discover modules from `go.work`. It checks that every
+`go.mod` is listed.
+
+### Internal dependencies
+
+Internal module dependencies must follow this pattern:
+
+1. Add a normal `require` on the repository release version, for example `github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7` while preparing the first multi-module release.
+2. Add a local `replace` pointing at the sibling checkout path, for example `replace github.com/ARM-software/golang-utils/utils/commonerrors => ../commonerrors`.
+3. Keep `replace` directives suitable for local development with `GOWORK=off`.
+
+This keeps local development working before publication. [CDS] 4.8.0+ is responsible
+for preparing the versioned internal requirements and tagging all workspace
+modules as part of the single project release. Go consumers ignore dependency
+modules' local `replace` directives and resolve versioned requirements from
+published [CDS] tags.
+
+### Adding a new module
+
+1. Create the package directory under `utils/`.
+2. Add a `go.mod` whose module path matches the import path.
+3. Add the module path to the repository `go.work`.
+4. Add versioned `require` plus local `replace` directives for internal dependencies.
+5. If the module contains `go:generate` directives, use `go tool` and declare
+   only the needed tools in that module's `tool` block.
+6. Update `.github/dependabot.yml` so the new `go.mod` directory is covered.
+7. Ensure CI still discovers the module from `go.work`.
+
+If the module root would otherwise contain no Go source file, add a small `doc.go` so Go tooling can still address the module cleanly.
+
+When splitting an existing package into a module, follow the
+[backward-compatible module refactoring guide](https://arm-software.github.io/golang-utils/guides/migrations/refactoring-go-modules.html)
+to preserve consumer imports and dependencies.
+
+### Running checks across all modules
+
+From the repository root:
+
+```bash
+go work sync
+go work edit -json |
+  sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p' |
+  while IFS= read -r module; do
+    (cd "$module" && go generate -tags integration ./... && golangci-lint run --build-tags integration ./... && go test -tags integration ./...)
+  done
+```
+
+The composite action's `verify` task runs those checks with `gotestsum`, then
+produces per-module JUnit XML and coverage profiles, plus combined reports,
+under `artifacts/`. Local commands use Bash on Linux and macOS; on Windows, use
+WSL with Go and `golangci-lint` installed.
+To confirm that one module builds without workspace resolution, run
+`GOWORK=off go test ./...` from its directory.
+
+### CI behaviour
+
+The CI workflows call the local [Go multimodules composite action](https://arm-software.github.io/golang-utils/guides/action-go-multimodules.html)
+with `uses: $/actions/go-multimodules`. It:
+
+1. Reads the module list from the repository `go.work`.
+2. Runs `go generate` per module.
+3. Runs `golangci-lint` per module.
+4. Runs tests per module with `gotestsum` and writes per-module and combined JUnit XML reports.
+5. Writes one coverage profile per module and merges them into a combined profile.
+6. Uploads JUnit and coverage artifacts.
+7. Publishes a GitHub Actions summary listing each module's coverage, failed
+   test cases, and links to the JUnit and coverage artifacts.
+
+See the [Go multimodules action guide](https://arm-software.github.io/golang-utils/guides/action-go-multimodules.html) for a full
+example using the action from another repository, including the difference
+between `$` and a repository-qualified `uses:` reference.
+
+### [CDS] releases
+
+[CDS] remains the only project release mechanism.
+
+- All modules share the same repository release version.
+- Submodules are not versioned or released independently.
+- `cd-tag-and-release` remains the release entry point.
+- In [CDS] 4.8.0+, `cd-tag-and-release` updates versioned internal `require`
+  directives and includes them in the shared release commit before tagging
+  and publication. The repository's `release.yml` requires this version.
+
+[CDS]: https://github.com/ARMmbed/continuous-delivery-scripts
+
+
+## Migration guides
+
+<!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+
+These guides describe transitions between supported APIs and import paths:
+
+- [Replacing ozzo `validation.Required`](https://arm-software.github.io/golang-utils/guides/migrations/ozzo-required.html): preserve pre-v4.4
+  zero-valued struct semantics with `utils/validation.IsRequired`.
+- [Refactoring Go modules without breaking imports](https://arm-software.github.io/golang-utils/guides/migrations/refactoring-go-modules.html):
+  split modules, preserve old paths, and verify compatibility.
+- [Serialisation packages](https://arm-software.github.io/golang-utils/guides/migrations/serialisation.html): new import paths and existing
+  compatible imports.
+
+
+## Replacing ozzo `validation.Required`
+
+<!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+
+`github.com/go-ozzo/ozzo-validation/v4` changed `Required` semantics in v4.4.0.
+Zero-valued structs now count as empty, which means code that previously treated
+decoded struct values as present can start failing after the upgrade.
+
+Upstream references:
+
+- ozzo-validation v4.4.0 release notes:
+  <https://github.com/go-ozzo/ozzo-validation/releases/tag/v4.4.0>
+- ozzo-validation README, "Empty Values":
+  <https://github.com/go-ozzo/ozzo-validation#empty-values>
+
+### What changed
+
+Before ozzo v4.4.0, `validation.Required` treated most zero-valued structs as
+present. After v4.4.0, zero-valued structs are considered empty.
+
+This affects patterns like:
+
+```go
+type Flags struct {
+	Enabled bool
+}
+
+type Config struct {
+	Flags Flags
+}
+
+func (c Config) Validate() error {
+	return validation.ValidateStruct(&c,
+		validation.Field(&c.Flags, validation.Required),
+	)
+}
+```
+
+With newer ozzo versions, `Config{Flags: Flags{}}` now fails `validation.Required`.
+
+### Replacement in golang-utils
+
+Use `github.com/ARM-software/golang-utils/utils/validation.IsRequired` instead.
+
+`IsRequired` is an alias of `IsRequiredLegacy` and preserves the older ozzo
+behavior that many configuration-style validations relied on:
+
+- nil values are rejected
+- empty strings are rejected
+- `time.Time{}` is rejected
+- zero-valued non-time structs are still treated as present
+
+### Migration
+
+Replace this:
+
+```go
+import validation "github.com/go-ozzo/ozzo-validation/v4"
+
+func (c Config) Validate() error {
+	return validation.ValidateStruct(&c,
+		validation.Field(&c.Flags, validation.Required),
+	)
+}
+```
+
+With this:
+
+```go
+import (
+	ozzovalidation "github.com/go-ozzo/ozzo-validation/v4"
+	utilsvalidation "github.com/ARM-software/golang-utils/utils/validation"
+)
+
+func (c Config) Validate() error {
+	return ozzovalidation.ValidateStruct(&c,
+		ozzovalidation.Field(&c.Flags, utilsvalidation.IsRequired),
+	)
+}
+```
+
+If your file already imports golang-utils validation helpers, the change is often
+just:
+
+```go
+validation.Field(&cfg.Flags, validationutils.IsRequired)
+```
+
+instead of:
+
+```go
+validation.Field(&cfg.Flags, validation.Required)
+```
+
+### When to keep ozzo `validation.Required`
+
+Keep ozzo's built-in `validation.Required` when you explicitly want zero values
+to be rejected, such as:
+
+- `false` must be rejected
+- `0` must be rejected
+- zero-valued structs should be treated as missing
+
+### Rule choice summary
+
+- Use ozzo `validation.Required` for strict non-empty semantics.
+- Use `utils/validation.Required` for state-style presence semantics where `0`
+  and `false` should still count as present.
+- Use `utils/validation.IsRequired` to preserve pre-v4.4 ozzo behavior for
+  zero-valued structs.
+
+
+## Refactor Go modules without breaking imports
+
+<!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+
+Use this guide when moving a package into its own module or replacing an old
+import path with a preferred one. The goal is to keep existing consumers
+working while allowing new code to depend on smaller modules and a single
+implementation.
+
+### Keep an import path when splitting a module
+
+Adding `go.mod` inside a package directory changes which module provides that
+package, even when its import path stays the same. For example, a new module at
+`utils/codec/json` can retain the import path
+`example.com/project/utils/codec/json`. The parent module no longer contains
+that subtree at the new revision.
+
+1. Declare the existing package import path in the new `go.mod`. Add the module
+   to the repository's root `go.work` and ensure module discovery includes it.
+2. Give each internal dependency a versioned `require` and a relative local
+   `replace`, including dependencies between newly split modules. Test from
+   each module with `GOWORK=off`: workspace resolution alone can hide a missing
+   requirement or replacement. Go consumers ignore replacements in dependency
+   modules, so the required versions must be published together.
+3. Account for consumers that previously required only the parent module.
+    Their import path may be unchanged, but Go must still find the new nested
+    module in the build list. Where the parent serves as a compatibility
+    umbrella, have it require the nested module at the shared release version;
+    otherwise document the new module requirement for consumers.
+    Tell consumers to upgrade the parent requirement to the first split-aware
+    release before adding the new nested module themselves. A local consumer
+    test that mixed `github.com/ARM-software/golang-utils/utils v1.170.7` with
+    `github.com/ARM-software/golang-utils/utils/collection` failed with Go's
+    `ambiguous import` error because both modules claimed the same package path.
+4. Keep `.github/dependabot.yml` coverage, generator `tool` declarations, and
+    generated files with the module that now owns each package. Check that
+    [CDS](https://github.com/ARMmbed/continuous-delivery-scripts) prepares and
+    tags every module in the same project release.
+
+### Preserve an old path when changing imports
+
+If the preferred import path differs from a published one, retain the old
+package at its old path. Put the implementation in the preferred package and
+make the old package a thin compatibility layer:
+
+```go
+package oldapi
+
+import preferred "example.com/project/utils/newapi"
+
+type Decoder = preferred.Decoder
+
+func NewDecoder() *Decoder { return preferred.NewDecoder() }
+```
+
+Use type aliases (`type Old = preferred.Type`) for exported types, including
+interfaces and option types, so values from either import path have the same
+Go type identity. Forward exported functions, including generic helpers, to
+the preferred implementation. Constants can refer to the preferred constants.
+Remove duplicate implementations and generators from the compatibility package;
+keep its import path and document the preferred one. Keep the dependency
+direction from old to preferred to avoid import cycles.
+
+Go has no true alias for an exported variable. If consumers can reassign one,
+copying its value into a second variable does not preserve shared state. Review
+such APIs individually rather than assuming that a wrapper preserves their
+behaviour.
+
+### Verify compatibility
+
+- Compile and test both the preferred and old imports, including callers that
+  use values from the two packages together. Compile-time assignments can
+  confirm that exported types really are aliases.
+- Run `go generate`, lint, and tests for each affected module with the project's
+  build tags. Check modules independently with `GOWORK=off go test ./...` and
+  `GOWORK=off go mod download`.
+- Verify that every `go.mod` appears in `go.work`, that internal requirements
+  point to the shared release version, and that the release publishes the
+  modules consumers need. See the [Go modules guide](https://arm-software.github.io/golang-utils/guides/go-modules.html) for the
+  repository's workspace and CI commands.
+
+For an import-path migration in this repository, see the
+[serialisation packages guide](https://arm-software.github.io/golang-utils/guides/migrations/serialisation.html).
+
+
+## Use serialisation packages
+
+<!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+
+Use `github.com/ARM-software/golang-utils/utils/serialisation`
+module for new applications. After the next project-wide
+[CDS](https://github.com/ARMmbed/continuous-delivery-scripts) release, add it
+to a Go project with:
+
+```bash
+go get github.com/ARM-software/golang-utils/utils/serialisation@latest
+```
+
+For example, import its XML helper as
+`github.com/ARM-software/golang-utils/utils/serialisation/xml`. The same
+spelling applies to the JSON, YAML, maps, slice and frontmatter subpackages:
+
+| New import path suffix | Historical import path suffix |
+| --- | --- |
+| `/serialisation` | `/serialization` |
+| `/serialisation/xml` | `/serialization/xml` |
+| `/serialisation/json` | `/serialization/json` |
+| `/serialisation/yaml` | `/serialization/yaml` |
+| `/serialisation/maps` | `/serialization/maps` |
+| `/serialisation/slice` | `/serialization/slice` |
+| `/serialisation/frontmatter` | `/serialization/frontmatter` |
+| `/serialisation/json/frontmatter` | `/serialization/json/frontmatter` |
+| `/serialisation/yaml/frontmatter` | `/serialization/yaml/frontmatter` |
+| `/serialisation/maps/testing` | `/serialization/maps/testing` |
+
+The JSON and YAML frontmatter subpackages are separate Go modules. Depend on
+the specific module you import, for example
+`go get github.com/ARM-software/golang-utils/utils/serialisation/json/frontmatter@latest`.
+
+If a consumer still requires a pre-split umbrella version such as
+`github.com/ARM-software/golang-utils/utils v1.170.7`, upgrade that umbrella
+requirement to the first split-aware release before adding one of the new
+individual modules. Mixing a pre-split umbrella version with a split module
+causes Go to report an `ambiguous import` error because both modules provide the
+same package path.
+
+The legacy packages remain available so existing imports do not need to change
+immediately. Their `doc.go` files mark them as deprecated and point to the new
+packages. All legacy helpers delegate to their `serialisation` counterparts;
+exported types are aliases of the canonical types, including the frontmatter
+format and parser types. Values can be used across the two import paths without
+conversion.
+
+When migrating, change the import path to its `serialisation` equivalent.
+
+Both module paths are listed in `go.work` and participate in one [CDS](https://github.com/ARMmbed/continuous-delivery-scripts)
+release.
+
+
+
+## API reference
+
+- [Generated API reference](https://arm-software.github.io/golang-utils/api.html)

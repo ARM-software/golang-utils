@@ -1,0 +1,111 @@
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Replacing ozzo `validation.Required`</title>
+  <meta name="description" content="Replacing ozzo `validation.Required` — Golang Utilities.">
+  <style>
+    body{font:1.1rem/1.6 system-ui,sans-serif;max-width:76ch;margin:2rem auto;padding:0 1rem}
+    a{color:#075985}pre{overflow:auto;background:#f3f4f6;padding:1rem}code{overflow-wrap:anywhere}
+    nav{border-bottom:1px solid #ccc;padding-bottom:1rem}li{margin:.4rem 0}
+  </style>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "name": "Replacing ozzo `validation.Required`", "description": "Replacing ozzo `validation.Required` \u2014 Golang Utilities.", "url": "https://arm-software.github.io/golang-utils/guides/migrations/ozzo-required.html"}</script>
+</head>
+<body>
+  <nav><a href="../../index.html">Overview</a> · <a href="../../api.html">API reference</a></nav>
+  <main><!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+<h1>Replacing ozzo <code>validation.Required</code></h1>
+<p><code>github.com/go-ozzo/ozzo-validation/v4</code> changed <code>Required</code> semantics in v4.4.0.
+Zero-valued structs now count as empty, which means code that previously treated
+decoded struct values as present can start failing after the upgrade.</p>
+<p>Upstream references:</p>
+<ul>
+<li>ozzo-validation v4.4.0 release notes:
+  <a href="https://github.com/go-ozzo/ozzo-validation/releases/tag/v4.4.0">https://github.com/go-ozzo/ozzo-validation/releases/tag/v4.4.0</a></li>
+<li>ozzo-validation README, "Empty Values":
+  <a href="https://github.com/go-ozzo/ozzo-validation#empty-values">https://github.com/go-ozzo/ozzo-validation#empty-values</a></li>
+</ul>
+<h2>What changed</h2>
+<p>Before ozzo v4.4.0, <code>validation.Required</code> treated most zero-valued structs as
+present. After v4.4.0, zero-valued structs are considered empty.</p>
+<p>This affects patterns like:</p>
+<pre><code class="language-go">type Flags struct {
+    Enabled bool
+}
+
+type Config struct {
+    Flags Flags
+}
+
+func (c Config) Validate() error {
+    return validation.ValidateStruct(&amp;c,
+        validation.Field(&amp;c.Flags, validation.Required),
+    )
+}
+</code></pre>
+<p>With newer ozzo versions, <code>Config{Flags: Flags{}}</code> now fails <code>validation.Required</code>.</p>
+<h2>Replacement in golang-utils</h2>
+<p>Use <code>github.com/ARM-software/golang-utils/utils/validation.IsRequired</code> instead.</p>
+<p><code>IsRequired</code> is an alias of <code>IsRequiredLegacy</code> and preserves the older ozzo
+behavior that many configuration-style validations relied on:</p>
+<ul>
+<li>nil values are rejected</li>
+<li>empty strings are rejected</li>
+<li><code>time.Time{}</code> is rejected</li>
+<li>zero-valued non-time structs are still treated as present</li>
+</ul>
+<h2>Migration</h2>
+<p>Replace this:</p>
+<pre><code class="language-go">import validation &quot;github.com/go-ozzo/ozzo-validation/v4&quot;
+
+func (c Config) Validate() error {
+    return validation.ValidateStruct(&amp;c,
+        validation.Field(&amp;c.Flags, validation.Required),
+    )
+}
+</code></pre>
+<p>With this:</p>
+<pre><code class="language-go">import (
+    ozzovalidation &quot;github.com/go-ozzo/ozzo-validation/v4&quot;
+    utilsvalidation &quot;github.com/ARM-software/golang-utils/utils/validation&quot;
+)
+
+func (c Config) Validate() error {
+    return ozzovalidation.ValidateStruct(&amp;c,
+        ozzovalidation.Field(&amp;c.Flags, utilsvalidation.IsRequired),
+    )
+}
+</code></pre>
+<p>If your file already imports golang-utils validation helpers, the change is often
+just:</p>
+<pre><code class="language-go">validation.Field(&amp;cfg.Flags, validationutils.IsRequired)
+</code></pre>
+<p>instead of:</p>
+<pre><code class="language-go">validation.Field(&amp;cfg.Flags, validation.Required)
+</code></pre>
+<h2>When to keep ozzo <code>validation.Required</code></h2>
+<p>Keep ozzo's built-in <code>validation.Required</code> when you explicitly want zero values
+to be rejected, such as:</p>
+<ul>
+<li><code>false</code> must be rejected</li>
+<li><code>0</code> must be rejected</li>
+<li>zero-valued structs should be treated as missing</li>
+</ul>
+<h2>Rule choice summary</h2>
+<ul>
+<li>Use ozzo <code>validation.Required</code> for strict non-empty semantics.</li>
+<li>Use <code>utils/validation.Required</code> for state-style presence semantics where <code>0</code>
+  and <code>false</code> should still count as present.</li>
+<li>Use <code>utils/validation.IsRequired</code> to preserve pre-v4.4 ozzo behavior for
+  zero-valued structs.</li>
+</ul></main>
+</body>
+</html>
