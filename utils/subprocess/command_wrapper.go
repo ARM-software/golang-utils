@@ -132,7 +132,7 @@ type command struct {
 	cmdWrapper cmdWrapper
 	io         ICommandIO
 	dir        string
-	// Only synchronous execution enables this; Start/Wait retain group semantics.
+	// Note: only synchronous (blocking) execution enables this. The `Start`+`Wait` flows do not support this
 	interactive bool
 }
 
