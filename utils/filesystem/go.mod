@@ -8,7 +8,7 @@ require (
 	github.com/djherbis/times v1.6.0
 	github.com/go-faker/faker/v4 v4.12.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.5.0
-	github.com/shirou/gopsutil/v4 v4.26.9
+	github.com/shirou/gopsutil/v4 v4.26.10
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/atomic v1.12.0
@@ -65,7 +65,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
-	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 )
 
 require (
@@ -87,7 +87,7 @@ require (
 	github.com/ARM-software/golang-utils/utils/units/size v1.171.2
 	github.com/ARM-software/golang-utils/utils/validation v1.171.2
 	github.com/dmarkham/enumer v1.6.3 // indirect
-	github.com/ebitengine/purego v0.11.1 // indirect
+	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/pascaldekloe/name v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20260805114148-88456608a4f6 // indirect
