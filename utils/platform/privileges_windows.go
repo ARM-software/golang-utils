@@ -1,15 +1,13 @@
+//go:build windows
+
 /*
  * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 
-//go:build windows
-
 package platform
 
-import (
-	"github.com/ARM-software/golang-utils/utils/subprocess/command"
-)
+import "github.com/ARM-software/golang-utils/utils/subprocess/command"
 
 var (
 	// runAsAdmin describes the command to use to run command as Administrator
@@ -24,6 +22,10 @@ var (
 //   - args="runas", "/user:adrien" to run commands as `adrien`
 func DefineRunAsAdmin(args ...string) {
 	runAsAdmin = command.NewCommandAsDifferentUser(args...)
+}
+
+func isCurrentWithRootPrivileges() (bool, error) {
+	return IsCurrentUserAnAdmin()
 }
 
 func getRunCommandWithPrivileges() *command.CommandAsDifferentUser {

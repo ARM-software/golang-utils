@@ -30,14 +30,7 @@ func generateTestUser() (testUser *user.User) {
 	return
 }
 func TestDefineUser(t *testing.T) {
-	// Note: on Windows, it is necessary to run this test with elevated privileges https://github.com/iamacarpet/go-win64api/issues/26
-	if IsWindows() {
-		t.Log("Note: it is necessary to run this test with elevated privileges https://github.com/iamacarpet/go-win64api/issues/26")
-		admin, _ := IsCurrentUserAnAdmin()
-		if !admin {
-			t.Skip("Skipping as running on windows with a non-admin user")
-		}
-	}
+	requireUserMutationPrivileges(t)
 	user := generateTestUser()
 	err := DefineUser(context.TODO(), user, "")
 	require.NoError(t, err)
@@ -82,10 +75,7 @@ func TestIsAdmin(t *testing.T) {
 	assert.False(t, admin)
 	currentUser, err := user.Current()
 	require.NoError(t, err)
-	admin, _ = IsAdmin(currentUser.Username)
-	assert.False(t, admin)
-	admin, _ = IsUserAdmin(currentUser)
-	assert.False(t, admin)
+	assertCurrentUserAdminState(t, currentUser)
 	_, err = IsUserAdmin(nil)
 	assert.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrUndefined)

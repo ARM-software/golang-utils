@@ -21,6 +21,22 @@ inputs:
     description: Prefix for uploaded JUnit and coverage artifacts (including any separator).
     required: false
     default: ''
+  go-os:
+    description: Optional GOOS value for every test invocation.
+    required: false
+    default: ''
+  go-arch:
+    description: Optional GOARCH value for every test invocation.
+    required: false
+    default: ''
+  race:
+    description: Whether to include `-race` in every test invocation.
+    required: false
+    default: 'true'
+  report-name:
+    description: Label used for published test results and summaries.
+    required: false
+    default: Go multimodules tests
 outputs:
   combined-coverage:
     description: Combined statement coverage percentage, or n/a when no statements are coverable.
@@ -54,12 +70,26 @@ runs:
         BUILD_TAGS: ${{ inputs.build-tags }}
         GENERATION_RESULTS: ${{ inputs.generation-results }}
         LINT_RESULTS: ${{ inputs.lint-results }}
+        TEST_GOOS: ${{ inputs.go-os }}
+        TEST_GOARCH: ${{ inputs.go-arch }}
+        ENABLE_RACE: ${{ inputs.race }}
       run: |
         set -euo pipefail
         cd "$GITHUB_WORKSPACE"
         artifacts="$PWD/artifacts"
         results="$artifacts/module-tests.tsv"
         failed=0
+        go_env=()
+        if [[ -n "$TEST_GOOS" ]]; then
+          go_env+=("GOOS=$TEST_GOOS")
+        fi
+        if [[ -n "$TEST_GOARCH" ]]; then
+          go_env+=("GOARCH=$TEST_GOARCH")
+        fi
+        race_args=()
+        if [[ "$ENABLE_RACE" == 'true' ]]; then
+          race_args=(-race)
+        fi
         while IFS= read -r module; do
           [[ -n "$module" ]] || continue
           echo "test $module"
@@ -89,7 +119,7 @@ runs:
           if [[ "$generation" == fail || "$generation" == skipped || "$generation" == missing ]]; then
             test=skipped
           else
-            if ! (cd "$module" && gotestsum --format standard-verbose --junitfile "$junit" -- -race -covermode=atomic -coverprofile "$profile" -tags "$BUILD_TAGS" -timeout 30m ./...); then
+            if ! (cd "$module" && env "${go_env[@]}" gotestsum --format standard-verbose --junitfile "$junit" -- "${race_args[@]}" -covermode=atomic -coverprofile "$profile" -tags "$BUILD_TAGS" -timeout 30m ./...); then
               test=fail
               failed=1
             fi
@@ -175,7 +205,7 @@ runs:
       with:
         files: artifacts/junit/*.xml
         json_file: artifacts/junit/combined-report.json
-        check_name: Go multimodules tests
+        check_name: ${{ inputs.report-name }}
         comment_mode: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && 'always' || 'off' }}
         check_run: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         compare_to_earlier_commit: false
@@ -207,7 +237,7 @@ runs:
         cd "$GITHUB_WORKSPACE"
         artifacts="$PWD/artifacts"
         summary="$GITHUB_STEP_SUMMARY"
-        printf '## Go multimodules verification\n\n' >> "$summary"
+        printf '## %s\n\n' "${{ inputs.report-name }}" >> "$summary"
         if [[ ! -s "$artifacts/module-results.tsv" ]]; then
           printf 'Module results were not produced; see the workflow log.\n\n' >> "$summary"
         else
