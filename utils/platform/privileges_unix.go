@@ -1,8 +1,3 @@
-/*
- * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 //go:build !windows
 
 /*
@@ -35,6 +30,10 @@ func DefineSudoCommand(args ...string) {
 
 func isCurrentWithRootPrivileges() (bool, error) {
 	return os.Geteuid() == 0, nil
+}
+
+func canCurrentUserMutateUsersOnPlatform() (bool, error) {
+	return IsCurrentWithRootPrivileges()
 }
 
 func getRunCommandWithPrivileges() *command.CommandAsDifferentUser {

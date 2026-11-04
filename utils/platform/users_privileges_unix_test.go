@@ -5,11 +5,6 @@
 
 //go:build !windows
 
-/*
- * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package platform
 
 import (
@@ -20,7 +15,7 @@ import (
 
 func requireUserMutationPrivileges(t *testing.T) {
 	t.Helper()
-	root, err := IsCurrentWithRootPrivileges()
+	root, err := CanCurrentUserMutateUsers()
 	require.NoError(t, err)
 	if !root {
 		t.Skip("Skipping user and group mutation tests without root privileges")

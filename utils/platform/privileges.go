@@ -18,6 +18,13 @@ func IsCurrentWithRootPrivileges() (bool, error) {
 	return isCurrentWithRootPrivileges()
 }
 
+// CanCurrentUserMutateUsers reports whether the current process has enough
+// privileges and platform support to create, modify, and remove local users
+// and groups.
+func CanCurrentUserMutateUsers() (bool, error) {
+	return canCurrentUserMutateUsersOnPlatform()
+}
+
 // IsCurrentUserAnAdmin states whether the current user is a superuser or not.
 func IsCurrentUserAnAdmin() (admin bool, err error) {
 	cuser, err := user.Current()
