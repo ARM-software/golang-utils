@@ -5,7 +5,6 @@
 package platform
 
 import (
-	"fmt"
 	"os/user"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -29,7 +28,7 @@ func CanCurrentUserMutateUsers() (bool, error) {
 func IsCurrentUserAnAdmin() (admin bool, err error) {
 	cuser, err := user.Current()
 	if err != nil {
-		err = fmt.Errorf("%w: cannot fetch the current user: %v", commonerrors.ErrUnexpected, err.Error())
+		err = commonerrors.WrapError(commonerrors.ErrUnexpected, err, "cannot fetch the current user")
 		return
 	}
 	admin, err = IsUserAdmin(cuser)
@@ -39,7 +38,7 @@ func IsCurrentUserAnAdmin() (admin bool, err error) {
 // IsUserAdmin states whether the user is a superuser or not. Similar to IsAdmin but may use more checks.
 func IsUserAdmin(user *user.User) (admin bool, err error) {
 	if user == nil {
-		err = fmt.Errorf("%w: missing user", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("user")
 		return
 	}
 	admin, subErr := isUserAdmin(user)

@@ -9,7 +9,6 @@ package platform
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
@@ -22,7 +21,7 @@ func addUser(ctx context.Context, username, fullname, password string) (err erro
 	if err != nil {
 		return
 	}
-	err = fmt.Errorf("%w: cannot add user", commonerrors.ErrNotImplemented)
+	err = commonerrors.New(commonerrors.ErrNotImplemented, "cannot add user")
 	return
 }
 
@@ -31,7 +30,7 @@ func removeUser(ctx context.Context, username string) (err error) {
 	if err != nil {
 		return
 	}
-	err = fmt.Errorf("%w: cannot remove user", commonerrors.ErrNotImplemented)
+	err = commonerrors.New(commonerrors.ErrNotImplemented, "cannot remove user")
 	return
 }
 
@@ -40,7 +39,7 @@ func addGroup(ctx context.Context, groupName string) (err error) {
 	if err != nil {
 		return
 	}
-	err = fmt.Errorf("%w: cannot add group", commonerrors.ErrNotImplemented)
+	err = commonerrors.New(commonerrors.ErrNotImplemented, "cannot add group")
 	return
 }
 
@@ -49,7 +48,7 @@ func associateUserToGroup(ctx context.Context, username, groupName string) (err 
 	if err != nil {
 		return
 	}
-	err = fmt.Errorf("%w: cannot associate user to group", commonerrors.ErrNotImplemented)
+	err = commonerrors.New(commonerrors.ErrNotImplemented, "cannot associate user to group")
 	return
 }
 
@@ -58,7 +57,7 @@ func dissociateUserFromGroup(ctx context.Context, username, groupName string) (e
 	if err != nil {
 		return
 	}
-	err = fmt.Errorf("%w: cannot dissociate user from group", commonerrors.ErrNotImplemented)
+	err = commonerrors.New(commonerrors.ErrNotImplemented, "cannot dissociate user from group")
 	return
 }
 
@@ -67,11 +66,11 @@ func removeGroup(ctx context.Context, groupName string) (err error) {
 	if err != nil {
 		return
 	}
-	err = fmt.Errorf("%w: cannot associate user to group", commonerrors.ErrNotImplemented)
+	err = commonerrors.New(commonerrors.ErrNotImplemented, "cannot associate user to group")
 	return
 }
 
 func isAdmin(username string) (admin bool, err error) {
-	err = fmt.Errorf("%w: cannot determine if user is admin", commonerrors.ErrNotImplemented)
+	err = commonerrors.New(commonerrors.ErrNotImplemented, "cannot determine if user is admin")
 	return
 }
