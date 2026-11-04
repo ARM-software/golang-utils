@@ -14,6 +14,35 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+# 1.171.2 (2026-10-27)
+
+## Bugfixes
+
+- Dependency upgrade: v5-5.19.3 (#20261027175141428358884)
+- Dependency upgrade: spdx-0.3.3 (#20261027175159598934607)
+- Dependency upgrade: timberjack-1.4.9 (#20261027175208639643150)
+- Dependency upgrade: oauth2-0.37.0 (#20261027175250232464677)
+- Dependency upgrade: v4-4.26.9 (#20261027175305973430533, #20261027175827514394215)
+
+## Misc
+
+- #202610271735
+
+
+# 1.171.1 (2026-10-27)
+
+## Bugfixes
+
+- Dependency upgrade: mongo-driver-1.17.7 (#20261027140527843259182)
+- Dependency upgrade: v4-4.4.1 (#20261027142148622768483)
+- Dependency upgrade: codeql-action-4.39.1 (#20261027142231746971671)
+- Dependency upgrade: v5-5.19.2 (#20261027143621639979363)
+
+## Improved Documentation
+
+- :book: `[docs]` Configure the published documentation site URL explicitly so CDS generates `robots.txt`, `sitemap.xml`, and `llms*.txt` consistently during releases. (#202610271715)
+
+
 # 1.171.0 (2026-10-27)
 
 ## Features
