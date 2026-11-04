@@ -124,15 +124,22 @@ func startInteractiveTestProcess(t *testing.T, command *exec.Cmd) <-chan error {
 	}()
 
 	t.Cleanup(func() {
+		// Cleanup only waits for termination; waitInteractiveExit checks the result.
 		select {
-		case <-done:
+		case exitErr := <-done:
+			if exitErr != nil {
+				t.Logf("helper exit during cleanup: %v", exitErr)
+			}
 			return
 		default:
 			_ = command.Process.Kill()
 		}
 
 		select {
-		case <-done:
+		case exitErr := <-done:
+			if exitErr != nil {
+				t.Logf("helper exit during cleanup: %v", exitErr)
+			}
 		case <-time.After(interactiveTestTimeout):
 			assert.Fail(t, "helper did not exit during cleanup")
 		}
@@ -160,7 +167,10 @@ func startInteractiveHelper(ctx context.Context, t *testing.T, logger logs.Logge
 		}
 
 		select {
-		case <-done:
+		case exitErr := <-done:
+			if exitErr != nil {
+				t.Logf("helper exit during cleanup: %v", exitErr)
+			}
 			return
 		default:
 			if child != nil {
@@ -170,7 +180,10 @@ func startInteractiveHelper(ctx context.Context, t *testing.T, logger logs.Logge
 
 		// If startup failed before reporting a PID, the helper watchdog still bounds cleanup.
 		select {
-		case <-done:
+		case exitErr := <-done:
+			if exitErr != nil {
+				t.Logf("helper exit during cleanup: %v", exitErr)
+			}
 		case <-time.After(interactiveHelperTimeout + time.Second):
 			assert.Fail(t, "interactive executor did not reap its helper")
 		}

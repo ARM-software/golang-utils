@@ -1,8 +1,3 @@
-/*
- * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 //go:build linux
 
 /*
@@ -72,7 +67,10 @@ func TestExecuteInteractiveWithDirTerminal(t *testing.T) {
 					_ = unix.Kill(childPID, unix.SIGKILL)
 
 					select {
-					case <-done:
+					case exitErr := <-done:
+						if exitErr != nil {
+							t.Logf("terminal driver exit during cleanup: %v", exitErr)
+						}
 					case <-time.After(time.Second): // Allow the driver to reap before its cleanup.
 					}
 				})
