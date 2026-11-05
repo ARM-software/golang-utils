@@ -58,9 +58,17 @@ func TestTerminateGracefully(t *testing.T) {
 						_ = cmd.Wait()
 					}
 				}()
-				process, err := FindProcess(context.Background(), cmd.Process.Pid)
-				require.NoError(t, err)
-				require.True(t, process.IsRunning())
+				timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				var process IProcess
+				var err error
+				require.NoError(t, parallelisation.WaitUntil(timeoutCtx, func(waitCtx context.Context) (bool, error) {
+					process, err = FindProcess(waitCtx, cmd.Process.Pid)
+					if err != nil {
+						return false, err
+					}
+					return process.IsRunning(), nil
+				}, 100*time.Millisecond))
 
 				now := time.Now()
 				gracePeriod := 10 * time.Second
