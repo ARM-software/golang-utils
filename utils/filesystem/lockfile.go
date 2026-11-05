@@ -115,7 +115,9 @@ func isStale(filetime FileTimeInfo, beatPeriod time.Duration) bool {
 	if filetime == nil {
 		return false
 	}
-	return time.Since(filetime.ModTime()).Milliseconds() > 2*beatPeriod.Milliseconds()
+	// Allow for scheduler and filesystem timestamp jitter before treating an
+	// active lock as stale.
+	return time.Since(filetime.ModTime()).Milliseconds() > 3*beatPeriod.Milliseconds()
 }
 
 func (l *RemoteLockFile) ReleaseIfStale(ctx context.Context) error {
