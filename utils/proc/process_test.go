@@ -7,7 +7,6 @@ package proc
 import (
 	"context"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -123,9 +122,7 @@ func TestPs_KillWithChildren(t *testing.T) {
 		t.Skip("test with bash")
 	}
 	defer goleak.VerifyNone(t)
-	// see https://medium.com/@felixge/killing-a-child-process-and-all-of-its-children-in-go-54079af94773
-	// https://forum.golangbridge.org/t/killing-child-process-on-timeout-in-go-code/995/16
-	cmd := exec.Command("bash", "-c", "watch date > date.txt 2>&1")
+	cmd := newCommandWithChildProcess()
 	require.NoError(t, cmd.Start())
 	defer func() { _ = cmd.Wait() }()
 	require.NotNil(t, cmd.Process)
