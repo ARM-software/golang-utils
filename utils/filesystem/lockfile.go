@@ -148,6 +148,10 @@ func (l *RemoteLockFile) TryLock(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
+	if err := parallelisation.DetermineContextError(ctx); err != nil {
+		_ = l.fs.Rm(lockPath)
+		return err
+	}
 
 	// FIXME: the following is to overcome the problem found with different filesystems which do not update modTime on directory creation.
 	// e.g. https://github.com/spf13/afero/issues/297
