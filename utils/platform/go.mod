@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/go-faker/faker/v4 v4.12.0
-	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
+	github.com/go-ozzo/ozzo-validation/v4 v4.5.0
 	github.com/iamacarpet/go-win64api v0.0.0-20240507095429-873e84e85847
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/shirou/gopsutil/v4 v4.26.9
@@ -27,7 +27,7 @@ require (
 	go.mongodb.org/mongo-driver v1.17.7 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 )
 
