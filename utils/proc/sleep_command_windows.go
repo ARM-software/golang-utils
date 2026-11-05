@@ -19,5 +19,5 @@ import (
 )
 
 func sleepCommand(duration time.Duration) *exec.Cmd {
-	return exec.Command("powershell", "-NoProfile", "-NonInteractive", "-Command", fmt.Sprintf("Start-Sleep -Milliseconds %d", duration.Milliseconds()))
+	return exec.Command("powershell", "-NoProfile", "-NonInteractive", "-Command", fmt.Sprintf("Start-Sleep -Milliseconds %d", duration.Milliseconds())) //nolint:gosec // duration is typed input converted to a numeric argument, not user-controlled shell input
 }

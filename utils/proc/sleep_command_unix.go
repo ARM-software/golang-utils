@@ -19,5 +19,5 @@ import (
 )
 
 func sleepCommand(duration time.Duration) *exec.Cmd {
-	return exec.Command("sleep", strconv.FormatFloat(duration.Seconds(), 'f', -1, 64))
+	return exec.Command("sleep", strconv.FormatFloat(duration.Seconds(), 'f', -1, 64)) //nolint:gosec // duration is typed input converted to a numeric argument, not user-controlled shell input
 }
