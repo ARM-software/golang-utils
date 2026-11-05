@@ -11,6 +11,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 func requireUserMutationPrivileges(t *testing.T) {
@@ -29,5 +31,8 @@ func testUserPassword() string {
 
 func requireUserMutationNoError(t *testing.T, err error) {
 	t.Helper()
+	if commonerrors.CorrespondTo(err, "status=5", "status=2202", "status=2245", "access is denied") {
+		t.Skipf("Skipping Windows user/group mutation test because the runner does not allow local account management: %v", err)
+	}
 	require.NoError(t, err)
 }
