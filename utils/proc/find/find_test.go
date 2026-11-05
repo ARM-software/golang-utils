@@ -18,6 +18,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
 func TestFindProcessByName(t *testing.T) {
@@ -31,9 +32,9 @@ func TestFindProcessByName(t *testing.T) {
 		processNameOther   string
 	}{
 		{
-			cmdWindows:         exec.Command("cmd.exe", "/c", fmt.Sprintf("ping localhost -n %v > nul", time.Second.Seconds())), //nolint: gosec // G204 Subprocess launched with a potential tainted input or cmd arguments (gosec)
-			cmdOther:           exec.Command("sh", "-c", fmt.Sprintf("sleep %v", time.Second.Seconds())),                        //nolint: gosec // G204 Subprocess launched with a potential tainted input or cmd arguments (gosec)
-			processNameWindows: "ping",
+			cmdWindows:         exec.Command("powershell", "-NoProfile", "-NonInteractive", "-Command", fmt.Sprintf("Start-Sleep -Seconds %v", 5)), //nolint: gosec // G204 Subprocess launched with a potential tainted input or cmd arguments (gosec)
+			cmdOther:           exec.Command("sh", "-c", fmt.Sprintf("sleep %v", 5)),                                                               //nolint: gosec // G204 Subprocess launched with a potential tainted input or cmd arguments (gosec)
+			processNameWindows: "powershell",
 			processNameOther:   "sleep",
 		},
 	}
@@ -53,8 +54,15 @@ func TestFindProcessByName(t *testing.T) {
 			numOfProcesses := len(ps)
 			require.NoError(t, cmd.Start())
 			defer func() { _ = cmd.Process.Kill() }()
-			ps, err = FindProcessByName(ctx, toFind)
-			require.NoError(t, err)
+			timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+			defer cancel()
+			require.NoError(t, parallelisation.WaitUntil(timeoutCtx, func(waitCtx context.Context) (bool, error) {
+				ps, err = FindProcessByName(waitCtx, toFind)
+				if err != nil {
+					return false, err
+				}
+				return len(ps) > 0, nil
+			}, 100*time.Millisecond))
 			assert.NotEmpty(t, ps)
 
 			assert.GreaterOrEqual(t, len(ps), numOfProcesses)
