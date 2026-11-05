@@ -14,6 +14,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/logs"
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/proc"
 	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
@@ -108,6 +109,31 @@ func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, m
 // ExecuteWithDir executes a command (i.e. spawns a subprocess) with a working directory.
 func ExecuteWithDir(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) error {
 	return ExecuteWithEnvironmentWithDir(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
+}
+
+// ExecuteInteractiveWithDir executes a command with a working directory and waits
+// for it to finish. Use this instead of [ExecuteWithDir] for programs the user
+// interacts with. It will connect the program directly to the user's terminal and
+// preserve normal keyboard input and Ctrl+C behaviour.
+//
+// When the ctx is cancelled, the executor stops the launched command without
+// signalling the caller or other processes in the shared process group.
+// On Unix, it sends the child SIGINT, then kills it after a one-second grace
+// period if it has not exited. Windows does not support sending os.Interrupt
+// to a child, so it kills the child immediately. Neither path stops descendants.
+func ExecuteInteractiveWithDir(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess string, messageOnFailure string, dir string, cmd string, args ...string) (err error) {
+	if err = parallelisation.DetermineContextError(ctx); err != nil {
+		return
+	}
+
+	p, err := NewWithIOWithDir(ctx, loggers, NewDefaultIO(), messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
+	if err != nil {
+		return
+	}
+
+	p.command.interactive = true
+	err = p.Execute()
+	return
 }
 
 // Start starts a command (i.e. spawns a subprocess).
@@ -493,6 +519,12 @@ func (s *Subprocess) Execute() (err error) {
 	s.isRunning.Store(true)
 	err = cmd.Run()
 	s.isRunning.Store(false)
+	if s.command.interactive {
+		if contextErr := parallelisation.DetermineContextError(s.processMonitoring.ProcessContext()); contextErr != nil {
+			err = contextErr
+		}
+	}
+
 	s.messaging.LogEnd(err)
 	return
 }
