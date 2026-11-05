@@ -118,6 +118,9 @@ func ExecuteWithDir(ctx context.Context, loggers logs.Loggers, messageOnStart st
 //
 // When the ctx is cancelled, the executor stops the launched command without
 // signalling the caller or other processes in the shared process group.
+// On Unix, it sends the child SIGINT, then kills it after a one-second grace
+// period if it has not exited. Windows does not support sending os.Interrupt
+// to a child, so it kills the child immediately. Neither path stops descendants.
 func ExecuteInteractiveWithDir(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess string, messageOnFailure string, dir string, cmd string, args ...string) (err error) {
 	if err = parallelisation.DetermineContextError(ctx); err != nil {
 		return

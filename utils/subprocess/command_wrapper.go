@@ -148,6 +148,8 @@ func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
 		// Share the terminal's foreground group but only cancel this child
 		cmd.WaitDelay = interactiveTerminationGracePeriod
 		cmd.Cancel = func() error {
+			// Windows cannot send os.Interrupt to a child, so fall back to killing
+			// only that process rather than signalling the shared console.
 			if signalErr := cmd.Process.Signal(os.Interrupt); signalErr != nil {
 				return cmd.Process.Kill()
 			}
