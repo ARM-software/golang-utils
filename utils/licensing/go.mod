@@ -3,7 +3,7 @@ module github.com/ARM-software/golang-utils/utils/licensing
 go 1.26.0
 
 require (
-	github.com/git-pkgs/spdx v0.3.3
+	github.com/git-pkgs/spdx v0.3.4
 	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
 	github.com/stretchr/testify v1.12.1
 )
@@ -25,7 +25,7 @@ require (
 	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.2
 	github.com/ARM-software/golang-utils/utils/field v1.171.2
 	github.com/ARM-software/golang-utils/utils/reflection v1.171.2
-	github.com/github/go-spdx/v2 v2.7.0 // indirect
+	github.com/github/go-spdx/v2 v2.8.0 // indirect
 )
 
 replace github.com/ARM-software/golang-utils/utils/collection => ../collection
