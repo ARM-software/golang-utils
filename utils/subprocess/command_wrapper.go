@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -7,6 +7,7 @@ package subprocess
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"time"
 
@@ -19,6 +20,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/proc"
 	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
+
+const interactiveTerminationGracePeriod = time.Second
 
 // INTERNAL
 // wrapper over an exec cmd.
@@ -129,19 +132,38 @@ type command struct {
 	cmdWrapper cmdWrapper
 	io         ICommandIO
 	dir        string
+	// Note: only synchronous (blocking) execution enables this. The `Start`+`Wait` flows do not support this
+	interactive bool
 }
 
 func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
 	newCmd, newArgs := c.as.Redefine(c.cmd, c.args...)
 	cmd := exec.CommandContext(cmdCtx, newCmd, newArgs...) //nolint:gosec
-	cancellableCmd, err := proc.DefineCmdCancel(cmd)
-	if err == nil {
-		cmd = cancellableCmd
-	}
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = c.io.Register(cmdCtx)
 	cmd.Env = cmd.Environ()
 	cmd.Env = append(cmd.Env, c.env...)
 	cmd.Dir = c.dir
+
+	if c.interactive {
+		// Share the terminal's foreground group but only cancel this child
+		cmd.WaitDelay = interactiveTerminationGracePeriod
+		cmd.Cancel = func() error {
+			// Windows cannot send os.Interrupt to a child, so fall back to killing
+			// only that process rather than signalling the shared console.
+			if signalErr := cmd.Process.Signal(os.Interrupt); signalErr != nil {
+				return cmd.Process.Kill()
+			}
+
+			return nil
+		}
+
+		return cmd
+	}
+
+	cancellableCmd, err := proc.DefineCmdCancel(cmd)
+	if err == nil {
+		cmd = cancellableCmd
+	}
 
 	// for any of our wait checks to work we need to set the group ID to the pid, otherwise the
 	// group ID will be the code that launched it (i.e. the code that calls exec.Cmd.Start). This

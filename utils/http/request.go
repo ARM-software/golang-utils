@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package http
 
 import (
@@ -139,8 +143,8 @@ func (cfg *RequestConfiguration) Validate() (err error) {
 	return validation.ValidateStruct(cfg,
 		validation.Field(&cfg.Host, validationRules.Required),
 		validation.Field(&cfg.UserAgent, validationRules.Required),
-		validation.Field(&cfg.Authorisation, validation.Required),
-		validation.Field(&cfg.Retries, validation.Required),
+		validation.Field(&cfg.Authorisation, validationRules.Required),
+		validation.Field(&cfg.Retries, validationRules.Required),
 	)
 }
 

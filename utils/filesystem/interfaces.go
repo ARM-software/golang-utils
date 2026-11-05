@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // Package filesystem defines utilities with regards to filesystem access./*
 package filesystem
 
@@ -16,6 +21,7 @@ import (
 )
 
 //go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,IChowner,ILinker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS,ICloseableFS,IForceRemover,IStater,ILinkReader,ISymLinker
+//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,IChowner,ILinker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS,ICloseableFS,IForceRemover,IStater,ILinkReader,ISymLinker
 
 // IFileHash defines a file hash.
 // For reference.

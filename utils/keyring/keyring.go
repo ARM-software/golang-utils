@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package keyring
 
 import (
@@ -8,7 +12,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/reflection"
-	"github.com/ARM-software/golang-utils/utils/serialization/maps" //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialisation/maps"
 )
 
 // StorePointer is like Store but working on a pointer.

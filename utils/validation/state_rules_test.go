@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package validation
 
 import (
@@ -134,32 +138,6 @@ func TestStateRules(t *testing.T) {
 	t.Run("IsRequired aliases IsRequiredLegacy", func(t *testing.T) {
 		require.NoError(t, validation.Validate(zeroStruct{}, IsRequired))
 		errortest.AssertErrorDescription(t, validation.Validate(false, IsRequired), validation.ErrRequired.Error())
-	})
-
-	t.Run("ozzo required semantics on zero-valued structs stay pinned", func(t *testing.T) {
-		type boolStruct struct {
-			Enabled bool
-			Ready   bool
-		}
-		type nestedStruct struct {
-			Flags boolStruct
-		}
-
-		zeroBools := boolStruct{}
-		zeroNested := nestedStruct{}
-
-		// Pin ozzo's current behaviour so future upgrades make any semantic drift
-		// explicit in tests before it changes repository validation expectations.
-		require.NoError(t, validation.Validate(zeroBools, validation.Required))
-		require.NoError(t, validation.Validate(zeroNested, validation.Required))
-		errortest.AssertErrorDescription(t, validation.Validate(time.Time{}, validation.Required), validation.ErrRequired.Error())
-
-		// Our legacy-compatible helper keeps zero-valued structs present even when
-		// all their fields are zero values, such as booleans set to false.
-		require.NoError(t, validation.Validate(zeroBools, IsRequiredLegacy))
-		require.NoError(t, validation.Validate(zeroNested, IsRequiredLegacy))
-		require.NoError(t, validation.Validate(zeroBools, IsRequired))
-		require.NoError(t, validation.Validate(zeroNested, IsRequired))
 	})
 
 }

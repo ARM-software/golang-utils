@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../../_/icons/favicon.ico"><title>json</title>
+</head>
+  <body>
+    <nav><a href="../../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../../..">github.com</a>/<a href="../../../..">ARM-software</a>/<a href="../../..">golang-utils</a>/<a href="../..">utils</a>/<a href="..">serialisation</a>/json<span class="navbar-right">
+          <a href="../../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package json</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/serialisation/json&#34;</span></pre>
+<ul>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<p>Package json mirrors the standard library&apos;s encoding/json helpers while
+adding two service-focused behaviours:
+<ul>
+<li>stream helpers are context aware, so long reads and writes can be
+cancelled through the supplied context
+<li>marshal and unmarshal operations automatically use generated fast JSON
+encoders and decoders when a type exposes those interfaces
+</ul>
+<p>The intent is to keep call sites as close as possible to encoding/json while
+letting services benefit from non-reflective JSON code generation without
+each caller having to know which implementation a type uses. Examples of the
+supported fast-path libraries are github.com/mailru/easyjson and
+github.com/pquerna/ffjson.
+<ul>
+<li>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li>SPDX-License-Identifier: Apache-2.0
+</ul>
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-variables">Variables</a></li><li><a href="#IsJSON">func IsJSON(extension string) bool</a></li>
+  <li><a href="#Marshal">func Marshal(v any) ([]byte, error)</a></li>
+  <li><a href="#MarshalWithContext">func MarshalWithContext(ctx context.Context, v any) (content []byte, err error)</a></li>
+  <li><a href="#ToYAML">func ToYAML(rawJSON []byte) (yaml []byte, err error)</a></li>
+  <li><a href="#Unmarshal">func Unmarshal(data []byte, v any) error</a></li>
+  <li><a href="#UnmarshallWithContext">func UnmarshallWithContext(ctx context.Context, data []byte, v any) error</a></li>
+  <li>
+      <a href="#Decoder">type Decoder</a>
+      <ul>
+          <li><a href="#NewDecoder">func NewDecoder(ctx context.Context, r io.Reader) *Decoder</a></li>
+          <li><a href="#Decoder.Decode">func (d *Decoder) Decode(v any) error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#Encoder">type Encoder</a>
+      <ul>
+          <li><a href="#NewEncoder">func NewEncoder(ctx context.Context, w io.Writer) *Encoder</a></li>
+          <li><a href="#Encoder.Encode">func (e *Encoder) Encode(v any) error</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="IsValidJSON"><span class="nx">IsValidJSON</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1"><span class="nx">validation</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1#By"><span class="nf">By</span></a><span class="p">(</span><span class="nx">isValidJSON</span><span class="p">)</span></pre>
+  <p>IsValidJSON validates that a string or byte slice contains syntactically
+valid JSON.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// JSONExtensions is the list of file extensions that are considered JSON files.</span><span class="w">
+</span><span class="w">	</span><span id="JSONExtensions"><span class="nx">JSONExtensions</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">{</span><span class="s">&#34;.json&#34;</span><span class="p">}</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="IsJSON">func IsJSON</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsJSON</span><span class="p">(</span><span class="nx">extension</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsJSON returns true if the extension is a JSON file
+<h4 id="Marshal">func Marshal</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Marshal</span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Marshal encodes a value to a JSON byte slice.
+It matches encoding/json.Marshal.
+<p>If the value implements a generated fast JSON marshaler interface, that
+non-reflective path is used. Otherwise, it falls back to the regular runtime
+path available through the supported fast JSON backend. The rationale is to
+keep one familiar helper for callers while automatically taking a faster
+serialisation path when generated code exists. Examples of supported
+generators are github.com/mailru/easyjson and github.com/pquerna/ffjson.
+<h4 id="MarshalWithContext">func MarshalWithContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">MarshalWithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">content</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MarshalWithContext encodes a value to a JSON byte slice using a context-aware
+Encoder.
+It follows the same helper shape as Marshal, but routes the write through the
+package&apos;s context-aware streaming helpers.
+<h4 id="ToYAML">func ToYAML</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ToYAML</span><span class="p">(</span><span class="nx">rawJSON</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">yaml</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>ToYAML converts JSON data to YAML.
+<h4 id="Unmarshal">func Unmarshal</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Unmarshal</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Unmarshal decodes a JSON byte slice into a destination value.
+It matches encoding/json.Unmarshal.
+<p>If the destination implements a generated fast JSON unmarshaler interface,
+that non-reflective path is used. Otherwise it falls back to the regular
+runtime path available through the supported fast JSON backend. This lets
+calling code stay implementation-agnostic while types that opt into
+generated JSON code get faster deserialisation automatically. Examples of
+supported generators are github.com/mailru/easyjson and
+github.com/pquerna/ffjson.
+<h4 id="UnmarshallWithContext">func UnmarshallWithContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">UnmarshallWithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UnmarshallWithContext decodes a JSON byte slice into a destination value
+using a context-aware Decoder.
+It follows the same helper shape as Unmarshal, but routes the read through
+the package&apos;s context-aware streaming helpers.
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="Decoder">type Decoder</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Decoder</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Decoder decodes successive JSON values from a reader.
+It matches encoding/json.Decoder but wraps the supplied reader so reads obey
+context cancellation, and it uses generated fast JSON decoders when the
+target type supports those non-reflective decoding paths.
+This should not be used by more than one goroutine at a time.
+<h5 id="NewDecoder">func NewDecoder</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewDecoder</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Decoder"><span class="nx">Decoder</span></a></pre>
+  <p>NewDecoder creates a Decoder that reads JSON values from r.
+It matches encoding/json.NewDecoder.
+<p>It keeps the familiar Decoder workflow while adding context-aware reads and
+automatic use of generated fast JSON deserialisers. Examples of supported
+generators are github.com/mailru/easyjson and github.com/pquerna/ffjson.
+<h5 id="Decoder.Decode">func (*Decoder) Decode</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">d</span><span class="w"> </span><span class="o">*</span><a href="#Decoder"><span class="nx">Decoder</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Decode</span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Decode reads the next JSON value from the decoder into v.
+It matches encoding/json.Decoder.Decode.
+<p>If v implements a generated fast JSON unmarshaler interface, Decode uses
+that non-reflective path. Otherwise, it falls back to the regular runtime
+path available through the supported fast JSON backend. The goal is to
+preserve a standard-library style API while making the faster implementation
+an internal detail. Examples of supported generators are
+github.com/mailru/easyjson and github.com/pquerna/ffjson.
+<h4 id="Encoder">type Encoder</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Encoder</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Encoder writes successive JSON values to a writer.
+It matches encoding/json.Encoder but wraps the supplied writer so writes obey
+context cancellation, and it uses generated fast JSON encoders when the
+value supports those non-reflective encoding paths.
+It allows encoding many objects to a single writer.
+This should not be used by more than one goroutine at a time.
+<h5 id="NewEncoder">func NewEncoder</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewEncoder</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">w</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Writer"><span class="nx">Writer</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Encoder"><span class="nx">Encoder</span></a></pre>
+  <p>NewEncoder creates an Encoder that writes JSON values to w.
+It matches encoding/json.NewEncoder.
+<p>It keeps the standard Encoder pattern while adding context-aware writes and
+automatic use of generated fast JSON serialisers when a type provides them.
+Examples of supported generators are github.com/mailru/easyjson and
+github.com/pquerna/ffjson.
+<h5 id="Encoder.Encode">func (*Encoder) Encode</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="w"> </span><span class="o">*</span><a href="#Encoder"><span class="nx">Encoder</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Encode</span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Encode writes v as the next JSON value to the encoder&apos;s writer.
+It matches encoding/json.Encoder.Encode.
+<p>If v implements a generated fast JSON marshaler interface, Encode uses that
+non-reflective path. Otherwise, it falls back to the regular runtime path
+available through the supported fast JSON backend. This preserves a familiar
+API for callers while making fast serialisers an internal optimisation
+instead of a caller concern. Examples of supported generators are
+github.com/mailru/easyjson and github.com/pquerna/ffjson.
+<h3 id="pkg-directories">Directories</h3>
+
+<table>
+  <tbody>
+    <tr>
+        <td><a href="frontmatter">frontmatter</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    <tr>
+        <td><a href="jsontest/easyjson">jsontest/easyjson</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    <tr>
+        <td><a href="jsontest/ffjson">jsontest/ffjson</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    <tr>
+        <td><a href="jsontest/nofast">jsontest/nofast</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    </tbody>
+</table>
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../../_/js/permalink.js"></script></body>
+</html>

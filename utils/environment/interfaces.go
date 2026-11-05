@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // Package environment defines object describing the current environment.
 package environment
 
@@ -10,6 +15,7 @@ import (
 )
 
 //go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IEnvironmentVariable,IEnvironment
+//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IEnvironmentVariable,IEnvironment
 
 // IEnvironmentVariable defines an environment variable to be set for the commands to run.
 type IEnvironmentVariable interface {

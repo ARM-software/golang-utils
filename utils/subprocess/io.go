@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package subprocess
 
 import (
@@ -10,6 +14,7 @@ import (
 )
 
 //go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE ICommandIO
+//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE ICommandIO
 
 // ICommandIO allows you to set the stdin, stdout, and stderr that will be used in a subprocess. A context can be injected for context aware readers and writers
 type ICommandIO interface {

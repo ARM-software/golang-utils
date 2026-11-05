@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../../_/icons/favicon.ico"><title>size</title>
+</head>
+  <body>
+    <nav><a href="../../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../../..">github.com</a>/<a href="../../../..">ARM-software</a>/<a href="../../..">golang-utils</a>/<a href="../..">utils</a>/<a href="..">units</a>/size<span class="navbar-right">
+          <a href="../../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package size</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/units/size&#34;</span></pre>
+<p>Package size define common size units
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-constants">Constants</a></li><li><a href="#pkg-variables">Variables</a></li><li><a href="#FindUnit">func FindUnit(unitStr string) (value float64, canonicalUnit string, err error)</a></li>
+  <li><a href="#FormatSizeAsBinarySI">func FormatSizeAsBinarySI(value float64, scale int) (string, error)</a></li>
+  <li><a href="#FormatSizeAsDecimalSI">func FormatSizeAsDecimalSI(value float64, scale int) (string, error)</a></li>
+  <li><a href="#ParseSize">func ParseSize(s string) (value float64, err error)</a></li>
+  </ul><h3 id="pkg-constants">Constants</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">const</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="B"><span class="nx">B</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span id="KB"><span class="nx">KB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="../multiplication"><span class="nx">multiplication</span></a><span class="p">.</span><a href="../multiplication#Kilo"><span class="nx">Kilo</span></a><span class="w"> </span><span class="o">*</span><span class="w"> </span><a href="#B"><span class="nx">B</span></a><span class="w">
+</span><span class="w">	</span><span id="MB"><span class="nx">MB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="../multiplication"><span class="nx">multiplication</span></a><span class="p">.</span><a href="../multiplication#Mega"><span class="nx">Mega</span></a><span class="w"> </span><span class="o">*</span><span class="w"> </span><a href="#B"><span class="nx">B</span></a><span class="w">
+</span><span class="w">	</span><span id="GB"><span class="nx">GB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="../multiplication"><span class="nx">multiplication</span></a><span class="p">.</span><a href="../multiplication#Giga"><span class="nx">Giga</span></a><span class="w"> </span><span class="o">*</span><span class="w"> </span><a href="#B"><span class="nx">B</span></a><span class="w">
+</span><span class="w">	</span><span id="TB"><span class="nx">TB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="../multiplication"><span class="nx">multiplication</span></a><span class="p">.</span><a href="../multiplication#Tera"><span class="nx">Tera</span></a><span class="w"> </span><span class="o">*</span><span class="w"> </span><a href="#B"><span class="nx">B</span></a><span class="w">
+</span><span class="w">	</span><span id="PB"><span class="nx">PB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="../multiplication"><span class="nx">multiplication</span></a><span class="p">.</span><a href="../multiplication#Peta"><span class="nx">Peta</span></a><span class="w"> </span><span class="o">*</span><span class="w"> </span><a href="#B"><span class="nx">B</span></a><span class="w">
+</span><span class="w">	</span><span id="EB"><span class="nx">EB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="../multiplication"><span class="nx">multiplication</span></a><span class="p">.</span><a href="../multiplication#Exa"><span class="nx">Exa</span></a><span class="w"> </span><span class="o">*</span><span class="w"> </span><a href="#B"><span class="nx">B</span></a><span class="w">
+</span><span class="w">	</span><span id="ZB"><span class="nx">ZB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="../multiplication"><span class="nx">multiplication</span></a><span class="p">.</span><a href="../multiplication#Zeta"><span class="nx">Zeta</span></a><span class="w"> </span><span class="o">*</span><span class="w"> </span><a href="#B"><span class="nx">B</span></a><span class="w">
+</span><span class="w">	</span><span id="YB"><span class="nx">YB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="../multiplication"><span class="nx">multiplication</span></a><span class="p">.</span><a href="../multiplication#Yotta"><span class="nx">Yotta</span></a><span class="w"> </span><span class="o">*</span><span class="w"> </span><a href="#B"><span class="nx">B</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span id="KiB"><span class="nx">KiB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="nb">float64</span></a><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="MiB"><span class="nx">MiB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="nb">float64</span></a><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">20</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="GiB"><span class="nx">GiB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="nb">float64</span></a><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">30</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="TiB"><span class="nx">TiB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="nb">float64</span></a><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">40</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="PiB"><span class="nx">PiB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="nb">float64</span></a><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">50</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="EiB"><span class="nx">EiB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="nb">float64</span></a><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">60</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="ZiB"><span class="nx">ZiB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="nb">float64</span></a><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">70</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="YiB"><span class="nx">YiB</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="nb">float64</span></a><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">80</span><span class="p">)</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="DecimalSIUnits"><span class="nx">DecimalSIUnits</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">]</span><a href="https://pkg.go.dev/builtin#float64"><span class="kt">float64</span></a><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;B&#34;</span><span class="p">:</span><span class="w">  </span><a href="#B"><span class="nx">B</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;KB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#KB"><span class="nx">KB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;MB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#MB"><span class="nx">MB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;GB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#GB"><span class="nx">GB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;TB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#TB"><span class="nx">TB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;PB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#PB"><span class="nx">PB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;EB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#EB"><span class="nx">EB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;ZB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#ZB"><span class="nx">ZB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;YB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#YB"><span class="nx">YB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span id="BinarySIUnits"><span class="nx">BinarySIUnits</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">]</span><a href="https://pkg.go.dev/builtin#float64"><span class="kt">float64</span></a><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;B&#34;</span><span class="p">:</span><span class="w">   </span><a href="#B"><span class="nx">B</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;KiB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#KiB"><span class="nx">KiB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;MiB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#MiB"><span class="nx">MiB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;GiB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#GiB"><span class="nx">GiB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;TiB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#TiB"><span class="nx">TiB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;PiB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#PiB"><span class="nx">PiB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;EiB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#EiB"><span class="nx">EiB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;ZiB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#ZiB"><span class="nx">ZiB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">		</span><span class="s">&#34;YiB&#34;</span><span class="p">:</span><span class="w"> </span><a href="#YiB"><span class="nx">YiB</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="FindUnit">func FindUnit</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FindUnit</span><span class="p">(</span><span class="nx">unitStr</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="kt">float64</span></a><span class="p">,</span><span class="w"> </span><span class="nx">canonicalUnit</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="FormatSizeAsBinarySI">func FormatSizeAsBinarySI</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FormatSizeAsBinarySI</span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="kt">float64</span></a><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>FormatSizeAsBinarySI formats a size into a binary SI string (<a href="https://en.wikipedia.org/wiki/Binary_prefix">https://en.wikipedia.org/wiki/Binary_prefix</a>)
+scale corresponds to the number of decimal places. For no limits, set to a negative number
+<h4 id="FormatSizeAsDecimalSI">func FormatSizeAsDecimalSI</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FormatSizeAsDecimalSI</span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="kt">float64</span></a><span class="p">,</span><span class="w"> </span><span class="nx">scale</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>FormatSizeAsDecimalSI formats a size into a decimal SI string (<a href="https://en.wikipedia.org/wiki/Binary_prefix">https://en.wikipedia.org/wiki/Binary_prefix</a>)
+scale corresponds to the number of decimal places. For no limits, set to a negative number
+<h4 id="ParseSize">func ParseSize</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ParseSize</span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#float64"><span class="kt">float64</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  </main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../../_/js/permalink.js"></script></body>
+</html>

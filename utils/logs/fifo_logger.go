@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package logs
 
 import (
@@ -59,7 +63,7 @@ func (d *fifoDiode) Close() error {
 // LineIterator returns an iterator over lines. It should only be called within the context of the same goroutine.
 func (d *fifoDiode) LineIterator(ctx context.Context) iter.Seq[string] {
 	return func(yield func(string) bool) {
-		err := IterateOverLines(ctx, func(fCtx context.Context) (b []byte, err error) {
+		_ = IterateOverLines(ctx, func(fCtx context.Context) (b []byte, err error) {
 			err = parallelisation.DetermineContextError(fCtx)
 			if err != nil {
 				return
@@ -75,9 +79,6 @@ func (d *fifoDiode) LineIterator(ctx context.Context) iter.Seq[string] {
 			}
 			return
 		}, yield)
-		if err != nil {
-			return
-		}
 	}
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -13,6 +13,7 @@ import (
 )
 
 //go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE Loggers,IMultipleLoggers,WriterWithSource,StdLogger
+//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE Loggers,IMultipleLoggers,WriterWithSource,StdLogger
 
 // Loggers defines generic loggers which separate common logging messages from errors.
 // This is to use in cases where it is necessary to separate the two streams e.g. remote procedure call (RPC)
@@ -43,6 +44,11 @@ type IMultipleLoggers interface {
 type WriterWithSource interface {
 	io.WriteCloser
 	SetSource(source string) error
+}
+
+// ILoggerWithUnderlyingWriters provides access to the underlying log writers
+type ILoggerWithUnderlyingWriters interface {
+	Writers() (outputWriter, errorWriter io.Writer)
 }
 
 // StdLogger is the subset of the Go stdlib log.Logger API.

@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package sharedcache
 
 import (
@@ -7,7 +11,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
-//go:generate go run github.com/dmarkham/enumer -type=CacheType -text -json -yaml
+//go:generate go tool enumer -type=CacheType -text -json -yaml
 type CacheType int
 
 const (

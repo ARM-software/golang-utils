@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>config</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/config<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package config</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/config&#34;</span></pre>
+<ul>
+<li>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li>SPDX-License-Identifier: Apache-2.0
+</ul>
+<p>Package config provides utilities to load configuration from an environment and perform validation at load time.
+<ul>
+<li>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li>SPDX-License-Identifier: Apache-2.0
+</ul>
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-constants">Constants</a></li><li><a href="#pkg-variables">Variables</a></li><li><a href="#BindFlagToEnv">func BindFlagToEnv(viperSession *viper.Viper, envVarPrefix string, envVar string, ...) (err error)</a></li>
+  <li><a href="#BindFlagsToEnv">func BindFlagsToEnv(viperSession *viper.Viper, envVarPrefix string, envVar string, ...) (err error)</a></li>
+  <li><a href="#DetermineConfigurationEnvironmentVariables">func DetermineConfigurationEnvironmentVariables(appName string, configurationToDecode IServiceConfiguration, ...) (defaults map[string]any, err error)</a></li>
+  <li><a href="#DetermineConfigurationEnvironmentVariablesWithContext">func DetermineConfigurationEnvironmentVariablesWithContext(ctx context.Context, appName string, ...) (defaults map[string]any, err error)</a></li>
+  <li><a href="#Load">func Load(envVarPrefix string, configurationToSet IServiceConfiguration, ...) error</a></li>
+  <li><a href="#LoadFromConfigurationFile">func LoadFromConfigurationFile(viperSession *viper.Viper, configFile string) (err error)</a></li>
+  <li><a href="#LoadFromEnvironment">func LoadFromEnvironment(viperSession *viper.Viper, envVarPrefix string, ...) error</a></li>
+  <li><a href="#LoadFromEnvironmentAndSystem">func LoadFromEnvironmentAndSystem(viperSession *viper.Viper, envVarPrefix string, ...) error</a></li>
+  <li><a href="#LoadFromSystem">func LoadFromSystem(envVarPrefix string, configurationToSet IServiceConfiguration, ...) error</a></li>
+  <li><a href="#LoadFromViper">func LoadFromViper(viperSession *viper.Viper, envVarPrefix string, ...) error</a></li>
+  <li><a href="#LoadFromViperAndSystem">func LoadFromViperAndSystem(viperSession *viper.Viper, envVarPrefix string, ...) error</a></li>
+  <li><a href="#LoadUsing">func LoadUsing(configurationToSet IServiceConfiguration, options ...LoadingOption) (err error)</a></li>
+  <li><a href="#NewFieldNameConverter">func NewFieldNameConverter(match collection.MatchingFunction[string], converter value.IValueConverter) value.IValueConverter</a></li>
+  <li><a href="#NewFieldNameSecretConverter">func NewFieldNameSecretConverter(match collection.MatchingFunction[string]) value.IValueConverter</a></li>
+  <li><a href="#NewFieldTagSecretConverter">func NewFieldTagSecretConverter(tagNames ...string) value.IValueConverter</a></li>
+  <li><a href="#NewValueMatchingConverter">func NewValueMatchingConverter(match collection.MatchingFunction[T]) value.IValueConverter</a></li>
+  <li><a href="#NewValueTypeConverter">func NewValueTypeConverter(converter reflection.IValueConverter) value.IValueConverter</a></li>
+  <li><a href="#ValidateEmbedded">func ValidateEmbedded(cfg Validator) error</a></li>
+  <li>
+      <a href="#IServiceConfiguration">type IServiceConfiguration</a>
+      </li>
+  <li>
+      <a href="#IValidationError">type IValidationError</a>
+      <ul>
+          <li><a href="#WrapFieldValidationError">func WrapFieldValidationError(fieldName string, mapStructure, prefix *string, err error) IValidationError</a></li>
+          <li><a href="#WrapValidationError">func WrapValidationError(prefix *string, err error) IValidationError</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#LoadingOption">type LoadingOption</a>
+      <ul>
+          <li><a href="#DisableKeyring">func DisableKeyring() LoadingOption</a></li>
+          <li><a href="#UseKeyring">func UseKeyring() LoadingOption</a></li>
+          <li><a href="#WithAdditionalDecoderOptions">func WithAdditionalDecoderOptions(hooks ...mapstructure.DecodeHookFunc) LoadingOption</a></li>
+          <li><a href="#WithConfigFile">func WithConfigFile(path string) LoadingOption</a></li>
+          <li><a href="#WithDecoderOptions">func WithDecoderOptions(hooks ...mapstructure.DecodeHookFunc) LoadingOption</a></li>
+          <li><a href="#WithDefaultConfiguration">func WithDefaultConfiguration(cfg IServiceConfiguration) LoadingOption</a></li>
+          <li><a href="#WithEnvVarPrefix">func WithEnvVarPrefix(prefix string) LoadingOption</a></li>
+          <li><a href="#WithKeyring">func WithKeyring(enabled bool) LoadingOption</a></li>
+          <li><a href="#WithViperSession">func WithViperSession(v *viper.Viper) LoadingOption</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#LoadingOptions">type LoadingOptions</a>
+      <ul>
+          <li><a href="#DefaultLoadingOptions">func DefaultLoadingOptions() *LoadingOptions</a></li>
+          <li><a href="#LoadingOptions.HasDecoderOptions">func (o *LoadingOptions) HasDecoderOptions() bool</a></li>
+          <li><a href="#LoadingOptions.Validate">func (o *LoadingOptions) Validate() (err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#Validator">type Validator</a>
+      </li>
+  </ul><h3 id="pkg-constants">Constants</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">const</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="SensitiveFieldTagMask"><span class="nx">SensitiveFieldTagMask</span></span><span class="w">      </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;mask&#34;</span><span class="w">
+</span><span class="w">	</span><span id="SensitiveFieldTagSensitive"><span class="nx">SensitiveFieldTagSensitive</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;sensitive&#34;</span><span class="w">
+</span><span class="w">	</span><span id="SensitiveFieldTagSecret"><span class="nx">SensitiveFieldTagSecret</span></span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;secret&#34;</span><span class="w">
+</span><span class="w">	</span><span id="SensitiveFieldTagPassword"><span class="nx">SensitiveFieldTagPassword</span></span><span class="w">  </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;password&#34;</span><span class="w">
+</span><span class="w">	</span><span id="SensitiveFieldTagCensored"><span class="nx">SensitiveFieldTagCensored</span></span><span class="w">  </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;censored&#34;</span><span class="w">
+</span><span class="w">	</span><span id="SensitiveFieldTagRedact"><span class="nx">SensitiveFieldTagRedact</span></span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;redact&#34;</span><span class="w">
+</span><span class="w">	</span><span id="SensitiveFieldTagPII"><span class="nx">SensitiveFieldTagPII</span></span><span class="w">       </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;pii&#34;</span><span class="w">
+</span><span class="w">	</span><span id="SensitiveFieldTagSens"><span class="nx">SensitiveFieldTagSens</span></span><span class="w">      </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;sens&#34;</span><span class="w">
+</span><span class="p">)</span></pre>
+  
+  
+  <pre class="chroma"><span class="kd">const</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="EnvVarSeparator"><span class="nx">EnvVarSeparator</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;_&#34;</span><span class="w">
+</span><span class="w">	</span><span id="DotEnvFile"><span class="nx">DotEnvFile</span></span><span class="w">      </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;.env&#34;</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="CommonFieldTagSecretConverter"><span class="nx">CommonFieldTagSecretConverter</span></span><span class="w"> </span><a href="../value"><span class="nx">value</span></a><span class="p">.</span><a href="../value#IValueConverter"><span class="nx">IValueConverter</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="#NewFieldTagSecretConverter"><span class="nf">NewFieldTagSecretConverter</span></a><span class="p">(</span><a href="#CommonSensitiveFieldTagNames"><span class="nx">CommonSensitiveFieldTagNames</span></a><span class="o">...</span><span class="p">)</span></pre>
+  <p>CommonFieldTagSecretConverter masks values whose source configuration field
+defines any tag listed in <a href="#CommonSensitiveFieldTagNames">CommonSensitiveFieldTagNames</a>.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="CommonSensitiveFieldTagNames"><span class="nx">CommonSensitiveFieldTagNames</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#SensitiveFieldTagMask"><span class="nx">SensitiveFieldTagMask</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="#SensitiveFieldTagSensitive"><span class="nx">SensitiveFieldTagSensitive</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="#SensitiveFieldTagSecret"><span class="nx">SensitiveFieldTagSecret</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="#SensitiveFieldTagPassword"><span class="nx">SensitiveFieldTagPassword</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="#SensitiveFieldTagCensored"><span class="nx">SensitiveFieldTagCensored</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="#SensitiveFieldTagRedact"><span class="nx">SensitiveFieldTagRedact</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="#SensitiveFieldTagPII"><span class="nx">SensitiveFieldTagPII</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="#SensitiveFieldTagSens"><span class="nx">SensitiveFieldTagSens</span></a><span class="p">,</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>CommonSensitiveFieldTagNames lists common struct-tag keys used by Go
+libraries and applications to identify fields that should not be exposed
+verbatim in derived configuration views.
+<p>These are tag keys checked via `reflect.StructTag.Lookup`, not field names.
+For example, this list is intended to match fields tagged like
+`mask:&quot;redact&quot;` or `pii:&quot;true&quot;`, not field names like `Password`,
+`Secret`, or `Token` on their own.
+<p>Recognising these tags helps reduce accidental disclosure of credentials,
+secrets, PII, and other confidential data in logs, environment-variable
+dumps, debug output, support bundles, and similar human-readable output.
+See <a href="https://en.wikipedia.org/wiki/Personal_data">https://en.wikipedia.org/wiki/Personal_data</a> for general background on PII
+and related personal-data concepts.
+<p>There is no standard Go struct tag for sensitive data. Some libraries use
+tags such as `sensitive`, `pii`, `sens`, `mask`, or `redact`, while major
+logging APIs such as `log/slog`, zap, and zerolog commonly address the
+problem through custom value or object marshalling instead.
+<p>This mechanism can support privacy and data-protection controls such as data
+minimisation and pseudonymisation, but tagging or masking a field does not by
+itself establish compliance with GDPR or other privacy regulations.
+<p>The tag choices are informed by patterns used in similar masking or redaction
+libraries and articles, including:
+<ul>
+<li><a href="https://github.com/ln80/struct-sensitive">https://github.com/ln80/struct-sensitive</a>
+<li><a href="https://github.com/nirajbhattad/go-masker">https://github.com/nirajbhattad/go-masker</a>
+<li><a href="https://github.com/coopnorge/go-masker-lib/blob/main/catalog-info.yaml">https://github.com/coopnorge/go-masker-lib/blob/main/catalog-info.yaml</a>
+<li><a href="https://www.larcade.dev/articles/go-privacy-pii-redaction-masking">https://www.larcade.dev/articles/go-privacy-pii-redaction-masking</a>
+<li><a href="https://github.com/ggwhite/go-masker">https://github.com/ggwhite/go-masker</a>
+<li><a href="https://github.com/showa-93/go-mask">https://github.com/showa-93/go-mask</a>
+<li><a href="https://pkg.go.dev/github.com/anu1097/golang-masking-tool">https://pkg.go.dev/github.com/anu1097/golang-masking-tool</a>
+<li><a href="https://github.com/anu1097/golang-masking-tool">https://github.com/anu1097/golang-masking-tool</a>
+<li><a href="https://dev.to/anu1097/introducing-golang-masking-tool-to-mask-away-your-sensitive-information-3387">https://dev.to/anu1097/introducing-golang-masking-tool-to-mask-away-your-sensitive-information-3387</a>
+</ul>
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="SecretConverter"><span class="nx">SecretConverter</span></span><span class="w"> </span><a href="../value"><span class="nx">value</span></a><span class="p">.</span><a href="../value#IValueConverter"><span class="nx">IValueConverter</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="../value"><span class="nx">value</span></a><span class="p">.</span><a href="../value#ValueConverterFunc"><span class="nf">ValueConverterFunc</span></a><span class="p">(</span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">input</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><a href="../reflection"><span class="nx">reflection</span></a><span class="p">.</span><a href="../reflection#IsEmpty"><span class="nf">IsEmpty</span></a><span class="p">(</span><span class="nx">input</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="k">return</span><span class="w"> </span><span class="s">&#34;&#34;</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">converted</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><a href="../value"><span class="nx">value</span></a><span class="p">.</span><a href="../value#StringConverter"><span class="nx">StringConverter</span></a><span class="p">.</span><span class="nf">ConvertValue</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">input</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="k">return</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">text</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><a href="https://pkg.go.dev/fmt"><span class="nx">fmt</span></a><span class="p">.</span><a href="https://pkg.go.dev/fmt#Sprint"><span class="nf">Sprint</span></a><span class="p">(</span><span class="nx">converted</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="nx">runes</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#rune"><span class="nb">rune</span></a><span class="p">(</span><span class="nx">text</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="k">if</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#len"><span class="nb">len</span></a><span class="p">(</span><span class="nx">runes</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">		</span><span class="k">return</span><span class="w"> </span><span class="s">&#34;&#34;</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w">
+</span><span class="w">	</span><span class="p">}</span><span class="w">
+</span><span class="w">	</span><span class="nx">first</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#First"><span class="nf">First</span></a><span class="p">(</span><span class="nx">runes</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="nx">last</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#Last"><span class="nf">Last</span></a><span class="p">(</span><span class="nx">runes</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span class="k">return</span><span class="w"> </span><a href="https://pkg.go.dev/fmt"><span class="nx">fmt</span></a><span class="p">.</span><a href="https://pkg.go.dev/fmt#Sprintf"><span class="nf">Sprintf</span></a><span class="p">(</span><span class="s">&#34;%s*****%s&#34;</span><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="nb">string</span></a><span class="p">(</span><span class="nx">first</span><span class="p">),</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="nb">string</span></a><span class="p">(</span><span class="nx">last</span><span class="p">)),</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w">
+</span><span class="p">})</span></pre>
+  <p>SecretConverter converts a value to a masked string.
+<p>It first uses <a href="../value#StringConverter">value.StringConverter</a> to normalise the input into a string,
+then preserves the first and last rune with `*****` in between.
+<h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="BindFlagToEnv">func BindFlagToEnv</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">BindFlagToEnv</span><span class="p">(</span><span class="nx">viperSession</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0"><span class="nx">viper</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0#Viper"><span class="nx">Viper</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envVarPrefix</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envVar</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">flag</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/github.com/spf13/pflag@v1.0.10"><span class="nx">pflag</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/spf13/pflag@v1.0.10#Flag"><span class="nx">Flag</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>BindFlagToEnv binds pflags to environment variable.
+Envvar is the environment variable string with or without the prefix envVarPrefix
+<h4 id="BindFlagsToEnv">func BindFlagsToEnv</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">BindFlagsToEnv</span><span class="p">(</span><span class="nx">viperSession</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0"><span class="nx">viper</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0#Viper"><span class="nx">Viper</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envVarPrefix</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envVar</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">flags</span><span class="w"> </span><span class="o">...*</span><a href="https://pkg.go.dev/github.com/spf13/pflag@v1.0.10"><span class="nx">pflag</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/spf13/pflag@v1.0.10#Flag"><span class="nx">Flag</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>BindFlagsToEnv binds a set of pflags to an environment variable.
+Envvar is the environment variable string with or without the prefix envVarPrefix
+It is similar to BindFlagToEnv but can be applied to multiple flags.
+Note: all the flags will have to be of the same type. If more than one flags is changed, the system will pick one at random.
+<h4 id="DetermineConfigurationEnvironmentVariables">func DetermineConfigurationEnvironmentVariables</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DetermineConfigurationEnvironmentVariables</span><span class="p">(</span><span class="nx">appName</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">configurationToDecode</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">converters</span><span class="w"> </span><span class="o">...</span><a href="../value"><span class="nx">valueUtils</span></a><span class="p">.</span><a href="../value#IValueConverter"><span class="nx">IValueConverter</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">defaults</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">]</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>DetermineConfigurationEnvironmentVariables returns all the environment variables corresponding to a configuration structure as well as all the default values currently set.
+<p>Optional <a href="../value#IValueConverter">valueUtils.IValueConverter</a> values are applied to each flattened leaf value before the final
+prefixed map is returned. This is useful when certain source types should be
+emitted differently in the environment-variable view, for example to unwrap or
+redact secret-like types, or to apply type-based matching logic before
+returning the final value.
+<p>Value converters may either wrap a type-driven <a href="../reflection#IValueConverter">reflection.IValueConverter</a>
+through <a href="#NewValueTypeConverter">NewValueTypeConverter</a>, which follows the same runtime type pattern as
+<a href="https://pkg.go.dev/github.com/go-viper/mapstructure/v2@v2.5.0#DecodeHookFuncType">mapstructure.DecodeHookFuncType</a>, or map concrete values to boolean match
+results through <a href="#NewValueMatchingConverter">NewValueMatchingConverter</a>.
+<h4 id="DetermineConfigurationEnvironmentVariablesWithContext">func DetermineConfigurationEnvironmentVariablesWithContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DetermineConfigurationEnvironmentVariablesWithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">appName</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">configurationToDecode</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">converters</span><span class="w"> </span><span class="o">...</span><a href="../value"><span class="nx">valueUtils</span></a><span class="p">.</span><a href="../value#IValueConverter"><span class="nx">IValueConverter</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">defaults</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">]</span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>DetermineConfigurationEnvironmentVariablesWithContext returns all the
+environment variables corresponding to a configuration structure as well as
+all the default values currently set.
+<h4 id="Load">func Load</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Load</span><span class="p">(</span><span class="nx">envVarPrefix</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">configurationToSet</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">defaultConfiguration</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Load loads the configuration from the environment (i.e. .env file, environment variables) and puts the entries into the configuration object configurationToSet.
+If not found in the environment, the values will come from the default values defined in defaultConfiguration.
+`envVarPrefix` defines a prefix that ENVIRONMENT variables will use.  E.g. if your prefix is &quot;spf&quot;, the env registry will look for env variables that start with &quot;SPF_&quot;.
+make sure that the tags on the fields of configurationToSet are properly set using only `[_1-9a-zA-Z]` characters.
+<h4 id="LoadFromConfigurationFile">func LoadFromConfigurationFile</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">LoadFromConfigurationFile</span><span class="p">(</span><span class="nx">viperSession</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0"><span class="nx">viper</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0#Viper"><span class="nx">Viper</span></a><span class="p">,</span><span class="w"> </span><span class="nx">configFile</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>LoadFromConfigurationFile loads the configuration from the environment.
+If the format is not supported, an error is raised and the same happens if the file cannot be found.
+Supported formats are the same as what <a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0">viper</a>(<a href="https://github.com/spf13/viper#what-is-viper">https://github.com/spf13/viper#what-is-viper</a>) supports
+<h4 id="LoadFromEnvironment">func LoadFromEnvironment</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">LoadFromEnvironment</span><span class="p">(</span><span class="nx">viperSession</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0"><span class="nx">viper</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0#Viper"><span class="nx">Viper</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envVarPrefix</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">configurationToSet</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">defaultConfiguration</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">configFile</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>LoadFromEnvironment is the same as `LoadFromViper` but also gives the ability to load the configuration from a configuration file as long as the format is supported by [Viper](<a href="https://github.com/spf13/viper#what-is-viper">https://github.com/spf13/viper#what-is-viper</a>)
+Important note:
+Viper&apos;s precedence order is maintained:
+1) values set using explicit calls to `Set`
+2) flags
+3) environment (variables or `.env`)
+4) configuration file
+5) key/value store
+6) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
+Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
+<h4 id="LoadFromEnvironmentAndSystem">func LoadFromEnvironmentAndSystem</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">LoadFromEnvironmentAndSystem</span><span class="p">(</span><span class="nx">viperSession</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0"><span class="nx">viper</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0#Viper"><span class="nx">Viper</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envVarPrefix</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">configurationToSet</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">defaultConfiguration</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">configFile</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">useKeyring</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>LoadFromEnvironmentAndSystem is the same as `LoadFromEnvironment` but also gives the ability to load the configuration from system&apos;s [keyring service](<a href="https://github.com/zalando/go-keyring">https://github.com/zalando/go-keyring</a>).
+Important note:
+Viper&apos;s precedence order is mostly maintained:
+1) values defined in keyring (if not empty and keyring is selected - this is the only difference from Viper)
+2) values set using explicit calls to `Set`
+3) flags
+4) environment (variables or `.env`)
+5) configuration file
+6) key/value store
+7) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
+Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
+<h4 id="LoadFromSystem">func LoadFromSystem</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">LoadFromSystem</span><span class="p">(</span><span class="nx">envVarPrefix</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">configurationToSet</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">defaultConfiguration</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>LoadFromSystem is similar to Load but also fetches values from system&apos;s [keyring service](<a href="https://github.com/zalando/go-keyring">https://github.com/zalando/go-keyring</a>).
+<h4 id="LoadFromViper">func LoadFromViper</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">LoadFromViper</span><span class="p">(</span><span class="nx">viperSession</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0"><span class="nx">viper</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0#Viper"><span class="nx">Viper</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envVarPrefix</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">configurationToSet</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">defaultConfiguration</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>LoadFromViper is the same as `Load` but instead of creating a new viper session, reuse the one provided.
+Important note:
+Viper&apos;s precedence order is maintained:
+1) values set using explicit calls to `Set`
+2) flags
+3) environment (variables or `.env`)
+4) key/value store
+5) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
+Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
+<h4 id="LoadFromViperAndSystem">func LoadFromViperAndSystem</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">LoadFromViperAndSystem</span><span class="p">(</span><span class="nx">viperSession</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0"><span class="nx">viper</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0#Viper"><span class="nx">Viper</span></a><span class="p">,</span><span class="w"> </span><span class="nx">envVarPrefix</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">configurationToSet</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">defaultConfiguration</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>LoadFromViperAndSystem is the same as `LoadFromViper` but also fetches values from system&apos;s [keyring service](<a href="https://github.com/zalando/go-keyring">https://github.com/zalando/go-keyring</a>).
+<h4 id="LoadUsing">func LoadUsing</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">LoadUsing</span><span class="p">(</span><span class="nx">configurationToSet</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">options</span><span class="w"> </span><span class="o">...</span><a href="#LoadingOption"><span class="nx">LoadingOption</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>LoadUsing loads the service configuration using the provided loading options.
+<p>Important note:
+Viper&apos;s precedence order is mostly maintained:
+1) values defined in keyring (if not empty and keyring is selected - this is the only difference from Viper)
+2) values set using explicit calls to `Set`
+3) flags
+4) environment (variables or `.env`)
+5) configuration file
+6) key/value store
+7) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
+Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
+<h4 id="NewFieldNameConverter">func NewFieldNameConverter</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewFieldNameConverter</span><span class="p">(</span><span class="nx">match</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#MatchingFunction"><span class="nx">MatchingFunction</span></a><span class="p">[</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">],</span><span class="w"> </span><span class="nx">converter</span><span class="w"> </span><a href="../value"><span class="nx">value</span></a><span class="p">.</span><a href="../value#IValueConverter"><span class="nx">IValueConverter</span></a><span class="p">)</span><span class="w"> </span><a href="../value"><span class="nx">value</span></a><span class="p">.</span><a href="../value#IValueConverter"><span class="nx">IValueConverter</span></a></pre>
+  <p>NewFieldNameConverter returns a converter that applies converter when the
+source configuration field name matches.
+<p>It uses the Go struct field name recorded in the conversion context. When the
+field name does not match, or no field metadata is available, the original
+input value is preserved.
+<h4 id="NewFieldNameSecretConverter">func NewFieldNameSecretConverter</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewFieldNameSecretConverter</span><span class="p">(</span><span class="nx">match</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#MatchingFunction"><span class="nx">MatchingFunction</span></a><span class="p">[</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">])</span><span class="w"> </span><a href="../value"><span class="nx">value</span></a><span class="p">.</span><a href="../value#IValueConverter"><span class="nx">IValueConverter</span></a></pre>
+  <p>NewFieldNameSecretConverter returns a converter that masks values when the
+source configuration field name matches a caller-supplied predicate.
+<p>This supports name-based detection of sensitive fields using conventions such
+as `Password`, `Secret`, `APIKey`, `AccessToken`, or `PrivateKey`, even when
+the source type does not carry explicit sensitivity tags.
+<p>The approach mirrors redaction layers often built around structured logging
+libraries such as `log/slog`, Zap, Logrus, and Zerolog, where field or
+attribute names are inspected to decide which values should be masked. Those
+logging libraries do not generally apply name-based redaction by default; the
+policy is usually implemented in handlers, hooks, formatters, middleware, or
+application-level wrappers.
+<p>Name-based matching is best treated as a defence-in-depth heuristic rather
+than a primary classification mechanism, and is most effective when used
+alongside explicit sensitivity annotations such as struct tags.
+<h4 id="NewFieldTagSecretConverter">func NewFieldTagSecretConverter</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewFieldTagSecretConverter</span><span class="p">(</span><span class="nx">tagNames</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="../value"><span class="nx">value</span></a><span class="p">.</span><a href="../value#IValueConverter"><span class="nx">IValueConverter</span></a></pre>
+  <p>NewFieldTagSecretConverter returns a converter that masks values whose source
+configuration field defines any of tagNames.
+<p>It uses <a href="../reflection#StructPropertyHasTag">reflection.StructPropertyHasTag</a> against the original configuration
+field metadata carried through the conversion context, and delegates the
+masking itself to <a href="#SecretConverter">SecretConverter</a>. This is useful when generating
+environment-variable views or other derived representations of configuration
+that should avoid leaking secrets or sensitive personal data.
+<h4 id="NewValueMatchingConverter">func NewValueMatchingConverter</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">NewValueMatchingConverter</span><span class="p">[</span><span class="nx">T</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">](</span><span class="nx">match</span><span class="w"> </span><a href="../collection"><span class="nx">collection</span></a><span class="p">.</span><a href="../collection#MatchingFunction"><span class="nx">MatchingFunction</span></a><span class="p">[</span><span class="nx">T</span><span class="p">])</span><span class="w"> </span><a href="../value"><span class="nx">value</span></a><span class="p">.</span><a href="../value#IValueConverter"><span class="nx">IValueConverter</span></a></pre>
+  <p>NewValueMatchingConverter applies match to values of type T and replaces the
+value with the resulting boolean match outcome.
+<h4 id="NewValueTypeConverter">func NewValueTypeConverter</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewValueTypeConverter</span><span class="p">(</span><span class="nx">converter</span><span class="w"> </span><a href="../reflection"><span class="nx">reflection</span></a><span class="p">.</span><a href="../reflection#IValueConverter"><span class="nx">IValueConverter</span></a><span class="p">)</span><span class="w"> </span><a href="../value"><span class="nx">value</span></a><span class="p">.</span><a href="../value#IValueConverter"><span class="nx">IValueConverter</span></a></pre>
+  <p>NewValueTypeConverter wraps a reflection-style converter.
+<h4 id="ValidateEmbedded">func ValidateEmbedded</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateEmbedded</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><a href="#Validator"><span class="nx">Validator</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateEmbedded uses reflection to find embedded structs and validate them
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="IServiceConfiguration">type IServiceConfiguration</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IServiceConfiguration</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="#Validator"><span class="nx">Validator</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IServiceConfiguration defines a typical service configuration.
+<h4 id="IValidationError">type IValidationError</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IValidationError</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span id="IValidationError.GetMapStructurePath"><span class="nf">GetMapStructurePath</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="IValidationError.GetTreePath"><span class="nf">GetTreePath</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="IValidationError.GetReason"><span class="nf">GetReason</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="IValidationError.Unwrap"><span class="nf">Unwrap</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">	</span><span id="IValidationError.RecordField"><span class="nf">RecordField</span></span><span class="p">(</span><span class="nx">fieldName</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">mapStructureFieldName</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">mapStructurePrefix</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="IValidationError.RecordPrefix"><span class="nf">RecordPrefix</span></span><span class="p">(</span><span class="nx">mapStructurePrefix</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/fmt"><span class="nx">fmt</span></a><span class="p">.</span><a href="https://pkg.go.dev/fmt#Stringer"><span class="nx">Stringer</span></a><span class="w">
+</span><span class="w">	</span><span id="IValidationError.GetTree"><span class="nf">GetTree</span></span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="IValidationError.GetMapStructureTree"><span class="nf">GetMapStructureTree</span></span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="IValidationError.GetMapStructurePrefix"><span class="nf">GetMapStructurePrefix</span></span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IValidationError defines a typical structure validation error.
+<h5 id="WrapFieldValidationError">func WrapFieldValidationError</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapFieldValidationError</span><span class="p">(</span><span class="nx">fieldName</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">mapStructure</span><span class="p">,</span><span class="w"> </span><span class="nx">prefix</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="#IValidationError"><span class="nx">IValidationError</span></a></pre>
+  <p>WrapFieldValidationError creates an error resulting from the validation of a field in a structure
+<h5 id="WrapValidationError">func WrapValidationError</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WrapValidationError</span><span class="p">(</span><span class="nx">prefix</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="#IValidationError"><span class="nx">IValidationError</span></a></pre>
+  <p>WrapValidationError creates an error resulting from the validation of a structure
+<h4 id="LoadingOption">type LoadingOption</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">LoadingOption</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="o">*</span><a href="#LoadingOptions"><span class="nx">LoadingOptions</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#LoadingOptions"><span class="nx">LoadingOptions</span></a></pre>
+    <p>LoadingOption represents a functional option used to modify LoadingOptions
+during configuration loading.
+<h5 id="DisableKeyring">func DisableKeyring</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DisableKeyring</span><span class="p">()</span><span class="w"> </span><a href="#LoadingOption"><span class="nx">LoadingOption</span></a></pre>
+  <p>DisableKeyring disables the use of the system keyring for loading or storing
+sensitive configuration values.
+<h5 id="UseKeyring">func UseKeyring</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">UseKeyring</span><span class="p">()</span><span class="w"> </span><a href="#LoadingOption"><span class="nx">LoadingOption</span></a></pre>
+  <p>UseKeyring enables the use of the system keyring for loading or storing
+sensitive configuration values.
+<h5 id="WithAdditionalDecoderOptions">func WithAdditionalDecoderOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithAdditionalDecoderOptions</span><span class="p">(</span><span class="nx">hooks</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/github.com/go-viper/mapstructure/v2@v2.5.0"><span class="nx">mapstructure</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-viper/mapstructure/v2@v2.5.0#DecodeHookFunc"><span class="nx">DecodeHookFunc</span></a><span class="p">)</span><span class="w"> </span><a href="#LoadingOption"><span class="nx">LoadingOption</span></a></pre>
+  <p>WithAdditionalDecoderOptions appends custom mapstructure decode hooks used
+when unmarshalling configuration values into Go types.
+<p>The provided hooks are added to any decoder options already configured.
+<h5 id="WithConfigFile">func WithConfigFile</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithConfigFile</span><span class="p">(</span><span class="nx">path</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#LoadingOption"><span class="nx">LoadingOption</span></a></pre>
+  <p>WithConfigFile specifies an explicit configuration file path to load.
+Passing an empty string is allowed and will be treated as a valid path.
+<h5 id="WithDecoderOptions">func WithDecoderOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithDecoderOptions</span><span class="p">(</span><span class="nx">hooks</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/github.com/go-viper/mapstructure/v2@v2.5.0"><span class="nx">mapstructure</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-viper/mapstructure/v2@v2.5.0#DecodeHookFunc"><span class="nx">DecodeHookFunc</span></a><span class="p">)</span><span class="w"> </span><a href="#LoadingOption"><span class="nx">LoadingOption</span></a></pre>
+  <p>WithDecoderOptions sets custom mapstructure decode hooks used when
+unmarshalling configuration values into Go types.
+<p>The provided hooks replace any previously configured decoder options.
+<h5 id="WithDefaultConfiguration">func WithDefaultConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithDefaultConfiguration</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><a href="#IServiceConfiguration"><span class="nx">IServiceConfiguration</span></a><span class="p">)</span><span class="w"> </span><a href="#LoadingOption"><span class="nx">LoadingOption</span></a></pre>
+  <p>WithDefaultConfiguration sets the baseline configuration that is applied
+before loading values from other configuration sources.
+<h5 id="WithEnvVarPrefix">func WithEnvVarPrefix</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithEnvVarPrefix</span><span class="p">(</span><span class="nx">prefix</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#LoadingOption"><span class="nx">LoadingOption</span></a></pre>
+  <p>WithEnvVarPrefix sets the prefix applied to environment variables
+when resolving configuration values.
+<h5 id="WithKeyring">func WithKeyring</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithKeyring</span><span class="p">(</span><span class="nx">enabled</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><a href="#LoadingOption"><span class="nx">LoadingOption</span></a></pre>
+  <p>WithKeyring enables or disables the use of the system keyring for
+loading or storing sensitive configuration values.
+<h5 id="WithViperSession">func WithViperSession</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithViperSession</span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0"><span class="nx">viper</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/spf13/viper@v1.21.0#Viper"><span class="nx">Viper</span></a><span class="p">)</span><span class="w"> </span><a href="#LoadingOption"><span class="nx">LoadingOption</span></a></pre>
+  <p>WithViperSession sets the Viper instance used to load configuration
+from files, environment variables, and other supported sources.
+<h4 id="LoadingOptions">type LoadingOptions</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">LoadingOptions</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>LoadingOptions defines the parameters used when loading and decoding
+service configuration from various sources such as defaults, configuration
+files, environment variables, and external backends.
+<p>It controls how configuration values are discovered, merged, and decoded,
+including support for custom decode hooks and optional keyring integration.
+<h5 id="DefaultLoadingOptions">func DefaultLoadingOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultLoadingOptions</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#LoadingOptions"><span class="nx">LoadingOptions</span></a></pre>
+  <h5 id="LoadingOptions.HasDecoderOptions">func (*LoadingOptions) HasDecoderOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#LoadingOptions"><span class="nx">LoadingOptions</span></a><span class="p">)</span><span class="w"> </span><span class="nf">HasDecoderOptions</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <h5 id="LoadingOptions.Validate">func (*LoadingOptions) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><a href="#LoadingOptions"><span class="nx">LoadingOptions</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="Validator">type Validator</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Validator</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="Validator.Validate"><span class="nf">Validate</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Validator defines an object which can perform some validation on itself.
+<h3 id="pkg-directories">Directories</h3>
+
+<table>
+  <tbody>
+    <tr>
+        <td><a href="mocks">mocks</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    </tbody>
+</table>
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

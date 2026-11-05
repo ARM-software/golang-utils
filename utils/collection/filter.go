@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package collection
 
 import (
@@ -31,6 +35,10 @@ type FilterRefFunc[E any] func(*E) bool
 
 // Predicate is an alias for FilterFunc to express boolean tests.
 type Predicate[E any] = FilterFunc[E]
+
+// MatchingFunction is an alias for FilterFunc to express whether a single value
+// matches a condition.
+type MatchingFunction[E any] = FilterFunc[E]
 
 // PredicateRef is an alias for FilterRefFunc to express boolean tests on
 // references.

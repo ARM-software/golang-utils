@@ -1,0 +1,20 @@
+name: Set up gotestsum
+description: Install gotest.tools/gotestsum and make its binary available to later workflow steps.
+inputs:
+  version:
+    description: Version of gotestsum to install, including the v prefix.
+    required: false
+    default: v1.13.0
+runs:
+  using: composite
+  steps:
+    - name: Install gotestsum
+      shell: bash
+      env:
+        GOTESTSUM_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        go install "gotest.tools/gotestsum@$GOTESTSUM_VERSION"
+        go_bin="$(go env GOBIN)"
+        if [[ -z "$go_bin" ]]; then go_bin="$(go env GOPATH)/bin"; fi
+        echo "$go_bin" >> "$GITHUB_PATH"

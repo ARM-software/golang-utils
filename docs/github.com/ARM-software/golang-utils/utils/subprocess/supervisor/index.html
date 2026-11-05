@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../../_/icons/favicon.ico"><title>supervisor</title>
+</head>
+  <body>
+    <nav><a href="../../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../../..">github.com</a>/<a href="../../../..">ARM-software</a>/<a href="../../..">golang-utils</a>/<a href="../..">utils</a>/<a href="..">subprocess</a>/supervisor<span class="navbar-right">
+          <a href="../../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package supervisor</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/subprocess/supervisor&#34;</span></pre>
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li>
+      <a href="#ISupervisor">type ISupervisor</a>
+      </li>
+  <li>
+      <a href="#Supervisor">type Supervisor</a>
+      <ul>
+          <li><a href="#NewSupervisor">func NewSupervisor(newCommand func(ctx context.Context) (*subprocess.Subprocess, error), ...) *Supervisor</a></li>
+          <li><a href="#Supervisor.Run">func (s *Supervisor) Run(ctx context.Context) (err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#SupervisorOption">type SupervisorOption</a>
+      <ul>
+          <li><a href="#WithCount">func WithCount(count I) SupervisorOption</a></li>
+          <li><a href="#WithHaltingErrors">func WithHaltingErrors(errs ...error) SupervisorOption</a></li>
+          <li><a href="#WithPostEnd">func WithPostEnd(function func()) SupervisorOption</a></li>
+          <li><a href="#WithPostStart">func WithPostStart(function func(context.Context) error) SupervisorOption</a></li>
+          <li><a href="#WithPostStop">func WithPostStop(function func(context.Context, error) error) SupervisorOption</a></li>
+          <li><a href="#WithPreStart">func WithPreStart(function func(context.Context) error) SupervisorOption</a></li>
+          <li><a href="#WithRestartDelay">func WithRestartDelay(delay time.Duration) SupervisorOption</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-types">Types</h3>
+  
+  <h4 id="ISupervisor">type ISupervisor</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ISupervisor</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Run will run the supervisor and execute any of the command hooks. If it receives a halting error or the context is cancelled then it will exit</span><span class="w">
+</span><span class="w">	</span><span id="ISupervisor.Run"><span class="nf">Run</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>ISupervisor  will run a command and automatically restart it if it exits. Hooks can be used to execute code at
+different points in the execution lifecyle. Restarts can be delayed
+<h4 id="Supervisor">type Supervisor</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Supervisor</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>A Supervisor will run a command and automatically restart it if it exits. Hooks can be used to execute code at
+different points in the execution lifecyle. Restarts can be delayed
+<h5 id="NewSupervisor">func NewSupervisor</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewSupervisor</span><span class="p">(</span><span class="nx">newCommand</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href=".."><span class="nx">subprocess</span></a><span class="p">.</span><a href="..#Subprocess"><span class="nx">Subprocess</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">),</span><span class="w"> </span><span class="nx">opts</span><span class="w"> </span><span class="o">...</span><a href="#SupervisorOption"><span class="nx">SupervisorOption</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Supervisor"><span class="nx">Supervisor</span></a></pre>
+  <p>NewSupervisor will take a function &apos;newCommand&apos; that creates a command and run it every time the command exits.
+Options can be supplied by the &apos;opts&apos; variadic argument that control the lifecyle of the supervisor
+<h5 id="Supervisor.Run">func (*Supervisor) Run</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="o">*</span><a href="#Supervisor"><span class="nx">Supervisor</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Run</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Run will run the supervisor and execute any of the command hooks. If it receives a halting error or the context is cancelled then it will exit
+<h4 id="SupervisorOption">type SupervisorOption</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">SupervisorOption</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="o">*</span><a href="#Supervisor"><span class="nx">Supervisor</span></a><span class="p">)</span></pre>
+    <h5 id="WithCount">func WithCount</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nx">WithCount</span><span class="p">[</span><span class="nx">I</span><span class="w"> </span><a href="../../safecast"><span class="nx">safecast</span></a><span class="p">.</span><a href="../../safecast#INumber"><span class="nx">INumber</span></a><span class="p">](</span><span class="nx">count</span><span class="w"> </span><span class="nx">I</span><span class="p">)</span><span class="w"> </span><a href="#SupervisorOption"><span class="nx">SupervisorOption</span></a></pre>
+  <p>WithCount will run cause the supervisor to exit after &apos;count&apos; executions.
+<h5 id="WithHaltingErrors">func WithHaltingErrors</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithHaltingErrors</span><span class="p">(</span><span class="nx">errs</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="#SupervisorOption"><span class="nx">SupervisorOption</span></a></pre>
+  <p>WithHaltingErrors are errors that won&apos;t trigger the supervisor to restart and on which, the subprocess will just halt.
+<h5 id="WithPostEnd">func WithPostEnd</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithPostEnd</span><span class="p">(</span><span class="nx">function</span><span class="w"> </span><span class="kd">func</span><span class="p">())</span><span class="w"> </span><a href="#SupervisorOption"><span class="nx">SupervisorOption</span></a></pre>
+  <p>WithPostEnd will run &apos;function&apos; after the supervisor has stopped.
+It does not take a context to ensure that it runs after a context has been cancelled.
+It does not return an error as this could cause confusion with the other returned errors.
+<h5 id="WithPostStart">func WithPostStart</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithPostStart</span><span class="p">(</span><span class="nx">function</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="#SupervisorOption"><span class="nx">SupervisorOption</span></a></pre>
+  <p>WithPostStart will run &apos;function&apos; after the supervisor has started
+<h5 id="WithPostStop">func WithPostStop</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithPostStop</span><span class="p">(</span><span class="nx">function</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="#SupervisorOption"><span class="nx">SupervisorOption</span></a></pre>
+  <p>WithPostStop will run &apos;function&apos; after the supervised command has stopped
+It&apos;s context will ignore cancellations so any timeouts should be added within
+the function body itself
+<h5 id="WithPreStart">func WithPreStart</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithPreStart</span><span class="p">(</span><span class="nx">function</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="#SupervisorOption"><span class="nx">SupervisorOption</span></a></pre>
+  <p>WithPreStart will run &apos;function&apos; before the supervisor starts
+<h5 id="WithRestartDelay">func WithRestartDelay</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithRestartDelay</span><span class="p">(</span><span class="nx">delay</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><a href="#SupervisorOption"><span class="nx">SupervisorOption</span></a></pre>
+  <p>WithRestartDelay will delay the supervisor from restarting for a period of time specified by &apos;delay&apos;
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../../_/js/permalink.js"></script></body>
+</html>

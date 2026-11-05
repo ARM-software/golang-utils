@@ -14,6 +14,168 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+# 1.171.2 (2026-10-27)
+
+## Bugfixes
+
+- Dependency upgrade: v5-5.19.3 (#20261027175141428358884)
+- Dependency upgrade: spdx-0.3.3 (#20261027175159598934607)
+- Dependency upgrade: timberjack-1.4.9 (#20261027175208639643150)
+- Dependency upgrade: oauth2-0.37.0 (#20261027175250232464677)
+- Dependency upgrade: v4-4.26.9 (#20261027175305973430533, #20261027175827514394215)
+
+## Misc
+
+- #202610271735
+
+
+# 1.171.1 (2026-10-27)
+
+## Bugfixes
+
+- Dependency upgrade: mongo-driver-1.17.7 (#20261027140527843259182)
+- Dependency upgrade: v4-4.4.1 (#20261027142148622768483)
+- Dependency upgrade: codeql-action-4.39.1 (#20261027142231746971671)
+- Dependency upgrade: v5-5.19.2 (#20261027143621639979363)
+
+## Improved Documentation
+
+- :book: `[docs]` Configure the published documentation site URL explicitly so CDS generates `robots.txt`, `sitemap.xml`, and `llms*.txt` consistently during releases. (#202610271715)
+
+
+# 1.171.0 (2026-10-27)
+
+## Features
+
+- :recyle: Split golang-utils into [CDS](https://github.com/ARMmbed/continuous-delivery-scripts)-managed Go submodules with repository-wide workspace, per-module CI coverage, and full Dependabot coverage. (#202610231530)
+- :recyle: Add British-spelled `serialisation` modules, retaining the existing `serialization` import paths for compatibility. (#202610261300)
+- :recyle: Publish a combined project-wide JUnit XML report alongside per-module Go test reports in CI. (#202610261415)
+- :recyle: Reuse a standalone Go workspace sync action across CI, CodeQL, and release workflows. (#202610261430)
+- :sparkles: Define reusable Go actions for projects following the golang-utils multimodule convention, including workspace synchronisation, module discovery, generation, linting, testing, and combined reports. (#202610261500)
+- :sparkles: Publish dedicated Go modules for units, subprocess helpers, casing, JSON/YAML frontmatter, logging helpers, HTTP helpers, and AES/RSA encryption while preserving their import paths. (#202610261700)
+- :recycle: Forward legacy `serialization` helpers and types to `serialisation`, preserving existing import paths without maintaining duplicate implementations. (#202610261915)
+- :sparkles: [actions] Simplify multimodule Go test reporting by publishing per-module JUnit results with `publish-unit-test-result-action`, storing its combined JSON report in uploaded artifacts, and keeping the bespoke coverage combination flow. (#202610261955)
+
+## Bugfixes
+
+- :bug: [serialization] Make XML and frontmatter parsing tolerate prepended copyright header comments in serialised test fixtures. (#202610261646)
+- Dependency upgrade: v4-4.4.1 (#20261027131905474189580)
+- Dependency upgrade: v4-4.12.0 (#20261027131906426558447, #20261027131920332788338, #20261027131925488671416, #20261027131930221142662, #20261027131933957634673, #20261027131934706830307, #20261027131944751763408)
+- Dependency upgrade: atomic-1.12.0 (#20261027131923131348657)
+- Dependency upgrade: upload-artifact-7.0.2 (#20261027132018160488327)
+- Dependency upgrade: create-pull-request-8 (#20261027132031548689296)
+- Dependency upgrade: scorecard-action-2.5.0 (#20261027132032131117656)
+- Dependency upgrade: mongo-driver-1.17.7 (#20261027132220751070468, #20261027132222753804511)
+- Dependency upgrade: compress-1.18.7 (#20261027132221541873361, #20261027132224249760926)
+
+## Misc
+
+- #202610231531, #20261026155253423794900, #20261026155508003842115
+
+
+1.170.7 (2026-10-02)
+
+# Bugfixes
+
+- Dependency upgrade: atomic-1.12.0 (#20260929101312891857534)
+- Dependency upgrade: timberjack-1.4.8 (#20260929101326111645236)
+
+# Misc
+
+- #202610011200, #202610021136
+
+
+"1.170.6" (2026-09-28)
+======================
+
+Bugfixes
+--------
+
+- :lock: `[proc/find]` Reject PIDs outside int32 before lookup; previously oversized values were clamped to MaxInt32, potentially returning the wrong process or an incorrect not-found result ([code-scanning alert 126](https://github.com/ARM-software/golang-utils/security/code-scanning/126)). (#998)
+
+
+"1.170.5" (2026-09-28)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: testify-1.12.1 (#20260820101329)
+- Dependency upgrade: codeql-action-4.37.8 (#20260824101403)
+- Dependency upgrade: timberjack-1.4.7 (#20260827101353)
+- Dependency upgrade: v4-4.26.8 (#20260901101724)
+- Dependency upgrade: logrus-1.10.1 (#20260928133442)
+- Dependency upgrade: v4-4.2.0 (#20260928133543)
+
+
+"1.170.4" (2026-08-19)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: codeql-action-4.37.6 (#20260818152436)
+
+
+"1.170.3" (2026-08-18)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: text-0.41.0 (#20260817101501)
+- Dependency upgrade: net-0.58.0 (#20260817101511)
+- Dependency upgrade: spdx-0.3.1 (#20260817101518)
+- Dependency upgrade: testify-1.12.0 (#20260817101526)
+- :boom: Restore local required validation rules for remaining HTTP and file cache config fields after the ozzo-validation behaviour change. (#20260817103000)
+- Dependency upgrade: stringcase-1.0.0 (#20260818090655)
+- Dependency upgrade: logrus-1.10.0 (#20260818101350)
+
+
+"1.170.2" (2026-08-13)
+======================
+
+Bugfixes
+--------
+
+- :bug: `annotations` Ensure that annotation behavior aligns with what the CI platforms expect with annotations prefixing the entire log line (#20260813115747)
+
+
+"1.170.1" (2026-08-12)
+======================
+
+Bugfixes
+--------
+
+- :recycle: `[value]` Fix a regression introduced by switching flatten-map string conversion to `StringConverter` by restoring flatten-map scalar formatting, keeping `fmt.Stringer` and `encoding.TextMarshaler` precedence, wrapping text-marshalling failures as `commonerrors.ErrMarshalling`, and documenting pointer and struct fallback output. (#202608121215)
+- Dependency upgrade: upload-sarif-c16c0f3f2812ec4bb3750a5ed64873fe2ce0fbef (#20260812101700)
+
+
+"1.170.0" (2026-08-11)
+======================
+
+Features
+--------
+
+- :sparkles: `[value]` Added context-aware value converters, including `IdentityConverter` and `StringConverter` with `fmt.Stringer`, `encoding.TextMarshaler`, and fallback string formatting support. (#202608111300)
+- :sparkles: `[reflection]` Added `NewValueTypeConverter` to adapt reflection-based converters into the shared value-converter interface. (#202608111301)
+- :sparkles: `[config]` Added context-aware default-value converters for environment variable generation, including `SecretConverter` for masking sensitive values. (#202608111302)
+- :sparkles: `[reflection]` Added helpers to detect field tag values on structs, struct pointers, and collection values containing tagged struct items. (#202608111345)
+- :lock: `[config]` Added tag-aware configuration masking converters that can automatically obfuscate sensitive values based on common field tags such as `mask`, `sensitive`, `secret`, `password`, `censored`, `redact`, `pii`, and `sens`. (#202608111430)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: upload-sarif-7d9249f5a57288b8a472ddd9cc3ece1921f7dc38 (#20260807125603)
+
+
+Misc
+----
+
+- #202608111330
+
+
 "1.169.0" (2026-08-07)
 ======================
 

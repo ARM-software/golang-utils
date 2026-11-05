@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2024 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 package proc
@@ -7,6 +7,7 @@ package proc
 import "context"
 
 //go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IProcess
+//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IProcess
 
 // IProcess is the generic interface that is implemented on every platform
 // and provides common operations for processes.

@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // Package jsonschema provides helpers for validating JSON and YAML content
 // against JSON Schema documents.
 //
@@ -32,8 +37,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/reflection"
-	"github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
-	"github.com/ARM-software/golang-utils/utils/serialization/yaml" //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialisation/json"
+	"github.com/ARM-software/golang-utils/utils/serialisation/yaml"
 	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 

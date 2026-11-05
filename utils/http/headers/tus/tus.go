@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package tus
 
 import (
@@ -13,6 +17,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/hashing"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	valueUtils "github.com/ARM-software/golang-utils/utils/value"
 )
 
 const KeyTUSMetadata = "filename"
@@ -106,7 +111,12 @@ func GenerateTUSMetadataHeader(filename *string, elements map[string]any) (heade
 		if ok && valueB {
 			newMap[key] = ""
 		} else {
-			newMap[key] = base64.EncodeString(fmt.Sprintf("%v", value))
+			stringValue, convertErr := valueUtils.StringConverter.ConvertValue(context.Background(), value)
+			if convertErr != nil {
+				err = commonerrors.WrapError(commonerrors.ErrInvalid, convertErr, "invalid metadata value")
+				return
+			}
+			newMap[key] = base64.EncodeString(stringValue.(string))
 		}
 	}
 	if !reflection.IsEmpty(filename) {

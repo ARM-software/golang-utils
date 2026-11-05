@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 package http
@@ -12,6 +12,11 @@ import (
 
 func TestHttpClientConfiguration(t *testing.T) {
 	configTest := DefaultHTTPClientConfiguration()
+	require.NoError(t, configTest.Validate())
+}
+
+func TestHttpClientConfiguration_EmptyConfig(t *testing.T) {
+	configTest := &HTTPClientConfiguration{}
 	require.NoError(t, configTest.Validate())
 }
 

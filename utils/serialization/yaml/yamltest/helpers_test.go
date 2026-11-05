@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 //nolint:misspell // serialization package names and aliases are intentional.
 package yamltest
 
@@ -12,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/filesystem"
-	yamlserialization "github.com/ARM-software/golang-utils/utils/serialization/yaml" //nolint:misspell
+	yamlserialization "github.com/ARM-software/golang-utils/utils/serialization/yaml" //nolint:misspell,staticcheck // Verify the legacy API.
 	"github.com/ARM-software/golang-utils/utils/serialization/yaml/yamltest/nofast"   //nolint:misspell
 )
 

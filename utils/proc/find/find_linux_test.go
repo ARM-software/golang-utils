@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 //go:build linux
 
 package find
@@ -5,6 +10,7 @@ package find
 import (
 	"context"
 	"fmt"
+	"math"
 	"testing"
 
 	"github.com/go-faker/faker/v4"
@@ -18,6 +24,18 @@ import (
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 	"github.com/ARM-software/golang-utils/utils/subprocess"
 )
+
+func TestParseProcessRejectsOutOfRangePID(t *testing.T) {
+	for _, pid := range []int64{math.MaxInt32 + 1, math.MinInt32 - 1} {
+		t.Run(fmt.Sprint(pid), func(t *testing.T) {
+			process, err := parseProcess(context.Background(), fmt.Sprintf("/proc/%d/cmdline", pid))
+			errortest.AssertError(t, err, commonerrors.ErrUnexpected)
+			errortest.AssertErrorDescription(t, err, invalidPIDErr)
+			errortest.AssertErrorDescription(t, err, "must be a signed 32-bit decimal integer")
+			assert.Nil(t, process)
+		})
+	}
+}
 
 func TestFind(t *testing.T) {
 	for _, test := range []struct {

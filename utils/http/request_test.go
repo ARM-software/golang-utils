@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package http
 
 import (
@@ -7,23 +11,32 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/field"
 )
 
 func TestRequestConfiguration_Validate(t *testing.T) {
 	cfg := DefaultHTTPRequestConfiguration(faker.Name())
-	require.Error(t, cfg.Validate())
+	errortest.AssertError(t, cfg.Validate(), commonerrors.ErrUndefined, commonerrors.ErrInvalid)
 	cfg.Host = faker.URL()
 	require.NoError(t, cfg.Validate())
 	cfg.Port = "123"
 	require.NoError(t, cfg.Validate())
 	cfg = DefaultHTTPRequestWithAuthorisationConfigurationEnforced(faker.Name())
 	cfg.Host = faker.URL()
-	require.Error(t, cfg.Validate())
+	errortest.AssertError(t, cfg.Validate(), commonerrors.ErrUndefined, commonerrors.ErrInvalid)
 	cfg.Authorisation.AccessToken = faker.Password()
 	cfg.Authorisation.Scheme = faker.Name()
-	require.Error(t, cfg.Validate())
+	errortest.AssertError(t, cfg.Validate(), commonerrors.ErrUndefined, commonerrors.ErrInvalid)
 	cfg.Authorisation.Scheme = AuthorisationSchemeToken
+	require.NoError(t, cfg.Validate())
+}
+
+func TestDefaultHTTPRequestConfiguration_Validate(t *testing.T) {
+	cfg := DefaultHTTPRequestConfiguration(faker.Word())
+	errortest.AssertError(t, cfg.Validate(), commonerrors.ErrInvalid)
+	cfg.Host = faker.URL()
 	require.NoError(t, cfg.Validate())
 }
 

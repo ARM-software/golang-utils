@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>retry</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/retry<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package retry</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/retry&#34;</span></pre>
+<ul>
+<li>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li>SPDX-License-Identifier: Apache-2.0
+</ul>
+<p>Package retry provides configuration-driven retry helpers built on top of
+`github.com/avast/retry-go/v4`.
+<p>It exposes a small retry policy model through <a href="#RetryPolicyConfiguration">RetryPolicyConfiguration</a> and
+convenience helpers such as <a href="#RetryIf">RetryIf</a> and <a href="#RetryOnError">RetryOnError</a>. It also provides a
+functional-option layer for composing retry policies in code.
+<p>Backoff is the practice of waiting before the next retry attempt, often with
+the wait time increasing after repeated failures. Backoff is useful because
+it reduces pressure on a failing dependency, gives remote systems time to
+recover, and lowers the risk of many clients retrying at once after the same
+outage.
+<p>References:
+<ul>
+<li><p>Exponential backoff overview:
+<a href="https://en.wikipedia.org/wiki/Exponential_backoff">https://en.wikipedia.org/wiki/Exponential_backoff</a>
+<li><p>AWS Architecture Blog, Exponential Backoff and Jitter:
+<a href="https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/">https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/</a>
+<li><p>Google Cloud retry guidance:
+<a href="https://cloud.google.com/storage/docs/retry-strategy">https://cloud.google.com/storage/docs/retry-strategy</a>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#BackoffStrategyStrings">func BackoffStrategyStrings() []string</a></li>
+  <li><a href="#RetryIf">func RetryIf(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyConfiguration, ...) error</a></li>
+  <li><a href="#RetryOnError">func RetryOnError(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyConfiguration, ...) error</a></li>
+  <li>
+      <a href="#BackoffStrategy">type BackoffStrategy</a>
+      <ul>
+          <li><a href="#BackoffStrategyString">func BackoffStrategyString(s string) (BackoffStrategy, error)</a></li>
+          <li><a href="#BackoffStrategyValues">func BackoffStrategyValues() []BackoffStrategy</a></li>
+          <li><a href="#BackoffStrategy.IsABackoffStrategy">func (i BackoffStrategy) IsABackoffStrategy() bool</a></li>
+          <li><a href="#BackoffStrategy.MarshalJSON">func (i BackoffStrategy) MarshalJSON() ([]byte, error)</a></li>
+          <li><a href="#BackoffStrategy.MarshalText">func (i BackoffStrategy) MarshalText() ([]byte, error)</a></li>
+          <li><a href="#BackoffStrategy.MarshalYAML">func (i BackoffStrategy) MarshalYAML() (interface{}, error)</a></li>
+          <li><a href="#BackoffStrategy.String">func (i BackoffStrategy) String() string</a></li>
+          <li><a href="#BackoffStrategy.UnmarshalJSON">func (i *BackoffStrategy) UnmarshalJSON(data []byte) error</a></li>
+          <li><a href="#BackoffStrategy.UnmarshalText">func (i *BackoffStrategy) UnmarshalText(text []byte) error</a></li>
+          <li><a href="#BackoffStrategy.UnmarshalYAML">func (i *BackoffStrategy) UnmarshalYAML(unmarshal func(interface{}) error) error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#RetryOption">type RetryOption</a>
+      <ul>
+          <li><a href="#WithAttempts">func WithAttempts(attempts int) RetryOption</a></li>
+          <li><a href="#WithExponentialBackoff">func WithExponentialBackoff(delay, maxDelay time.Duration) RetryOption</a></li>
+          <li><a href="#WithFixedBackoff">func WithFixedBackoff(delay time.Duration) RetryOption</a></li>
+          <li><a href="#WithJitterStrategy">func WithJitterStrategy(maxJitter time.Duration) RetryOption</a></li>
+          <li><a href="#WithLinearBackoff">func WithLinearBackoff(delay, maxDelay time.Duration) RetryOption</a></li>
+          <li><a href="#WithOptions">func WithOptions(opts ...RetryOption) RetryOption</a></li>
+          <li><a href="#WithRetryAfterEnabled">func WithRetryAfterEnabled() RetryOption</a></li>
+          <li><a href="#WithRetryBudget">func WithRetryBudget(budget time.Duration) RetryOption</a></li>
+          <li><a href="#WithRetryEnabled">func WithRetryEnabled() RetryOption</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#RetryPolicyConfiguration">type RetryPolicyConfiguration</a>
+      <ul>
+          <li><a href="#DefaultBasicRetryPolicyConfiguration">func DefaultBasicRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          <li><a href="#DefaultExponentialBackoffRetryPolicyConfiguration">func DefaultExponentialBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          <li><a href="#DefaultFixedBackoffRetryPolicyConfiguration">func DefaultFixedBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          <li><a href="#DefaultLinearBackoffRetryPolicyConfiguration">func DefaultLinearBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          <li><a href="#DefaultNoRetryPolicyConfiguration">func DefaultNoRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          <li><a href="#DefaultRetryPolicyConfiguration">func DefaultRetryPolicyConfiguration(backoffStrategy BackoffStrategy) *RetryPolicyConfiguration</a></li>
+          <li><a href="#DefaultRobustFixedBackoffRetryPolicyConfiguration">func DefaultRobustFixedBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          <li><a href="#DefaultRobustRetryPolicyConfiguration">func DefaultRobustRetryPolicyConfiguration() *RetryPolicyConfiguration</a></li>
+          <li><a href="#RetryPolicyConfiguration.Validate">func (cfg *RetryPolicyConfiguration) Validate() error</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="BackoffStrategyStrings">func BackoffStrategyStrings</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">BackoffStrategyStrings</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>BackoffStrategyStrings returns a slice of all String values of the enum
+<h4 id="RetryIf">func RetryIf</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">RetryIf</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">logger</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4"><span class="nx">logr</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4#Logger"><span class="nx">Logger</span></a><span class="p">,</span><span class="w"> </span><span class="nx">retryPolicy</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fn</span><span class="w"> </span><span class="kd">func</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">msgOnRetry</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">retryConditionFn</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>RetryIf retries fn while retryConditionFn reports the returned error as
+retriable.
+<p>The retry timing and attempt limits are controlled by retryPolicy. If the
+policy is disabled, fn is executed once without retrying.
+<h4 id="RetryOnError">func RetryOnError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">RetryOnError</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">logger</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4"><span class="nx">logr</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-logr/logr@v1.4.4#Logger"><span class="nx">Logger</span></a><span class="p">,</span><span class="w"> </span><span class="nx">retryPolicy</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">fn</span><span class="w"> </span><span class="kd">func</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">,</span><span class="w"> </span><span class="nx">msgOnRetry</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">retriableErr</span><span class="w"> </span><span class="o">...</span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>RetryOnError retries fn when the returned error matches any of retriableErr.
+<p>The retry timing and attempt limits are controlled by retryPolicy.
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="BackoffStrategy">type BackoffStrategy</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">BackoffStrategy</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a></pre>
+    <p>BackoffStrategy describes how retry delays should grow across attempts.
+<p>A backoff strategy controls whether retries happen immediately or wait before
+trying again, and if they wait, how that delay changes over time.
+
+  
+  <pre class="chroma"><span class="kd">const</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span class="c1">// NoBackoff performs basic retries but applies no backoff strategy between</span><span class="w">
+</span><span class="w">	</span><span class="c1">// attempts.</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	// In practice this means retrying again immediately, subject only to the</span><span class="w">
+</span><span class="w">	</span><span class="c1">// overall retry attempt limit.</span><span class="w">
+</span><span class="w">	</span><span id="NoBackoff"><span class="nx">NoBackoff</span></span><span class="w"> </span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#iota"><span class="kc">iota</span></a><span class="w">
+</span><span class="w">	</span><span class="c1">// NoBackoffButRetryAfter disables local backoff but still honours</span><span class="w">
+</span><span class="w">	</span><span class="c1">// `Retry-After` when a server provides it.</span><span class="w">
+</span><span class="w">	</span><span id="NoBackoffButRetryAfter"><span class="nx">NoBackoffButRetryAfter</span></span><span class="w">
+</span><span class="w">	</span><span class="c1">// FixedBackoff keeps the same delay for every retry and no jitter is applied.</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	// This is useful when a dependency benefits from a short, stable pause but</span><span class="w">
+</span><span class="w">	</span><span class="c1">// does not need progressively longer waits.</span><span class="w">
+</span><span class="w">	</span><span id="FixedBackoff"><span class="nx">FixedBackoff</span></span><span class="w">
+</span><span class="w">	</span><span class="c1">// FixedBackoffOrRetryAfter keeps the same delay for every retry or considers</span><span class="w">
+</span><span class="w">	</span><span class="c1">// the `Retry-After` header value if provided.</span><span class="w">
+</span><span class="w">	</span><span id="FixedBackoffOrRetryAfter"><span class="nx">FixedBackoffOrRetryAfter</span></span><span class="w">
+</span><span class="w">	</span><span class="c1">// LinearBackoff increases the delay linearly with the retry number.</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	// This is useful when retries should slow down steadily without escalating as</span><span class="w">
+</span><span class="w">	</span><span class="c1">// aggressively as exponential backoff.</span><span class="w">
+</span><span class="w">	</span><span id="LinearBackoff"><span class="nx">LinearBackoff</span></span><span class="w">
+</span><span class="w">	</span><span class="c1">// ExponentialBackoff doubles the delay after each retry until the max delay.</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	// This is useful when repeated failures should quickly reduce retry pressure</span><span class="w">
+</span><span class="w">	</span><span class="c1">// on a struggling dependency.</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	// Reference: https://en.wikipedia.org/wiki/Exponential_backoff</span><span class="w">
+</span><span class="w">	</span><span id="ExponentialBackoff"><span class="nx">ExponentialBackoff</span></span><span class="w">
+</span><span class="p">)</span></pre>
+  <h5 id="BackoffStrategyString">func BackoffStrategyString</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">BackoffStrategyString</span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>BackoffStrategyString retrieves an enum value from the enum constants string name.
+Throws an error if the param is not part of the enum.
+<h5 id="BackoffStrategyValues">func BackoffStrategyValues</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">BackoffStrategyValues</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a></pre>
+  <p>BackoffStrategyValues returns all values of the enum
+<h5 id="BackoffStrategy.IsABackoffStrategy">func (BackoffStrategy) IsABackoffStrategy</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a><span class="p">)</span><span class="w"> </span><span class="nf">IsABackoffStrategy</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsABackoffStrategy returns &quot;true&quot; if the value is listed in the enum definition. &quot;false&quot; otherwise
+<h5 id="BackoffStrategy.MarshalJSON">func (BackoffStrategy) MarshalJSON</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a><span class="p">)</span><span class="w"> </span><span class="nf">MarshalJSON</span><span class="p">()</span><span class="w"> </span><span class="p">([]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MarshalJSON implements the json.Marshaler interface for BackoffStrategy
+<h5 id="BackoffStrategy.MarshalText">func (BackoffStrategy) MarshalText</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a><span class="p">)</span><span class="w"> </span><span class="nf">MarshalText</span><span class="p">()</span><span class="w"> </span><span class="p">([]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MarshalText implements the encoding.TextMarshaler interface for BackoffStrategy
+<h5 id="BackoffStrategy.MarshalYAML">func (BackoffStrategy) MarshalYAML</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a><span class="p">)</span><span class="w"> </span><span class="nf">MarshalYAML</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="kd">interface</span><span class="p">{},</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MarshalYAML implements a YAML Marshaler for BackoffStrategy
+<h5 id="BackoffStrategy.String">func (BackoffStrategy) String</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a><span class="p">)</span><span class="w"> </span><span class="nf">String</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h5 id="BackoffStrategy.UnmarshalJSON">func (*BackoffStrategy) UnmarshalJSON</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="o">*</span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a><span class="p">)</span><span class="w"> </span><span class="nf">UnmarshalJSON</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UnmarshalJSON implements the json.Unmarshaler interface for BackoffStrategy
+<h5 id="BackoffStrategy.UnmarshalText">func (*BackoffStrategy) UnmarshalText</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="o">*</span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a><span class="p">)</span><span class="w"> </span><span class="nf">UnmarshalText</span><span class="p">(</span><span class="nx">text</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UnmarshalText implements the encoding.TextUnmarshaler interface for BackoffStrategy
+<h5 id="BackoffStrategy.UnmarshalYAML">func (*BackoffStrategy) UnmarshalYAML</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="o">*</span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a><span class="p">)</span><span class="w"> </span><span class="nf">UnmarshalYAML</span><span class="p">(</span><span class="nx">unmarshal</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UnmarshalYAML implements a YAML Unmarshaler for BackoffStrategy
+<h4 id="RetryOption">type RetryOption</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">RetryOption</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+    <p>RetryOption configures a <a href="#RetryPolicyConfiguration">RetryPolicyConfiguration</a>.
+<h5 id="WithAttempts">func WithAttempts</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithAttempts</span><span class="p">(</span><span class="nx">attempts</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><a href="#RetryOption"><span class="nx">RetryOption</span></a></pre>
+  <p>WithAttempts limits how many total attempts are made, including the first.
+<p>This is useful for bounding retry cost and ensuring failures surface after a
+predictable number of tries.
+<h5 id="WithExponentialBackoff">func WithExponentialBackoff</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithExponentialBackoff</span><span class="p">(</span><span class="nx">delay</span><span class="p">,</span><span class="w"> </span><span class="nx">maxDelay</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><a href="#RetryOption"><span class="nx">RetryOption</span></a></pre>
+  <p>WithExponentialBackoff increases retry delays exponentially, capped at
+maxDelay.
+<p>This is useful when repeated failures should quickly slow retry traffic to
+avoid overloading a struggling dependency.
+<p>Reference: <a href="https://en.wikipedia.org/wiki/Exponential_backoff">https://en.wikipedia.org/wiki/Exponential_backoff</a>
+<h5 id="WithFixedBackoff">func WithFixedBackoff</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithFixedBackoff</span><span class="p">(</span><span class="nx">delay</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><a href="#RetryOption"><span class="nx">RetryOption</span></a></pre>
+  <p>WithFixedBackoff keeps the wait time the same between retry attempts.
+<p>This is useful when a simple constant pause is sufficient and you do not want
+the delay to grow over time.
+<h5 id="WithJitterStrategy">func WithJitterStrategy</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithJitterStrategy</span><span class="p">(</span><span class="nx">maxJitter</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><a href="#RetryOption"><span class="nx">RetryOption</span></a></pre>
+  <p>WithJitterStrategy adds a random component to retry delays.
+<p>Jitter helps prevent many callers from retrying in lockstep, which reduces
+thundering-herd behaviour after a shared failure.
+<h5 id="WithLinearBackoff">func WithLinearBackoff</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithLinearBackoff</span><span class="p">(</span><span class="nx">delay</span><span class="p">,</span><span class="w"> </span><span class="nx">maxDelay</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><a href="#RetryOption"><span class="nx">RetryOption</span></a></pre>
+  <p>WithLinearBackoff increases the delay by a fixed step on each retry, capped
+at maxDelay.
+<p>This is useful when retries should back off more gently than exponential
+backoff while still reducing pressure on the downstream system.
+<h5 id="WithOptions">func WithOptions</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithOptions</span><span class="p">(</span><span class="nx">opts</span><span class="w"> </span><span class="o">...</span><a href="#RetryOption"><span class="nx">RetryOption</span></a><span class="p">)</span><span class="w"> </span><a href="#RetryOption"><span class="nx">RetryOption</span></a></pre>
+  <p>WithOptions combines multiple retry options into a reusable composite option
+applied in the order supplied.
+<p>This is useful for defining named retry profiles that can be shared across
+callers without repeating the same option list.
+<h5 id="WithRetryAfterEnabled">func WithRetryAfterEnabled</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithRetryAfterEnabled</span><span class="p">()</span><span class="w"> </span><a href="#RetryOption"><span class="nx">RetryOption</span></a></pre>
+  <p>WithRetryAfterEnabled turns retrying on and allows callers to honour
+`Retry-After` response headers when they are available.
+<p>This is useful for retry flows that interact with remote systems which may
+explicitly tell the client when to try again. `Retry-After` is an HTTP
+response header whose value indicates either how many seconds to wait before
+the next attempt or the time after which a retry is allowed, and it is
+commonly returned with HTTP 429 or 503 responses.
+<h5 id="WithRetryBudget">func WithRetryBudget</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithRetryBudget</span><span class="p">(</span><span class="nx">budget</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><a href="#RetryOption"><span class="nx">RetryOption</span></a></pre>
+  <p>WithRetryBudget sets a retry budget for the policy.
+<p>A retry budget is a limit on how much time or capacity a call is allowed to
+spend on retries before giving up, so that retries do not grow without bound
+and crowd out useful work.
+<h5 id="WithRetryEnabled">func WithRetryEnabled</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithRetryEnabled</span><span class="p">()</span><span class="w"> </span><a href="#RetryOption"><span class="nx">RetryOption</span></a></pre>
+  <p>WithRetryEnabled turns retrying on for a policy that would otherwise execute
+only once.
+<h4 id="RetryPolicyConfiguration">type RetryPolicyConfiguration</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">RetryPolicyConfiguration</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Enabled specifies whether this retry policy is enabled. If false, no retry</span><span class="w">
+</span><span class="w">	</span><span class="c1">// is performed.</span><span class="w">
+</span><span class="w">	</span><span id="RetryPolicyConfiguration.Enabled"><span class="nx">Enabled</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;enabled&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// RetryMax is the maximum number of attempts.</span><span class="w">
+</span><span class="w">	</span><span id="RetryPolicyConfiguration.RetryMax"><span class="nx">RetryMax</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_retry&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// RetryAfterDisabled tells callers not to consider the `Retry-After` header (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// returned by a server.</span><span class="w">
+</span><span class="w">	</span><span id="RetryPolicyConfiguration.RetryAfterDisabled"><span class="nx">RetryAfterDisabled</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;retry_after_disabled&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// RetryWaitMin specifies the minimum time to wait between retries.</span><span class="w">
+</span><span class="w">	</span><span id="RetryPolicyConfiguration.RetryWaitMin"><span class="nx">RetryWaitMin</span></span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;min_wait&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// RetryWaitMax is the maximum time to wait between retries. It is primarily</span><span class="w">
+</span><span class="w">	</span><span class="c1">// used when backoff is enabled.</span><span class="w">
+</span><span class="w">	</span><span id="RetryPolicyConfiguration.RetryWaitMax"><span class="nx">RetryWaitMax</span></span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_wait&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// RetryMaxJitter is the maximum random jitter added to retry delays.</span><span class="w">
+</span><span class="w">	</span><span id="RetryPolicyConfiguration.RetryMaxJitter"><span class="nx">RetryMaxJitter</span></span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;max_jitter&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// BackOffEnabled states whether backoff should be applied between retry</span><span class="w">
+</span><span class="w">	</span><span class="c1">// attempts (by default, exponential backoff is performed unless LinearBackoff is enabled).</span><span class="w">
+</span><span class="w">	</span><span id="RetryPolicyConfiguration.BackOffEnabled"><span class="nx">BackOffEnabled</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;backoff_enabled&#34;`</span><span class="w">
+</span><span class="w">	</span><span class="c1">// LinearBackOffEnabled switches from exponential to linear backoff when</span><span class="w">
+</span><span class="w">	</span><span class="c1">// BackOffEnabled is true.</span><span class="w">
+</span><span class="w">	</span><span id="RetryPolicyConfiguration.LinearBackOffEnabled"><span class="nx">LinearBackOffEnabled</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w"> </span><span class="s">`mapstructure:&#34;linear_backoff_enabled&#34;`</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>RetryPolicyConfiguration configures retry attempts, wait timings, jitter, and
+backoff behaviour for the retry helpers in this package.
+<h5 id="DefaultBasicRetryPolicyConfiguration">func DefaultBasicRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultBasicRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultBasicRetryPolicyConfiguration returns a basic retry configuration with
+four attempts but no backoff or jitter.
+<h5 id="DefaultExponentialBackoffRetryPolicyConfiguration">func DefaultExponentialBackoffRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultExponentialBackoffRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultExponentialBackoffRetryPolicyConfiguration returns a configuration for
+retries with exponential backoff.
+<h5 id="DefaultFixedBackoffRetryPolicyConfiguration">func DefaultFixedBackoffRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultFixedBackoffRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultFixedBackoffRetryPolicyConfiguration returns a retry configuration with
+four attempts and fixed backoff.
+<h5 id="DefaultLinearBackoffRetryPolicyConfiguration">func DefaultLinearBackoffRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultLinearBackoffRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultLinearBackoffRetryPolicyConfiguration returns a configuration for
+retries with linear backoff.
+<h5 id="DefaultNoRetryPolicyConfiguration">func DefaultNoRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultNoRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultNoRetryPolicyConfiguration returns a configuration with retries
+disabled.
+<h5 id="DefaultRetryPolicyConfiguration">func DefaultRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultRetryPolicyConfiguration</span><span class="p">(</span><span class="nx">backoffStrategy</span><span class="w"> </span><a href="#BackoffStrategy"><span class="nx">BackoffStrategy</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultRetryPolicyConfiguration returns the package&apos;s default retry policy for
+the selected backoff strategy.
+<h5 id="DefaultRobustFixedBackoffRetryPolicyConfiguration">func DefaultRobustFixedBackoffRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultRobustFixedBackoffRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultRobustFixedBackoffRetryPolicyConfiguration returns a retry
+configuration with four attempts and fixed backoff that also honours
+`Retry-After`.
+<h5 id="DefaultRobustRetryPolicyConfiguration">func DefaultRobustRetryPolicyConfiguration</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefaultRobustRetryPolicyConfiguration</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a></pre>
+  <p>DefaultRobustRetryPolicyConfiguration returns a basic retry configuration
+that also honours `Retry-After`.
+<h5 id="RetryPolicyConfiguration.Validate">func (*RetryPolicyConfiguration) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#RetryPolicyConfiguration"><span class="nx">RetryPolicyConfiguration</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Validate validates the retry policy configuration.
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

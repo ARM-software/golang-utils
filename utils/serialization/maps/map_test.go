@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package maps
 
 import (
@@ -10,7 +14,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
-	mapstest "github.com/ARM-software/golang-utils/utils/serialization/maps/testing" //nolint:misspell
+	mapstest "github.com/ARM-software/golang-utils/utils/serialization/maps/testing" //nolint:misspell,staticcheck // Verify legacy test helpers.
 )
 
 type TestStruct0 struct {

@@ -1,8 +1,13 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package supervisor
 
 import "context"
 
 //go:generate go tool mockgen -destination=../../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/subprocess/$GOPACKAGE ISupervisor
+//go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/subprocess/$GOPACKAGE ISupervisor
 
 // ISupervisor  will run a command and automatically restart it if it exits. Hooks can be used to execute code at
 // different points in the execution lifecyle. Restarts can be delayed

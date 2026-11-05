@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>proc</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/proc<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package proc</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/proc&#34;</span></pre>
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#CancelExecCommand">func CancelExecCommand(cmd *exec.Cmd) (err error)</a></li>
+  <li><a href="#ConvertProcessError">func ConvertProcessError(err error) error</a></li>
+  <li><a href="#DefineCmdCancel">func DefineCmdCancel(cmd *exec.Cmd) (*exec.Cmd, error)</a></li>
+  <li><a href="#InterruptProcess">func InterruptProcess(ctx context.Context, pid int, signal InterruptType) (err error)</a></li>
+  <li><a href="#InterruptTypeStrings">func InterruptTypeStrings() []string</a></li>
+  <li><a href="#IsProcessRunning">func IsProcessRunning(ctx context.Context, pid int) (running bool, err error)</a></li>
+  <li><a href="#SetGroupAttrToCmd">func SetGroupAttrToCmd(c *exec.Cmd)</a></li>
+  <li><a href="#TerminateGracefully">func TerminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration) (err error)</a></li>
+  <li><a href="#TerminateGracefullyWithChildren">func TerminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod time.Duration) (err error)</a></li>
+  <li><a href="#TerminateGracefullyWithChildrenWithSpecificInterrupts">func TerminateGracefullyWithChildrenWithSpecificInterrupts(ctx context.Context, pid int, gracePeriod time.Duration, ...) (err error)</a></li>
+  <li><a href="#TerminateGracefullyWithSpecificInterrupts">func TerminateGracefullyWithSpecificInterrupts(ctx context.Context, pid int, gracePeriod time.Duration, ...) (err error)</a></li>
+  <li><a href="#WaitForCompletion">func WaitForCompletion(ctx context.Context, pid int) (err error)</a></li>
+  <li><a href="#WaitForCompletionWithKill">func WaitForCompletionWithKill(ctx context.Context, pid int) (err error)</a></li>
+  <li>
+      <a href="#IProcess">type IProcess</a>
+      <ul>
+          <li><a href="#FindProcess">func FindProcess(ctx context.Context, pid int) (p IProcess, err error)</a></li>
+          <li><a href="#NewProcess">func NewProcess(ctx context.Context, pid int) (pr IProcess, err error)</a></li>
+          <li><a href="#Ps">func Ps(ctx context.Context) (processes []IProcess, err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#InterruptType">type InterruptType</a>
+      <ul>
+          <li><a href="#InterruptTypeString">func InterruptTypeString(s string) (InterruptType, error)</a></li>
+          <li><a href="#InterruptTypeValues">func InterruptTypeValues() []InterruptType</a></li>
+          <li><a href="#InterruptType.IsAInterruptType">func (i InterruptType) IsAInterruptType() bool</a></li>
+          <li><a href="#InterruptType.MarshalJSON">func (i InterruptType) MarshalJSON() ([]byte, error)</a></li>
+          <li><a href="#InterruptType.MarshalText">func (i InterruptType) MarshalText() ([]byte, error)</a></li>
+          <li><a href="#InterruptType.MarshalYAML">func (i InterruptType) MarshalYAML() (interface{}, error)</a></li>
+          <li><a href="#InterruptType.String">func (i InterruptType) String() string</a></li>
+          <li><a href="#InterruptType.UnmarshalJSON">func (i *InterruptType) UnmarshalJSON(data []byte) error</a></li>
+          <li><a href="#InterruptType.UnmarshalText">func (i *InterruptType) UnmarshalText(text []byte) error</a></li>
+          <li><a href="#InterruptType.UnmarshalYAML">func (i *InterruptType) UnmarshalYAML(unmarshal func(interface{}) error) error</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="CancelExecCommand">func CancelExecCommand</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CancelExecCommand</span><span class="p">(</span><span class="nx">cmd</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/os/exec"><span class="nx">exec</span></a><span class="p">.</span><a href="https://pkg.go.dev/os/exec#Cmd"><span class="nx">Cmd</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>CancelExecCommand defines a more robust way to cancel subprocesses than what is done per default by [CommandContext](<a href="https://pkg.go.dev/os/exec#CommandContext">https://pkg.go.dev/os/exec#CommandContext</a>)
+<h4 id="ConvertProcessError">func ConvertProcessError</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ConvertProcessError</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <h4 id="DefineCmdCancel">func DefineCmdCancel</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">DefineCmdCancel</span><span class="p">(</span><span class="nx">cmd</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/os/exec"><span class="nx">exec</span></a><span class="p">.</span><a href="https://pkg.go.dev/os/exec#Cmd"><span class="nx">Cmd</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="https://pkg.go.dev/os/exec"><span class="nx">exec</span></a><span class="p">.</span><a href="https://pkg.go.dev/os/exec#Cmd"><span class="nx">Cmd</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>DefineCmdCancel sets and overwrites the cmd.Cancel function with CancelExecCommand so that it is more robust and thorough.
+<h4 id="InterruptProcess">func InterruptProcess</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">InterruptProcess</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">pid</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">signal</span><span class="w"> </span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <h4 id="InterruptTypeStrings">func InterruptTypeStrings</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">InterruptTypeStrings</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>InterruptTypeStrings returns a slice of all String values of the enum
+<h4 id="IsProcessRunning">func IsProcessRunning</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsProcessRunning</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">pid</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">running</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>IsProcessRunning states whether a process is running or not. An error is returned if the context is Done while looking for the process state.
+<h4 id="SetGroupAttrToCmd">func SetGroupAttrToCmd</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SetGroupAttrToCmd</span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/os/exec"><span class="nx">exec</span></a><span class="p">.</span><a href="https://pkg.go.dev/os/exec#Cmd"><span class="nx">Cmd</span></a><span class="p">)</span></pre>
+  <p>See <a href="https://github.com/tgulacsi/go/blob/master/proc/">https://github.com/tgulacsi/go/blob/master/proc/</a>
+<h4 id="TerminateGracefully">func TerminateGracefully</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">TerminateGracefully</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">pid</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">gracePeriod</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>TerminateGracefully follows the pattern set by [kubernetes](<a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination">https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination</a>) and terminates processes gracefully by first sending a SIGINT+SIGTERM and then a SIGKILL after the grace period has elapsed.
+<h4 id="TerminateGracefullyWithChildren">func TerminateGracefullyWithChildren</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">TerminateGracefullyWithChildren</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">pid</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">gracePeriod</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>TerminateGracefullyWithChildren follows the pattern set by [kubernetes](<a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination">https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination</a>) and terminates processes gracefully by first sending a SIGINT+SIGTERM and then a SIGKILL after the grace period has elapsed.
+It does not attempt to terminate the process group. If you wish to terminate the process group directly then send -pgid to TerminateGracefully but
+this does not guarantee that the group will be terminated gracefully.
+Instead, this function lists each child and attempts to kill them gracefully concurrently. It will then attempt to gracefully terminate itself.
+Due to the multi-stage process and the fact that the full grace period must pass for each stage specified above, the total maximum length of this
+function will be 2*gracePeriod not gracePeriod.
+<h4 id="TerminateGracefullyWithChildrenWithSpecificInterrupts">func TerminateGracefullyWithChildrenWithSpecificInterrupts</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">TerminateGracefullyWithChildrenWithSpecificInterrupts</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">pid</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">gracePeriod</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">interrupts</span><span class="w"> </span><span class="o">...</span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>TerminateGracefullyWithChildrenWithSpecificInterrupts follows the pattern set by [kubernetes](<a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination">https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination</a>) and terminates processes gracefully by first sending the specified interrupts and then a SIGKILL after the grace period has elapsed.
+It does not attempt to terminate the process group. If you wish to terminate the process group directly then send -pgid to TerminateGracefully but
+this does not guarantee that the group will be terminated gracefully.
+Instead, this function lists each child and attempts to kill them gracefully concurrently. It will then attempt to gracefully terminate itself.
+Due to the multi-stage process and the fact that the full grace period must pass for each stage specified above, the total maximum length of this
+function will be 2*gracePeriod not gracePeriod.
+<h4 id="TerminateGracefullyWithSpecificInterrupts">func TerminateGracefullyWithSpecificInterrupts</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">TerminateGracefullyWithSpecificInterrupts</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">pid</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">gracePeriod</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Duration"><span class="nx">Duration</span></a><span class="p">,</span><span class="w"> </span><span class="nx">interrupts</span><span class="w"> </span><span class="o">...</span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>TerminateGracefullyWithSpecificInterrupts follows the pattern set by [kubernetes](<a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination">https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination</a>) and terminates processes gracefully by first sending the specified interrupts and then a SIGKILL after the grace period has elapsed.
+<h4 id="WaitForCompletion">func WaitForCompletion</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WaitForCompletion</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">pid</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>WaitForCompletion will wait for a given process to complete.
+This allows check to work if the underlying process was stopped without needing the os.Process that started it.
+<h4 id="WaitForCompletionWithKill">func WaitForCompletionWithKill</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WaitForCompletionWithKill</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">pid</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>WaitForCompletionWithKill will wait for a process to complete and if the context elapses then it will kill it and its children
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="IProcess">type IProcess</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IProcess</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Pid is the process ID for this process.</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.Pid"><span class="nf">Pid</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// PPid is the parent process ID for this process.</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.PPid"><span class="nf">PPid</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Executable name running this process. This is not a path to the</span><span class="w">
+</span><span class="w">	</span><span class="c1">// executable.</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.Executable"><span class="nf">Executable</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Name returns name of the process.</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.Name"><span class="nf">Name</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.Environ"><span class="nf">Environ</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Cmdline returns the command line arguments of the process as a string with</span><span class="w">
+</span><span class="w">	</span><span class="c1">// each argument separated by 0x20 ascii character.</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.Cmdline"><span class="nf">Cmdline</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Cwd returns current working directory of the process.</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.Cwd"><span class="nf">Cwd</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Parent returns parent Process of the process.</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.Parent"><span class="nf">Parent</span></span><span class="p">()</span><span class="w"> </span><a href="#IProcess"><span class="nx">IProcess</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Children returns the children of the process if any.</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.Children"><span class="nf">Children</span></span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><a href="#IProcess"><span class="nx">IProcess</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// IsAZombie returns whether the process is a zombie process. See https://en.wikipedia.org/wiki/Zombie_process</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.IsAZombie"><span class="nf">IsAZombie</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// IsRunning returns whether the process is still running or not.</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.IsRunning"><span class="nf">IsRunning</span></span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Terminate sends SIGTERM to the process.</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.Terminate"><span class="nf">Terminate</span></span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Interrupt sends SIGINT to the process.</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.Interrupt"><span class="nf">Interrupt</span></span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// KillWithChildren sends SIGKILL to the process but also ensures any children of the process are also killed.</span><span class="w">
+</span><span class="w">	</span><span class="c1">// see https://medium.com/@felixge/killing-a-child-process-and-all-of-its-children-in-go-54079af94773</span><span class="w">
+</span><span class="w">	</span><span class="c1">// This method was introduced to avoid getting the following due to a poor cleanup:</span><span class="w">
+</span><span class="w">	</span><span class="c1">// - Orphan processes (https://en.wikipedia.org/wiki/Orphan_process)</span><span class="w">
+</span><span class="w">	</span><span class="c1">// - Zombies processes (https://en.wikipedia.org/wiki/Zombie_process)</span><span class="w">
+</span><span class="w">	</span><span id="IProcess.KillWithChildren"><span class="nf">KillWithChildren</span></span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IProcess is the generic interface that is implemented on every platform
+and provides common operations for processes.
+Inspired from <a href="https://github.com/mitchellh/go-ps/blob/master/process.go">https://github.com/mitchellh/go-ps/blob/master/process.go</a>
+<h5 id="FindProcess">func FindProcess</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FindProcess</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">pid</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><a href="#IProcess"><span class="nx">IProcess</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>FindProcess looks up a single process by pid.
+<p>Process will be nil and error will be commonerrors.ErrNotFound if a matching process is
+not found.
+<h5 id="NewProcess">func NewProcess</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewProcess</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">pid</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">pr</span><span class="w"> </span><a href="#IProcess"><span class="nx">IProcess</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewProcess creates a new Process instance, it only stores the pid and
+checks that the process exists. Other method on Process can be used
+to get more information about the process. An error will be returned
+if the process does not exist.
+<h5 id="Ps">func Ps</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Ps</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">processes</span><span class="w"> </span><span class="p">[]</span><a href="#IProcess"><span class="nx">IProcess</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Ps returns all processes in a similar fashion to `ps` command on Unix.
+<p>This of course will be a point-in-time snapshot of when this method was
+called. Some operating systems don&apos;t provide snapshot capability of the
+process table, in which case the process table returned might contain
+ephemeral entities that happened to be running when this was called.
+<h4 id="InterruptType">type InterruptType</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">InterruptType</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a></pre>
+    
+  
+  <pre class="chroma"><span class="kd">const</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="SigInt"><span class="nx">SigInt</span></span><span class="w">                           </span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">2</span><span class="w">
+</span><span class="w">	</span><span id="SigKill"><span class="nx">SigKill</span></span><span class="w">                          </span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">9</span><span class="w">
+</span><span class="w">	</span><span id="SigTerm"><span class="nx">SigTerm</span></span><span class="w">                          </span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">15</span><span class="w">
+</span><span class="w">	</span><span id="SubprocessTerminationGracePeriod"><span class="nx">SubprocessTerminationGracePeriod</span></span><span class="w">               </span><span class="p">=</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Millisecond"><span class="nx">Millisecond</span></a><span class="w">
+</span><span class="p">)</span></pre>
+  <h5 id="InterruptTypeString">func InterruptTypeString</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">InterruptTypeString</span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>InterruptTypeString retrieves an enum value from the enum constants string name.
+Throws an error if the param is not part of the enum.
+<h5 id="InterruptTypeValues">func InterruptTypeValues</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">InterruptTypeValues</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><a href="#InterruptType"><span class="nx">InterruptType</span></a></pre>
+  <p>InterruptTypeValues returns all values of the enum
+<h5 id="InterruptType.IsAInterruptType">func (InterruptType) IsAInterruptType</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">)</span><span class="w"> </span><span class="nf">IsAInterruptType</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsAInterruptType returns &quot;true&quot; if the value is listed in the enum definition. &quot;false&quot; otherwise
+<h5 id="InterruptType.MarshalJSON">func (InterruptType) MarshalJSON</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">)</span><span class="w"> </span><span class="nf">MarshalJSON</span><span class="p">()</span><span class="w"> </span><span class="p">([]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MarshalJSON implements the json.Marshaler interface for InterruptType
+<h5 id="InterruptType.MarshalText">func (InterruptType) MarshalText</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">)</span><span class="w"> </span><span class="nf">MarshalText</span><span class="p">()</span><span class="w"> </span><span class="p">([]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MarshalText implements the encoding.TextMarshaler interface for InterruptType
+<h5 id="InterruptType.MarshalYAML">func (InterruptType) MarshalYAML</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">)</span><span class="w"> </span><span class="nf">MarshalYAML</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="kd">interface</span><span class="p">{},</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MarshalYAML implements a YAML Marshaler for InterruptType
+<h5 id="InterruptType.String">func (InterruptType) String</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">)</span><span class="w"> </span><span class="nf">String</span><span class="p">()</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <h5 id="InterruptType.UnmarshalJSON">func (*InterruptType) UnmarshalJSON</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="o">*</span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">)</span><span class="w"> </span><span class="nf">UnmarshalJSON</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UnmarshalJSON implements the json.Unmarshaler interface for InterruptType
+<h5 id="InterruptType.UnmarshalText">func (*InterruptType) UnmarshalText</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="o">*</span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">)</span><span class="w"> </span><span class="nf">UnmarshalText</span><span class="p">(</span><span class="nx">text</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UnmarshalText implements the encoding.TextUnmarshaler interface for InterruptType
+<h5 id="InterruptType.UnmarshalYAML">func (*InterruptType) UnmarshalYAML</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="o">*</span><a href="#InterruptType"><span class="nx">InterruptType</span></a><span class="p">)</span><span class="w"> </span><span class="nf">UnmarshalYAML</span><span class="p">(</span><span class="nx">unmarshal</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="kd">interface</span><span class="p">{})</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UnmarshalYAML implements a YAML Unmarshaler for InterruptType
+<h3 id="pkg-directories">Directories</h3>
+
+<table>
+  <tbody>
+    <tr>
+        <td><a href="find">find</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    <tr>
+        <td><a href="mocks">mocks</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    </tbody>
+</table>
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

@@ -1,0 +1,98 @@
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Refactor Go modules without breaking imports</title>
+  <meta name="description" content="Refactor Go modules without breaking imports — Golang Utilities.">
+  <style>
+    body{font:1.1rem/1.6 system-ui,sans-serif;max-width:76ch;margin:2rem auto;padding:0 1rem}
+    a{color:#075985}pre{overflow:auto;background:#f3f4f6;padding:1rem}code{overflow-wrap:anywhere}
+    nav{border-bottom:1px solid #ccc;padding-bottom:1rem}li{margin:.4rem 0}
+  </style>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "name": "Refactor Go modules without breaking imports", "description": "Refactor Go modules without breaking imports \u2014 Golang Utilities.", "url": "https://arm-software.github.io/golang-utils/guides/migrations/refactoring-go-modules.html"}</script>
+</head>
+<body>
+  <nav><a href="../../index.html">Overview</a> · <a href="../../api.html">API reference</a></nav>
+  <main><!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
+<h1>Refactor Go modules without breaking imports</h1>
+<p>Use this guide when moving a package into its own module or replacing an old
+import path with a preferred one. The goal is to keep existing consumers
+working while allowing new code to depend on smaller modules and a single
+implementation.</p>
+<h2>Keep an import path when splitting a module</h2>
+<p>Adding <code>go.mod</code> inside a package directory changes which module provides that
+package, even when its import path stays the same. For example, a new module at
+<code>utils/codec/json</code> can retain the import path
+<code>example.com/project/utils/codec/json</code>. The parent module no longer contains
+that subtree at the new revision.</p>
+<ol>
+<li>Declare the existing package import path in the new <code>go.mod</code>. Add the module
+   to the repository's root <code>go.work</code> and ensure module discovery includes it.</li>
+<li>Give each internal dependency a versioned <code>require</code> and a relative local
+   <code>replace</code>, including dependencies between newly split modules. Test from
+   each module with <code>GOWORK=off</code>: workspace resolution alone can hide a missing
+   requirement or replacement. Go consumers ignore replacements in dependency
+   modules, so the required versions must be published together.</li>
+<li>Account for consumers that previously required only the parent module.
+    Their import path may be unchanged, but Go must still find the new nested
+    module in the build list. Where the parent serves as a compatibility
+    umbrella, have it require the nested module at the shared release version;
+    otherwise document the new module requirement for consumers.
+    Tell consumers to upgrade the parent requirement to the first split-aware
+    release before adding the new nested module themselves. A local consumer
+    test that mixed <code>github.com/ARM-software/golang-utils/utils v1.170.7</code> with
+    <code>github.com/ARM-software/golang-utils/utils/collection</code> failed with Go's
+    <code>ambiguous import</code> error because both modules claimed the same package path.</li>
+<li>Keep <code>.github/dependabot.yml</code> coverage, generator <code>tool</code> declarations, and
+    generated files with the module that now owns each package. Check that
+    <a href="https://github.com/ARMmbed/continuous-delivery-scripts">CDS</a> prepares and
+    tags every module in the same project release.</li>
+</ol>
+<h2>Preserve an old path when changing imports</h2>
+<p>If the preferred import path differs from a published one, retain the old
+package at its old path. Put the implementation in the preferred package and
+make the old package a thin compatibility layer:</p>
+<pre><code class="language-go">package oldapi
+
+import preferred &quot;example.com/project/utils/newapi&quot;
+
+type Decoder = preferred.Decoder
+
+func NewDecoder() *Decoder { return preferred.NewDecoder() }
+</code></pre>
+<p>Use type aliases (<code>type Old = preferred.Type</code>) for exported types, including
+interfaces and option types, so values from either import path have the same
+Go type identity. Forward exported functions, including generic helpers, to
+the preferred implementation. Constants can refer to the preferred constants.
+Remove duplicate implementations and generators from the compatibility package;
+keep its import path and document the preferred one. Keep the dependency
+direction from old to preferred to avoid import cycles.</p>
+<p>Go has no true alias for an exported variable. If consumers can reassign one,
+copying its value into a second variable does not preserve shared state. Review
+such APIs individually rather than assuming that a wrapper preserves their
+behaviour.</p>
+<h2>Verify compatibility</h2>
+<ul>
+<li>Compile and test both the preferred and old imports, including callers that
+  use values from the two packages together. Compile-time assignments can
+  confirm that exported types really are aliases.</li>
+<li>Run <code>go generate</code>, lint, and tests for each affected module with the project's
+  build tags. Check modules independently with <code>GOWORK=off go test ./...</code> and
+  <code>GOWORK=off go mod download</code>.</li>
+<li>Verify that every <code>go.mod</code> appears in <code>go.work</code>, that internal requirements
+  point to the shared release version, and that the release publishes the
+  modules consumers need. See the <a href="../go-modules.html">Go modules guide</a> for the
+  repository's workspace and CI commands.</li>
+</ul>
+<p>For an import-path migration in this repository, see the
+<a href="serialisation.html">serialisation packages guide</a>.</p></main>
+</body>
+</html>

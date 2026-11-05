@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 package serialization //nolint:misspell
@@ -60,6 +60,20 @@ func TestUnmarshalUTF8(t *testing.T) {
 	err := UnmarshallXML([]byte(inputData), &x)
 	assert.Nil(t, err)
 	assert.Equal(t, expected, x.Attr)
+}
+
+func TestStripLeadingXMLHeaderComment(t *testing.T) {
+	t.Run("strips generated header comment", func(t *testing.T) {
+		input := []byte("<?xml version=\"1.0\"?>\n<!--\n-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.\n-- SPDX-License-Identifier: Apache-2.0\n  -->\n<root />")
+
+		assert.Equal(t, []byte("<?xml version=\"1.0\"?><root />"), StripLeadingXMLHeaderComment(input))
+	})
+
+	t.Run("preserves other comments", func(t *testing.T) {
+		input := []byte("<?xml version=\"1.0\"?>\n<!-- ordinary comment -->\n<root />")
+
+		assert.Equal(t, input, StripLeadingXMLHeaderComment(input))
+	})
 }
 
 func TestUnmarshal_UTF8_GB2312(t *testing.T) {

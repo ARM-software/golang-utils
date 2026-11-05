@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../../_/icons/favicon.ico"><title>yaml</title>
+</head>
+  <body>
+    <nav><a href="../../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../../..">github.com</a>/<a href="../../../..">ARM-software</a>/<a href="../../..">golang-utils</a>/<a href="../..">utils</a>/<a href="..">serialisation</a>/yaml<span class="navbar-right">
+          <a href="../../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package yaml</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/serialisation/yaml&#34;</span></pre>
+<ul>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<p>Package yaml mirrors the repository&apos;s JSON helper shape for YAML data.
+<p>The package converts YAML input to JSON before delegating to the JSON helpers,
+which keeps one implementation of the fast, non-reflective JSON decoding
+paths and their context-aware stream handling. On the write path, it encodes
+to JSON first, then converts that JSON to YAML.
+<p>YAML parsing support comes from sigs.k8s.io/yaml, which uses yaml/go-yaml
+underneath. In practice that means the package supports most of YAML 1.2
+while preserving some YAML 1.1 behaviour for compatibility, including YAML
+aliases and anchors, as documented at
+<a href="https://github.com/yaml/go-yaml#compatibility">https://github.com/yaml/go-yaml#compatibility</a>.
+<ul>
+<li>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li>SPDX-License-Identifier: Apache-2.0
+</ul>
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-variables">Variables</a></li><li><a href="#IsYAMLFile">func IsYAMLFile(extension string) bool</a></li>
+  <li><a href="#Marshal">func Marshal(v any) ([]byte, error)</a></li>
+  <li><a href="#MarshalWithContext">func MarshalWithContext(ctx context.Context, v any) (content []byte, err error)</a></li>
+  <li><a href="#ToJSON">func ToJSON(yaml []byte) (json []byte, err error)</a></li>
+  <li><a href="#Unmarshal">func Unmarshal(data []byte, v any) error</a></li>
+  <li><a href="#UnmarshallWithContext">func UnmarshallWithContext(ctx context.Context, data []byte, v any) error</a></li>
+  <li>
+      <a href="#Decoder">type Decoder</a>
+      <ul>
+          <li><a href="#NewDecoder">func NewDecoder(ctx context.Context, r io.Reader) *Decoder</a></li>
+          <li><a href="#Decoder.Decode">func (d *Decoder) Decode(v any) error</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#Encoder">type Encoder</a>
+      <ul>
+          <li><a href="#NewEncoder">func NewEncoder(ctx context.Context, w io.Writer) *Encoder</a></li>
+          <li><a href="#Encoder.Encode">func (e *Encoder) Encode(v any) error</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="IsValidYAML"><span class="nx">IsValidYAML</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1"><span class="nx">validation</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1#By"><span class="nf">By</span></a><span class="p">(</span><span class="nx">isValidYAML</span><span class="p">)</span></pre>
+  <p>IsValidYAML validates that a string or byte slice contains syntactically
+valid YAML.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span class="c1">// YAMLExtensions is the list of file extensions that are considered YAML files.</span><span class="w">
+</span><span class="w">	</span><span id="YAMLExtensions"><span class="nx">YAMLExtensions</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">{</span><span class="s">&#34;.yaml&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;.yml&#34;</span><span class="p">}</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="IsYAMLFile">func IsYAMLFile</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsYAMLFile</span><span class="p">(</span><span class="nx">extension</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>IsYAMLFile returns true if the given extension is a YAML file extension.
+<h4 id="Marshal">func Marshal</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Marshal</span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><span class="p">([]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Marshal encodes a value to a YAML byte slice.
+It follows the same helper shape as the repository&apos;s JSON `Marshal` helper.
+<p>Values are first encoded through the JSON helpers so any generated fast JSON
+serialisers can still be used, then the resulting JSON is converted to YAML.
+<h4 id="MarshalWithContext">func MarshalWithContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">MarshalWithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">content</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>MarshalWithContext encodes a value to a YAML byte slice using a context-aware
+Encoder.
+It follows the same helper shape as Marshal, but routes the write through the
+package&apos;s context-aware streaming helpers.
+<h4 id="ToJSON">func ToJSON</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ToJSON</span><span class="p">(</span><span class="nx">yaml</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">json</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>ToJSON converts YAML data to JSON.
+<p>YAML parsing support comes from sigs.k8s.io/yaml, which uses yaml/go-yaml
+underneath. In practice that means it supports most of YAML 1.2 while
+preserving some YAML 1.1 behaviour for compatibility, as documented at
+<a href="https://github.com/yaml/go-yaml#compatibility">https://github.com/yaml/go-yaml#compatibility</a>. That includes support for
+YAML aliases and anchors.
+See also <a href="https://github.com/yaml/go-yaml">https://github.com/yaml/go-yaml</a>.
+<h4 id="Unmarshal">func Unmarshal</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">Unmarshal</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Unmarshal decodes a YAML byte slice into a destination value.
+It follows the same helper shape as the repository&apos;s JSON `Unmarshal`
+helper.
+<p>YAML is converted to JSON first, so the JSON helpers can retain their fast-
+generated decoding paths and shared decoding behaviour.
+<h4 id="UnmarshallWithContext">func UnmarshallWithContext</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">UnmarshallWithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>UnmarshallWithContext decodes a YAML byte slice into a destination value
+using a context-aware Decoder.
+It follows the same helper shape as Unmarshal, but routes the read through
+the package&apos;s context-aware streaming helpers.
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="Decoder">type Decoder</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Decoder</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Decoder reads YAML from a reader and decodes it into Go values.
+It follows the same helper shape as the repository&apos;s JSON `Decoder`.
+<p>Reads are context-aware, and the input is converted to JSON before the JSON
+helpers are used, so the repository keeps a single fast decoding path.
+This should not be used by more than one goroutine at a time.
+<h5 id="NewDecoder">func NewDecoder</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewDecoder</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Decoder"><span class="nx">Decoder</span></a></pre>
+  <p>NewDecoder creates a Decoder that reads YAML values from r.
+It follows the same helper shape as the repository&apos;s JSON `NewDecoder`
+helper.
+<h5 id="Decoder.Decode">func (*Decoder) Decode</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">d</span><span class="w"> </span><span class="o">*</span><a href="#Decoder"><span class="nx">Decoder</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Decode</span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Decode reads YAML from the decoder and stores the result in v.
+It follows the same helper shape as the repository&apos;s JSON `Decoder.Decode`
+method.
+<p>The data is converted to JSON first, then passed to the JSON helpers, so the
+same fast and implementation-agnostic decoding logic is reused here.
+<h4 id="Encoder">type Encoder</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Encoder</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Encoder writes YAML values to a writer.
+It follows the same helper shape as the repository&apos;s JSON `Encoder`.
+<p>Writes are context-aware. Values are first encoded through the JSON helpers
+so any generated fast JSON serialisers can still be used before converting
+the JSON output to YAML.
+This should not be used by more than one goroutine at a time.
+<h5 id="NewEncoder">func NewEncoder</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewEncoder</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">w</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Writer"><span class="nx">Writer</span></a><span class="p">)</span><span class="w"> </span><span class="o">*</span><a href="#Encoder"><span class="nx">Encoder</span></a></pre>
+  <p>NewEncoder creates an Encoder that writes YAML values to w.
+It follows the same helper shape as the repository&apos;s JSON `NewEncoder`
+helper.
+<h5 id="Encoder.Encode">func (*Encoder) Encode</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">e</span><span class="w"> </span><span class="o">*</span><a href="#Encoder"><span class="nx">Encoder</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Encode</span><span class="p">(</span><span class="nx">v</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#any"><span class="kt">any</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>Encode writes v as YAML to the encoder&apos;s writer.
+It follows the same helper shape as the repository&apos;s JSON `Encoder.Encode`
+method.
+<p>The value is first encoded through the JSON helpers, then the JSON output is
+converted to YAML before it is written.
+<h3 id="pkg-directories">Directories</h3>
+
+<table>
+  <tbody>
+    <tr>
+        <td><a href="frontmatter">frontmatter</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    <tr>
+        <td><a href="yamltest/nofast">yamltest/nofast</a></td>
+        <td>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors.</td>
+      </tr>
+    </tbody>
+</table>
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../../_/js/permalink.js"></script></body>
+</html>

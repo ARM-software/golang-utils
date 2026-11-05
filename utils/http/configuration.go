@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 package http
@@ -64,7 +64,7 @@ func (cfg *HTTPClientConfiguration) Validate() error {
 		validation.Field(&cfg.MaxIdleConns, validation.Min(0)),
 		validation.Field(&cfg.MaxIdleConnsPerHost, validation.Max(cfg.MaxIdleConns)),
 		validation.Field(&cfg.IdleConnTimeout, validationRules.Required),
-		validation.Field(&cfg.RetryPolicy, validation.Required),
+		validation.Field(&cfg.RetryPolicy, validationRules.Required),
 	)
 
 }

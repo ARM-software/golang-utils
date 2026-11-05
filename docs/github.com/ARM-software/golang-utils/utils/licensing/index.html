@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../_/icons/favicon.ico"><title>licensing</title>
+</head>
+  <body>
+    <nav><a href="../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../..">github.com</a>/<a href="../../..">ARM-software</a>/<a href="../..">golang-utils</a>/<a href="..">utils</a>/licensing<span class="navbar-right">
+          <a href="../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package licensing</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/licensing&#34;</span></pre>
+<p>Package licensing provides helpers for validating, normalising, and working
+with SPDX licence identifiers and expressions.
+<p>The package builds on and is inspired by
+<a href="https://github.com/git-pkgs/spdx">https://github.com/git-pkgs/spdx</a>, which provides parsing,
+normalisation, and validation of SPDX licence expressions.
+<p>It adds higher-level utilities commonly needed when handling licensing
+metadata in applications
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-variables">Variables</a></li><li><a href="#FetchLicenceURL">func FetchLicenceURL(spdxLicence *string) (licenceURL *url.URL, err error)</a></li>
+  <li><a href="#FetchLicenceURLs">func FetchLicenceURLs(expression string) (urls iter.Seq[url.URL], err error)</a></li>
+  <li><a href="#NormaliseSPDXLicence">func NormaliseSPDXLicence(expression string) (canonical string, err error)</a></li>
+  <li><a href="#SatisfiesLicensingConstraints">func SatisfiesLicensingConstraints(licence string, allowedList []string) (pass bool, err error)</a></li>
+  <li><a href="#ValidateSPDXLicence">func ValidateSPDXLicence(licence string) error</a></li>
+  </ul><h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// IsSPDXLicence defines an ozzo-validation rule that ensures a string</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains a valid SPDX licence expression.</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	// This rule can be used with github.com/go-ozzo/ozzo-validation to validate</span><span class="w">
+</span><span class="w">	</span><span class="c1">// fields containing licence identifiers or expressions such as:</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	//   MIT</span><span class="w">
+</span><span class="w">	</span><span class="c1">//   Apache-2.0</span><span class="w">
+</span><span class="w">	</span><span class="c1">//   MIT OR Apache-2.0</span><span class="w">
+</span><span class="w">	</span><span class="c1">//   GPL-3.0-only WITH Classpath-exception-2.0</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	// Example:</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	//   validation.Field(&amp;pkg.Licence, licensing.IsSPDXLicence)</span><span class="w">
+</span><span class="w">	</span><span class="c1">//
+</span><span class="c1">	// Validation internally relies on ValidateSPDXLicence.</span><span class="w">
+</span><span class="w">	</span><span id="IsSPDXLicence"><span class="nx">IsSPDXLicence</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1"><span class="nx">validation</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1#NewStringRuleWithError"><span class="nf">NewStringRuleWithError</span></a><span class="p">(</span><span class="w">
+</span><span class="w">		</span><span class="kd">func</span><span class="p">(</span><span class="nx">l</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><a href="#ValidateSPDXLicence"><span class="nf">ValidateSPDXLicence</span></a><span class="p">(</span><span class="nx">l</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#nil"><span class="kc">nil</span></a><span class="w"> </span><span class="p">},</span><span class="w">
+</span><span class="w">		</span><span class="nx">errSPDXInvalid</span><span class="p">,</span><span class="w">
+</span><span class="w">	</span><span class="p">)</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="FetchLicenceURL">func FetchLicenceURL</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FetchLicenceURL</span><span class="p">(</span><span class="nx">spdxLicence</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">licenceURL</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/url"><span class="nx">url</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/url#URL"><span class="nx">URL</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>FetchLicenceURL returns the SPDX website URL corresponding to the provided
+SPDX licence identifier.
+<p>The input licence is normalised before constructing the URL.
+<p>Example:
+<pre>MIT        → https://spdx.org/licenses/MIT.html
+Apache-2.0 → https://spdx.org/licenses/Apache-2.0.html
+</pre>
+<p>The input must represent a single licence identifier rather than a compound
+SPDX expression.
+<h4 id="FetchLicenceURLs">func FetchLicenceURLs</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">FetchLicenceURLs</span><span class="p">(</span><span class="nx">expression</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">urls</span><span class="w"> </span><a href="https://pkg.go.dev/iter"><span class="nx">iter</span></a><span class="p">.</span><a href="https://pkg.go.dev/iter#Seq"><span class="nx">Seq</span></a><span class="p">[</span><a href="https://pkg.go.dev/net/url"><span class="nx">url</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/url#URL"><span class="nx">URL</span></a><span class="p">],</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>FetchLicenceURLs extracts all licences referenced in an SPDX licence
+expression and returns the SPDX reference URLs for each licence.
+<p>Note: The expression is first normalised before extracting the licences.
+Moreover, operators such as AND, OR, and WITH are ignored when extracting licences
+<p>Example:
+<pre>expression: &quot;MIT OR Apache-2.0&quot;
+
+returns:
+
+https://spdx.org/licenses/MIT.html
+https://spdx.org/licenses/Apache-2.0.html
+</pre>
+<h4 id="NormaliseSPDXLicence">func NormaliseSPDXLicence</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NormaliseSPDXLicence</span><span class="p">(</span><span class="nx">expression</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">canonical</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NormaliseSPDXLicence converts an SPDX licence expression into its canonical
+SPDX representation.
+<p>This function performs a lax normalisation using the SPDX library, allowing
+minor variations in input formatting while still producing a valid canonical
+SPDX expression.
+<p>For example:
+<pre>&quot;apache 2&quot;        → &quot;Apache-2.0&quot;
+&quot;mit or apache2&quot;  → &quot;MIT OR Apache-2.0&quot;
+</pre>
+<p>Returns the canonical SPDX expression or an error if the expression cannot
+be parsed or normalised.
+<h4 id="SatisfiesLicensingConstraints">func SatisfiesLicensingConstraints</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">SatisfiesLicensingConstraints</span><span class="p">(</span><span class="nx">licence</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">allowedList</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">pass</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>SatisfiesLicensingConstraints determines whether a licence expression is
+compatible with a list of allowed licences.
+<p>Note: The input licence expression and all entries in the allowed list are first
+normalised to their canonical SPDX form before evaluation.
+<p>Behaviour:
+<ul>
+<li>The expression may contain SPDX operators such as AND / OR.
+<li>The function returns true if the licence expression satisfies at least
+one licence in the allowed list according to SPDX semantics.
+</ul>
+<p>Example:
+<pre>licence     = &quot;MIT OR Apache-2.0&quot;
+allowedList = [&quot;MIT&quot;]
+</pre>
+<p>Result:
+<pre>true
+</pre>
+<p>This behaviour is similar to:
+<a href="https://pkg.go.dev/github.com/github/go-spdx/v2/spdxexp#Satisfies">https://pkg.go.dev/github.com/github/go-spdx/v2/spdxexp#Satisfies</a>
+<h4 id="ValidateSPDXLicence">func ValidateSPDXLicence</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ValidateSPDXLicence</span><span class="p">(</span><span class="nx">licence</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
+  <p>ValidateSPDXLicence validates that the provided string is a valid SPDX
+licence expression.
+<p>The expression is parsed using an lenient SPDX parser which will try to identify licences even if they are not in their canonical form.
+<p>Returns an error if:
+<ul>
+<li>the expression is empty
+<li>the expression cannot be parsed as a valid SPDX licence expression
+</ul>
+<p>Example valid expressions:
+<pre>MIT
+Apache-2.0
+MIT OR Apache-2.0
+GPL-2.0-or-later
+</pre>
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../_/js/permalink.js"></script></body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../../_/icons/favicon.ico"><title>casing</title>
+</head>
+  <body>
+    <nav><a href="../../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../../..">github.com</a>/<a href="../../../..">ARM-software</a>/<a href="../../..">golang-utils</a>/<a href="../..">utils</a>/<a href="..">strings</a>/casing<span class="navbar-right">
+          <a href="../../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package casing</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/strings/casing&#34;</span></pre>
+<ul>
+<li>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li>SPDX-License-Identifier: Apache-2.0
+</ul>
+<p>Package casing rewrites identifier-like strings according to declarative
+token replacement rules.
+<p>&quot;Identifier-like strings&quot; here means names that are structured as code or
+configuration identifiers rather than arbitrary prose, for example:
+<ul>
+<li>camelCase names such as `apiClient` or `sourceName`
+<li>PascalCase names such as `ApiClient` or `SourceName`
+<li>mixed acronym-containing identifiers such as `HttpAPIClient`
+</ul>
+<p>It is intended for cases where callers need to preserve the overall casing
+shape of such identifiers while forcing specific words to use a canonical
+replacement and exempting other whole words through an exception list.
+<p>This differs from simpler alternatives such as:
+<ul>
+<li>`strings.Replacer`, which is useful for literal substring replacement but
+does not understand identifier word boundaries or case reconstruction
+<li>regexp-based rewriting, which can express some token patterns but becomes
+awkward when replacement depends on identifier-style word splitting,
+acronym policies, and explicit exception lists
+</ul>
+<p>The package therefore combines identifier splitting with rule-based word
+replacement, rather than treating the input as an arbitrary free-form string.
+<p>Unlike libraries that automatically apply a built-in Go initialism list, this
+package only applies that behaviour when explicitly requested. Callers can opt
+into it by creating a replacer from <a href="#InitialismRules">InitialismRules</a> or by reusing the
+ready-made <a href="#InitialismReplacer">InitialismReplacer</a>. This keeps the package predictable for
+domain-specific casing policies while still providing built-in optional Go
+initialism support when wanted.
+<p>Typical uses include:
+<ul>
+<li>normalising known acronyms in generated identifiers
+<li>preserving exception words that should not be rewritten
+<li>applying a shared replacement policy across tools or generators
+</ul>
+<p>Related references:
+<ul>
+<li>Go initialisms guidance in effective naming:
+<a href="https://go.dev/wiki/CodeReviewComments#initialisms">https://go.dev/wiki/CodeReviewComments#initialisms</a>
+<li>`ettle/strcase`, which includes a broad casing test corpus and built-in
+Go-initialism-aware conversions:
+<a href="https://github.com/ettle/strcase">https://github.com/ettle/strcase</a>
+</ul>
+<p>The case-conversion helpers in this package accept `...*Replacer` so callers
+can use one common helper shape whether they want replacement or not. Only
+the first replacer is used; passing more than one replacer is not supported.
+<ul>
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+<li><p>Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+<li><p>SPDX-License-Identifier: Apache-2.0
+</ul>
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-variables">Variables</a></li><li><a href="#ToCamelCase">func ToCamelCase(value string, replacers ...*Replacer) string</a></li>
+  <li><a href="#ToKebabCase">func ToKebabCase(value string, replacers ...*Replacer) string</a></li>
+  <li><a href="#ToPascalCase">func ToPascalCase(value string, replacers ...*Replacer) string</a></li>
+  <li><a href="#ToSnakeCase">func ToSnakeCase(value string, replacers ...*Replacer) string</a></li>
+  <li>
+      <a href="#Replacer">type Replacer</a>
+      <ul>
+          <li><a href="#NewReplacer">func NewReplacer(rules ...Rule) (*Replacer, error)</a></li>
+          <li><a href="#Replacer.Replace">func (r *Replacer) Replace(value string) string</a></li>
+          <li><a href="#Replacer.WriteString">func (r *Replacer) WriteString(ctx context.Context, w io.Writer, s string) (n int, err error)</a></li>
+          </ul>
+      </li>
+  <li>
+      <a href="#Rule">type Rule</a>
+      <ul>
+          <li><a href="#MergeRules">func MergeRules(rules ...Rule) []Rule</a></li>
+          <li><a href="#Rule.IsCompatible">func (r Rule) IsCompatible(other *Rule) bool</a></li>
+          <li><a href="#Rule.Merge">func (r Rule) Merge(other *Rule) Rule</a></li>
+          <li><a href="#Rule.Validate">func (r *Rule) Validate() (err error)</a></li>
+          </ul>
+      </li>
+  </ul><h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="InitialismReplacer"><span class="nx">InitialismReplacer</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nf">mustNewReplacer</span><span class="p">(</span><a href="#InitialismRules"><span class="nx">InitialismRules</span></a><span class="o">...</span><span class="p">)</span></pre>
+  <p>InitialismReplacer is a ready-to-use replacer built from <a href="#InitialismRules">InitialismRules</a>.
+<p>This variable provides built-in optional Go initialism support without
+requiring callers to construct a replacer explicitly.
+
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="InitialismRules"><span class="nx">InitialismRules</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[]</span><a href="#Rule"><span class="nx">Rule</span></a><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Acl&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;ACL&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Api&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;API&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Ascii&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;ASCII&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Cpu&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;CPU&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Css&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;CSS&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Dns&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;DNS&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Eof&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;EOF&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Guid&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;GUID&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Html&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;HTML&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Http&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;HTTP&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Https&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;HTTPS&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Id&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;ID&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Ip&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;IP&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Json&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;JSON&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Lhs&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;LHS&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Qps&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;QPS&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Ram&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;RAM&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Rhs&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;RHS&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Rpc&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;RPC&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Sla&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;SLA&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Smtp&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;SMTP&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Sql&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;SQL&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Ssh&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;SSH&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Tcp&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;TCP&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Tls&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;TLS&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Ttl&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;TTL&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Udp&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;UDP&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Ui&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;UI&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Uid&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;UID&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Uuid&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;UUID&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Uri&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;URI&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Url&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;URL&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Utf8&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;UTF8&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Vm&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;VM&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Xml&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;XML&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Xmpp&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;XMPP&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Xsrf&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;XSRF&#34;</span><span class="p">},</span><span class="w">
+</span><span class="w">	</span><span class="p">{</span><span class="nx">Token</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;Xss&#34;</span><span class="p">,</span><span class="w"> </span><span class="nx">Replacement</span><span class="p">:</span><span class="w"> </span><span class="s">&#34;XSS&#34;</span><span class="p">},</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>InitialismRules defines replacement rules for the common Go initialisms.
+<p>This variable can be passed directly to <a href="#NewReplacer">NewReplacer</a> to opt into built-in
+Go-style initialism normalisation, for example:
+<pre>r, err := NewReplacer(InitialismRules...)
+</pre>
+<p>The list is based on the standard Go initialism guidance:
+<a href="https://go.dev/wiki/CodeReviewComments#initialisms">https://go.dev/wiki/CodeReviewComments#initialisms</a>
+<h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="ToCamelCase">func ToCamelCase</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ToCamelCase</span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">replacers</span><span class="w"> </span><span class="o">...*</span><a href="#Replacer"><span class="nx">Replacer</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>ToCamelCase converts value to camelCase and optionally applies a replacer to the resulting identifier. Only the first replacer is used.
+<h4 id="ToKebabCase">func ToKebabCase</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ToKebabCase</span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">replacers</span><span class="w"> </span><span class="o">...*</span><a href="#Replacer"><span class="nx">Replacer</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>ToKebabCase converts value to kebab-case and optionally applies a replacer to the identifier before the final case conversion. Only the first replacer is used.
+<h4 id="ToPascalCase">func ToPascalCase</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ToPascalCase</span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">replacers</span><span class="w"> </span><span class="o">...*</span><a href="#Replacer"><span class="nx">Replacer</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>ToPascalCase converts value to PascalCase and optionally applies a replacer to the resulting identifier. Only the first replacer is used.
+<h4 id="ToSnakeCase">func ToSnakeCase</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ToSnakeCase</span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">replacers</span><span class="w"> </span><span class="o">...*</span><a href="#Replacer"><span class="nx">Replacer</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>ToSnakeCase converts value to snake_case and optionally applies a replacer to the identifier before the final case conversion. Only the first replacer is used.
+<h3 id="pkg-types">Types</h3>
+  
+  <h4 id="Replacer">type Replacer</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Replacer</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// contains filtered or unexported fields</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Replacer applies token replacement rules to identifier-like strings.
+<p>A replacer works at identifier word boundaries rather than by performing raw
+substring replacement. In practice, this means it splits names such as
+`OpenAiApiKey`, `openAiApiKey`, or `HTTPApiToken` into logical words, looks
+up each word against the configured rules, and then rebuilds the identifier
+while preserving its overall case style.
+<p>If a word matches a configured rule, the rule&apos;s replacement is used unless
+that word is listed in the rule&apos;s exceptions. If a word does not match any
+rule, or it is exempted by an exception, it is reconstructed according to the
+identifier shape being processed:
+<ul>
+<li>all-uppercase words are preserved as-is
+<li>the first word of a camelCase identifier remains lower camel case
+<li>subsequent words are emitted in PascalCase
+</ul>
+<p>This makes Replacer useful for normalising acronyms and canonical tokens such
+as `API`, `HTTP`, `ID`, or `AI` across generated names, configuration keys,
+and code identifiers without losing the surrounding naming convention.
+<h5 id="NewReplacer">func NewReplacer</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewReplacer</span><span class="p">(</span><span class="nx">rules</span><span class="w"> </span><span class="o">...</span><a href="#Rule"><span class="nx">Rule</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><a href="#Replacer"><span class="nx">Replacer</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewReplacer constructs a Replacer from the provided rules.
+<h5 id="Replacer.Replace">func (*Replacer) Replace</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><a href="#Replacer"><span class="nx">Replacer</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Replace</span><span class="p">(</span><span class="nx">value</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a></pre>
+  <p>Replace rewrites an identifier-like string according to the configured rules while preserving camelCase or PascalCase shape.
+<h5 id="Replacer.WriteString">func (*Replacer) WriteString</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><a href="#Replacer"><span class="nx">Replacer</span></a><span class="p">)</span><span class="w"> </span><span class="nf">WriteString</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">w</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Writer"><span class="nx">Writer</span></a><span class="p">,</span><span class="w"> </span><span class="nx">s</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">n</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>WriteString rewrites s with Replace and writes the result to w using the repository&apos;s context-aware safe I/O helpers.
+<h4 id="Rule">type Rule</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">Rule</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span id="Rule.Token"><span class="nx">Token</span></span><span class="w">       </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="Rule.Replacement"><span class="nx">Replacement</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="w">	</span><span id="Rule.Exceptions"><span class="nx">Exceptions</span></span><span class="w">  </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="w">
+</span><span class="p">}</span></pre>
+    <p>Rule defines a token replacement rule for identifier-like strings.
+<h5 id="MergeRules">func MergeRules</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">MergeRules</span><span class="p">(</span><span class="nx">rules</span><span class="w"> </span><span class="o">...</span><a href="#Rule"><span class="nx">Rule</span></a><span class="p">)</span><span class="w"> </span><span class="p">[]</span><a href="#Rule"><span class="nx">Rule</span></a></pre>
+  <p>MergeRules merges compatible duplicate rules and keeps the last conflicting
+rule for a given token.
+<p>Compatible rules share the same token and replacement and have their
+exception lists combined. Conflicting rules do not cause an error; the later
+rule replaces the earlier one. The order of the returned rules is not
+guaranteed.
+<h5 id="Rule.IsCompatible">func (Rule) IsCompatible</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><a href="#Rule"><span class="nx">Rule</span></a><span class="p">)</span><span class="w"> </span><span class="nf">IsCompatible</span><span class="p">(</span><span class="nx">other</span><span class="w"> </span><span class="o">*</span><a href="#Rule"><span class="nx">Rule</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a></pre>
+  <p>If other is empty, the rules are treated as incompatible and false is
+returned immediately.
+<h5 id="Rule.Merge">func (Rule) Merge</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><a href="#Rule"><span class="nx">Rule</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Merge</span><span class="p">(</span><span class="nx">other</span><span class="w"> </span><span class="o">*</span><a href="#Rule"><span class="nx">Rule</span></a><span class="p">)</span><span class="w"> </span><a href="#Rule"><span class="nx">Rule</span></a></pre>
+  <p>If other is empty, r is returned unchanged.
+<h5 id="Rule.Validate">func (*Rule) Validate</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><a href="#Rule"><span class="nx">Rule</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Validate</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>Validate checks that the rule contains the required values.
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../../_/js/permalink.js"></script></body>
+</html>

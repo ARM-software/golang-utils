@@ -1,3 +1,7 @@
+<!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
 # Safecast
 
 the purpose of this utilities is to perform safe number conversion in go similarly to [go-safecast](https://github.com/ccoVeille/go-safecast) from which they are inspired from.
@@ -14,6 +18,3 @@ It should help tackling gosec [G115 rule](https://github.com/securego/gosec/pull
 
 Contrary to `go-safecast` no error is returned when attempting casting and the MAX or MIN value of the type is returned instead if the value is beyond the allowed window.
 For instance, `toInt8(255)-> 127` and `toInt8(-255)-> -128`
-
-
-

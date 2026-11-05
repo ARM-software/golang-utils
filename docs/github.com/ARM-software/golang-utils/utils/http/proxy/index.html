@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="doc2go">
+    <link href="../../../../../../_/css/main.css" rel="stylesheet" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../../../../../../_/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../../../../../_/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../../../../../_/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="../../../../../../_/icons/favicon.ico"><title>proxy</title>
+</head>
+  <body>
+    <nav><a href="../../../../../../guides/index.html">Task guides</a> · 
+        <a href="../../../../..">github.com</a>/<a href="../../../..">ARM-software</a>/<a href="../../..">golang-utils</a>/<a href="../..">utils</a>/<a href="..">http</a>/proxy<span class="navbar-right">
+          <a href="../../../../../..">Root</a> | <a href="#pkg-index">Index</a></span>
+      </nav>
+    <main>
+<h2 id="pkg-overview">package proxy</h2>
+
+<pre class="chroma"><span class="kn">import</span><span class="w"> </span><span class="s">&#34;github.com/ARM-software/golang-utils/utils/http/proxy&#34;</span></pre>
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<h3 id="pkg-index">Index</h3>
+<ul>
+  <li><a href="#pkg-variables">Variables</a></li><li><a href="#ProxyRequest">func ProxyRequest(r *http.Request, proxyMethod, endpoint string) (proxiedRequest *http.Request, err error)</a></li>
+  <li><a href="#ProxyResponse">func ProxyResponse(ctx context.Context, resp *http.Response, w http.ResponseWriter) (err error)</a></li>
+  </ul><h3 id="pkg-variables">Variables</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">var</span><span class="w"> </span><span id="ProxyDisallowList"><span class="nx">ProxyDisallowList</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">{</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a"><span class="nx">headers</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a#AccessControlAllowOrigin"><span class="nx">AccessControlAllowOrigin</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a"><span class="nx">headers</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a#AccessControlAllowMethods"><span class="nx">AccessControlAllowMethods</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a"><span class="nx">headers</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a#AccessControlAllowHeaders"><span class="nx">AccessControlAllowHeaders</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a"><span class="nx">headers</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a#AccessControlExposeHeaders"><span class="nx">AccessControlExposeHeaders</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a"><span class="nx">headers</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a#AccessControlMaxAge"><span class="nx">AccessControlMaxAge</span></a><span class="p">,</span><span class="w">
+</span><span class="w">	</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a"><span class="nx">headers</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-http-utils/headers@v0.0.0-20181008091004-fed159eddc2a#AccessControlAllowCredentials"><span class="nx">AccessControlAllowCredentials</span></a><span class="p">,</span><span class="w">
+</span><span class="p">}</span></pre>
+  <p>ProxyDisallowList describes headers which are not proxied back.
+<h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="ProxyRequest">func ProxyRequest</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ProxyRequest</span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Request"><span class="nx">Request</span></a><span class="p">,</span><span class="w"> </span><span class="nx">proxyMethod</span><span class="p">,</span><span class="w"> </span><span class="nx">endpoint</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">proxiedRequest</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Request"><span class="nx">Request</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>ProxyRequest proxies a request to a new endpoint. The method can also be changed. Headers are sanitised during the process.
+<h4 id="ProxyResponse">func ProxyResponse</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ProxyResponse</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">resp</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#Response"><span class="nx">Response</span></a><span class="p">,</span><span class="w"> </span><span class="nx">w</span><span class="w"> </span><a href="https://pkg.go.dev/net/http"><span class="nx">http</span></a><span class="p">.</span><a href="https://pkg.go.dev/net/http#ResponseWriter"><span class="nx">ResponseWriter</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>ProxyResponse proxies a response to a writer. Headers are sanitised and some headers such as CORS headers will be removed from the response.
+</main>
+    <hr>
+    <footer>
+      <small id="generated-by-footer">
+        Generated with <a href="https://abhinav.github.io/doc2go/">doc2go</a>
+      </small>
+    </footer>
+    <script src="../../../../../../_/js/permalink.js"></script></body>
+</html>
