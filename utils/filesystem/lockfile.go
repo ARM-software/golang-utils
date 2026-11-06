@@ -115,7 +115,9 @@ func isStale(filetime FileTimeInfo, beatPeriod time.Duration) bool {
 	if filetime == nil {
 		return false
 	}
-	return time.Since(filetime.ModTime()).Milliseconds() > 2*beatPeriod.Milliseconds()
+	// Allow for scheduler and filesystem timestamp jitter before treating an
+	// active lock as stale.
+	return time.Since(filetime.ModTime()).Milliseconds() > 3*beatPeriod.Milliseconds()
 }
 
 func (l *RemoteLockFile) ReleaseIfStale(ctx context.Context) error {
@@ -147,6 +149,10 @@ func (l *RemoteLockFile) TryLock(ctx context.Context) (err error) {
 	}
 	if err != nil {
 		return
+	}
+	if err := parallelisation.DetermineContextError(ctx); err != nil {
+		_ = l.fs.Rm(lockPath)
+		return err
 	}
 
 	// FIXME: the following is to overcome the problem found with different filesystems which do not update modTime on directory creation.

@@ -6,6 +6,7 @@ package platform
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -56,6 +57,14 @@ func TestMemoryInformation(t *testing.T) {
 	require.Nil(t, err)
 	assert.NotZero(t, ram)
 	fmt.Println(ram)
+}
+
+func TestIsCurrentWithRootPrivileges(t *testing.T) {
+	root, err := IsCurrentWithRootPrivileges()
+	require.NoError(t, err)
+	if !IsWindows() {
+		assert.Equal(t, os.Geteuid() == 0, root)
+	}
 }
 
 func TestExpandParameter(t *testing.T) {

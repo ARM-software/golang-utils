@@ -71,7 +71,10 @@ func IsProcessRunning(ctx context.Context, pid int) (running bool, err error) {
 	return
 }
 
-// WaitForCompletionWithKill will wait for a process to complete and if the context elapses then it will kill it and its children
+// WaitForCompletionWithKill will wait for a process to complete and if the context elapses then it will kill it and its children.
+//
+// Like WaitForCompletion, this only observes and controls the process by PID. It does not reap a caller-owned *exec.Cmd or
+// close handles held by the process starter, so callers that started the command must still call cmd.Wait().
 func WaitForCompletionWithKill(ctx context.Context, pid int) (err error) {
 	err = WaitForCompletion(ctx, pid)
 	if err != nil && commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {

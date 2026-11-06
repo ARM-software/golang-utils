@@ -7,7 +7,6 @@ package proc
 import (
 	"context"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -99,7 +98,7 @@ func TestProcesses(t *testing.T) {
 }
 
 func TestKill(t *testing.T) {
-	cmd := exec.Command("sleep", "50")
+	cmd := SleepCommand(50 * time.Second)
 	require.NoError(t, cmd.Start())
 	defer func() { _ = cmd.Wait() }()
 	process, err := FindProcess(context.Background(), cmd.Process.Pid)
@@ -123,9 +122,7 @@ func TestPs_KillWithChildren(t *testing.T) {
 		t.Skip("test with bash")
 	}
 	defer goleak.VerifyNone(t)
-	// see https://medium.com/@felixge/killing-a-child-process-and-all-of-its-children-in-go-54079af94773
-	// https://forum.golangbridge.org/t/killing-child-process-on-timeout-in-go-code/995/16
-	cmd := exec.Command("bash", "-c", "watch date > date.txt 2>&1")
+	cmd := newCommandWithChildProcess()
 	require.NoError(t, cmd.Start())
 	defer func() { _ = cmd.Wait() }()
 	require.NotNil(t, cmd.Process)
@@ -145,7 +142,7 @@ func TestPs_KillWithChildren(t *testing.T) {
 
 func TestWaitForCompletion(t *testing.T) {
 	t.Run("Wait for existing process (completes normally)", func(t *testing.T) {
-		cmd := exec.Command("sleep", "1")
+		cmd := SleepCommand(time.Second)
 
 		// for any of our wait checks to work we need to set the group ID to the pid, otherwise the
 		// group ID will be the code that launched it (e.g. the exec in the test). This causes issues
@@ -154,16 +151,19 @@ func TestWaitForCompletion(t *testing.T) {
 		require.NoError(t, cmd.Start())
 		defer func() { _ = cmd.Process.Kill() }()
 
+		waitErrCh := waitForCmdInBackground(cmd)
+
 		start := time.Now()
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		err := WaitForCompletion(ctx, cmd.Process.Pid)
 		assert.Greater(t, time.Since(start), time.Second)
-		assert.NoError(t, err)
+		errortest.AssertError(t, err, nil, commonerrors.ErrNotFound)
+		require.NoError(t, <-waitErrCh)
 	})
 
 	t.Run("Wait for existing process (completes before wait)", func(t *testing.T) {
-		cmd := exec.Command("sleep", "0.1")
+		cmd := SleepCommand(100 * time.Millisecond)
 
 		// for any of our wait checks to work we need to set the group ID to the pid, otherwise the
 		// group ID will be the code that launched it (e.g. the exec in the test). This causes issues
@@ -175,7 +175,7 @@ func TestWaitForCompletion(t *testing.T) {
 		require.NoError(t, err)
 
 		err = WaitForCompletion(context.Background(), cmd.Process.Pid)
-		assert.NoError(t, err)
+		errortest.AssertError(t, err, nil, commonerrors.ErrNotFound)
 	})
 	t.Run("Non-existent process does return error as it is impossible to tell if this is because it has already stopped or not", func(t *testing.T) {
 		nonExistent := 999999
@@ -184,7 +184,7 @@ func TestWaitForCompletion(t *testing.T) {
 	})
 
 	t.Run("Cancelled context returns error", func(t *testing.T) {
-		cmd := exec.Command("sleep", "2")
+		cmd := SleepCommand(2 * time.Second)
 		require.NoError(t, cmd.Start())
 		defer func() { _ = cmd.Process.Kill() }()
 

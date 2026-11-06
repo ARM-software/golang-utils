@@ -93,10 +93,10 @@ func RobustCastRef[F, T IConvertible](i *F) (c *T, err error) {
 // If the converted value falls outside the range of int,
 // the nearest boundary value is returned instead.
 func ToInt[C IConvertible](i C) int {
-	if lessThanLowerBoundary(i, math.MinInt) {
+	if lessThanLowerBoundary(i, int64(math.MinInt)) {
 		return math.MinInt
 	}
-	if greaterThanUpperBoundary(i, math.MaxInt) {
+	if greaterThanUpperBoundary(i, uint64(math.MaxInt)) {
 		return math.MaxInt
 	}
 	return int(i)
@@ -112,10 +112,10 @@ func ToIntRef[C IConvertible](i *C) *int {
 // If the converted value falls outside the range of uint,
 // the nearest boundary value is returned instead.
 func ToUint[C IConvertible](i C) uint {
-	if lessThanLowerBoundary(i, uint(0)) {
+	if lessThanLowerBoundary(i, 0) {
 		return 0
 	}
-	if greaterThanUpperBoundary(i, uint(math.MaxUint)) {
+	if greaterThanUpperBoundary(i, uint64(math.MaxUint)) {
 		return math.MaxUint
 	}
 	return uint(i)
@@ -131,10 +131,10 @@ func ToUintRef[C IConvertible](i *C) *uint {
 // If the converted value falls outside the range of int8,
 // the nearest boundary value is returned instead.
 func ToInt8[C IConvertible](i C) int8 {
-	if lessThanLowerBoundary(i, math.MinInt8) {
+	if lessThanLowerBoundary(i, int64(math.MinInt8)) {
 		return math.MinInt8
 	}
-	if greaterThanUpperBoundary(i, math.MaxInt8) {
+	if greaterThanUpperBoundary(i, uint64(math.MaxInt8)) {
 		return math.MaxInt8
 	}
 	return int8(i)
@@ -153,7 +153,7 @@ func ToUint8[C IConvertible](i C) uint8 {
 	if lessThanLowerBoundary(i, 0) {
 		return 0
 	}
-	if greaterThanUpperBoundary(i, math.MaxUint8) {
+	if greaterThanUpperBoundary(i, uint64(math.MaxUint8)) {
 		return math.MaxUint8
 	}
 	return uint8(i)
@@ -169,10 +169,10 @@ func ToUint8Ref[C IConvertible](i *C) *uint8 {
 // If the converted value falls outside the range of int16,
 // the nearest boundary value is returned instead.
 func ToInt16[C IConvertible](i C) int16 {
-	if lessThanLowerBoundary(i, math.MinInt16) {
+	if lessThanLowerBoundary(i, int64(math.MinInt16)) {
 		return math.MinInt16
 	}
-	if greaterThanUpperBoundary(i, math.MaxInt16) {
+	if greaterThanUpperBoundary(i, uint64(math.MaxInt16)) {
 		return math.MaxInt16
 	}
 	return int16(i)
@@ -191,7 +191,7 @@ func ToUint16[C IConvertible](i C) uint16 {
 	if lessThanLowerBoundary(i, 0) {
 		return 0
 	}
-	if greaterThanUpperBoundary(i, math.MaxUint16) {
+	if greaterThanUpperBoundary(i, uint64(math.MaxUint16)) {
 		return math.MaxUint16
 	}
 	return uint16(i)
@@ -207,10 +207,10 @@ func ToUint16Ref[C IConvertible](i *C) *uint16 {
 // If the converted value falls outside the range of int32,
 // the nearest boundary value is returned instead.
 func ToInt32[C IConvertible](i C) int32 {
-	if lessThanLowerBoundary(i, math.MinInt32) {
+	if lessThanLowerBoundary(i, int64(math.MinInt32)) {
 		return math.MinInt32
 	}
-	if greaterThanUpperBoundary(i, math.MaxInt32) {
+	if greaterThanUpperBoundary(i, uint64(math.MaxInt32)) {
 		return math.MaxInt32
 	}
 	return int32(i)
@@ -244,7 +244,7 @@ func ToUint32[C IConvertible](i C) uint32 {
 	if lessThanLowerBoundary(i, 0) {
 		return 0
 	}
-	if greaterThanUpperBoundary(i, math.MaxUint32) {
+	if greaterThanUpperBoundary(i, uint64(math.MaxUint32)) {
 		return math.MaxUint32
 	}
 	return uint32(i)
@@ -260,10 +260,10 @@ func ToUint32Ref[C IConvertible](i *C) *uint32 {
 // If the converted value falls outside the range of int64,
 // the nearest boundary value is returned instead.
 func ToInt64[C IConvertible](i C) int64 {
-	if lessThanLowerBoundary(i, math.MinInt64) {
+	if lessThanLowerBoundary(i, int64(math.MinInt64)) {
 		return math.MinInt64
 	}
-	if greaterThanUpperBoundary(i, math.MaxInt64) {
+	if greaterThanUpperBoundary(i, uint64(math.MaxInt64)) {
 		return math.MaxInt64
 	}
 	return int64(i)
@@ -279,7 +279,7 @@ func ToInt64Ref[C IConvertible](i *C) *int64 {
 // If the converted value falls outside the range of uint64,
 // the nearest boundary value is returned instead.
 func ToUint64[C IConvertible](i C) uint64 {
-	if lessThanLowerBoundary(i, uint64(0)) {
+	if lessThanLowerBoundary(i, 0) {
 		return 0
 	}
 	if greaterThanUpperBoundary(i, uint64(math.MaxUint64)) {
@@ -309,10 +309,10 @@ func ToFloat64Ref[C IConvertible](i *C) *float64 {
 // If the converted value falls outside the range of float32,
 // the nearest boundary value is returned instead.
 func ToFloat32[C IConvertible](i C) float32 {
-	if lessThanLowerBoundary(i, -math.MaxFloat32) || math.IsInf(float64(i), -1) {
+	if lessThanLowerFloatBoundary(i, -math.MaxFloat32) || math.IsInf(float64(i), -1) {
 		return -math.MaxFloat32
 	}
-	if greaterThanUpperBoundary(i, math.MaxFloat32) || math.IsInf(float64(i), 1) {
+	if greaterThanUpperFloatBoundary(i, math.MaxFloat32) || math.IsInf(float64(i), 1) {
 		return math.MaxFloat32
 	}
 	return float32(i)

@@ -155,15 +155,42 @@ func TestTouch(t *testing.T) {
 			timesFile2, err := fs.StatTimes(tmpFile2)
 			require.NoError(t, err)
 
-			err = fs.Touch(tmpFile)
-			require.NoError(t, err)
-			err = fs.Touch(tmpFile2)
-			require.NoError(t, err)
+			var timesFile12 FileTimeInfo
+			var timesFile22 FileTimeInfo
+			if platform.IsWindows() && fs.GetType() == StandardFS {
+				// Windows-backed filesystems can report unchanged modtimes for closely spaced updates, so retry until the timestamp advances.
+				require.Eventually(t, func() bool {
+					err = fs.Touch(tmpFile)
+					if err != nil {
+						return false
+					}
+					err = fs.Touch(tmpFile2)
+					if err != nil {
+						return false
+					}
 
-			timesFile12, err := fs.StatTimes(tmpFile)
-			require.NoError(t, err)
-			timesFile22, err := fs.StatTimes(tmpFile2)
-			require.NoError(t, err)
+					timesFile12, err = fs.StatTimes(tmpFile)
+					if err != nil {
+						return false
+					}
+					timesFile22, err = fs.StatTimes(tmpFile2)
+					if err != nil {
+						return false
+					}
+
+					return !timesFile12.ModTime().Equal(timesFile1.ModTime()) && !timesFile22.ModTime().Equal(timesFile2.ModTime())
+				}, time.Second, 20*time.Millisecond)
+			} else {
+				err = fs.Touch(tmpFile)
+				require.NoError(t, err)
+				err = fs.Touch(tmpFile2)
+				require.NoError(t, err)
+
+				timesFile12, err = fs.StatTimes(tmpFile)
+				require.NoError(t, err)
+				timesFile22, err = fs.StatTimes(tmpFile2)
+				require.NoError(t, err)
+			}
 
 			assert.NotEqual(t, timesFile12.ModTime(), timesFile1.ModTime())
 			assert.NotEqual(t, timesFile2.ModTime(), timesFile22.ModTime())

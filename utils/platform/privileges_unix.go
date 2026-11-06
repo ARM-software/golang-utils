@@ -3,11 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-//go:build linux || unix || (js && wasm) || darwin || aix || dragonfly || freebsd || nacl || netbsd || openbsd || solaris
+//go:build !windows
+
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 package platform
 
 import (
+	"os"
 	"os/exec"
 
 	"github.com/ARM-software/golang-utils/utils/subprocess/command"
@@ -25,6 +31,14 @@ var (
 //   - args="su", "tom" if `tom` has enough privileges to run the command
 func DefineSudoCommand(args ...string) {
 	sudoCommand = command.NewCommandAsDifferentUser(args...)
+}
+
+func isCurrentWithRootPrivileges() (bool, error) {
+	return os.Geteuid() == 0, nil
+}
+
+func canCurrentUserMutateUsersOnPlatform() (bool, error) {
+	return IsCurrentWithRootPrivileges()
 }
 
 func getRunCommandWithPrivileges() *command.CommandAsDifferentUser {
