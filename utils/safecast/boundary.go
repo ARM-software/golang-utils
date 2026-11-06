@@ -37,3 +37,36 @@ func lessThanLowerBoundary[T IConvertible, T2 IConvertible](value T, boundary T2
 	}
 	return
 }
+
+func greaterThanUpperFloatBoundary[C IConvertible](value C, upperBoundary float64) (greater bool) {
+	if value <= 0 {
+		return
+	}
+
+	switch f := any(value).(type) {
+	case float64:
+		greater = f >= upperBoundary
+	case float32:
+		greater = float64(f) >= upperBoundary
+	default:
+		greater = float64(value) >= upperBoundary
+	}
+
+	return
+}
+
+func lessThanLowerFloatBoundary[C IConvertible](value C, boundary float64) (lower bool) {
+	if value >= 0 {
+		return
+	}
+
+	switch f := any(value).(type) {
+	case float64:
+		lower = f <= boundary
+	case float32:
+		lower = float64(f) <= boundary
+	default:
+		lower = float64(value) <= boundary
+	}
+	return
+}

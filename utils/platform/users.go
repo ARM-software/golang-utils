@@ -6,7 +6,6 @@ package platform
 
 import (
 	"context"
-	"fmt"
 	"os/user"
 
 	"github.com/mitchellh/go-homedir"
@@ -18,7 +17,7 @@ import (
 // DefineUser adds a new user to the platform
 func DefineUser(ctx context.Context, user *user.User, password string) (err error) {
 	if user == nil {
-		err = fmt.Errorf("%w: missing user information", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("user information")
 		return
 	}
 	username := user.Username
@@ -87,7 +86,7 @@ func GetUser(username string) (auser *user.User, err error) {
 		return
 	}
 	if auser == nil {
-		err = fmt.Errorf("%w: missing user information", commonerrors.ErrUnexpected)
+		err = commonerrors.New(commonerrors.ErrUnexpected, "missing user information")
 		return
 	}
 	home, err := fetchHomeDirectory(username, auser.HomeDir)
@@ -106,65 +105,15 @@ func GetCurrentUser() (currentUser *user.User, err error) {
 		return
 	}
 	if currentUser == nil {
-		err = fmt.Errorf("%w: missing user information", commonerrors.ErrUnexpected)
+		err = commonerrors.New(commonerrors.ErrUnexpected, "missing user information")
 		return
 	}
 	home, err := homedir.Dir()
 	if err != nil {
-		err = fmt.Errorf("%w: could not retrieve information about current user's home directory: %v", commonerrors.ErrUnexpected, err.Error())
+		err = commonerrors.WrapError(commonerrors.ErrUnexpected, err, "could not retrieve information about current user's home directory")
 		return
 	}
 	currentUser.HomeDir = home
-	return
-}
-
-// IsCurrentUserAnAdmin states whether the current user is a superuser or not.
-func IsCurrentUserAnAdmin() (admin bool, err error) {
-	cuser, err := user.Current()
-	if err != nil {
-		err = fmt.Errorf("%w: cannot fetch the current user: %v", commonerrors.ErrUnexpected, err.Error())
-		return
-	}
-	admin, err = IsUserAdmin(cuser)
-	return
-}
-
-// IsUserAdmin states whether the user is a superuser or not. Similar to IsAdmin but may use more checks.
-func IsUserAdmin(user *user.User) (admin bool, err error) {
-	if user == nil {
-		err = fmt.Errorf("%w: missing user", commonerrors.ErrUndefined)
-		return
-	}
-	admin, subErr := isUserAdmin(user)
-	if subErr == nil {
-		return
-	}
-	admin, err = IsAdmin(user.Username)
-	err = ConvertUserGroupError(err)
-	return
-}
-
-// IsAdmin states whether the user is a superuser or not.
-func IsAdmin(username string) (admin bool, err error) {
-	found, subErr := HasUser(username)
-	if !found && subErr == nil {
-		return
-	}
-	admin, err = isAdmin(username)
-	err = ConvertUserGroupError(err)
-	if err == nil {
-		return
-	}
-	// Make more check if username is current user
-	current, subErr := user.Current()
-	if subErr != nil {
-		return
-	}
-	if current.Username != username {
-		return
-	}
-	admin, err = isCurrentAdmin()
-	err = ConvertUserGroupError(err)
 	return
 }
 
@@ -213,11 +162,11 @@ func AssociateUserToGroup(ctx context.Context, username, groupName string) error
 	}
 	found, err := HasGroup(groupName)
 	if err != nil || !found {
-		return fmt.Errorf("%w: the group does not seem to exist: %v", commonerrors.ErrNotFound, err.Error())
+		return commonerrors.WrapError(commonerrors.ErrNotFound, err, "the group does not seem to exist")
 	}
 	found, err = HasUser(username)
 	if err != nil || !found {
-		return fmt.Errorf("%w: the user does not seem to exist: %v", commonerrors.ErrNotFound, err.Error())
+		return commonerrors.WrapError(commonerrors.ErrNotFound, err, "the user does not seem to exist")
 	}
 	return ConvertUserGroupError(associateUserToGroup(ctx, username, groupName))
 }
@@ -248,8 +197,8 @@ func ConvertUserGroupError(err error) error {
 	switch {
 	case commonerrors.Any(err, commonerrors.ErrTimeout, commonerrors.ErrCancelled, commonerrors.ErrUnknown, commonerrors.ErrUnexpected, commonerrors.ErrNotFound):
 		return err
-	case commonerrors.CorrespondTo(err, "unknown"):
-		return fmt.Errorf("%w: %v", commonerrors.ErrNotFound, err.Error())
+	case commonerrors.CorrespondTo(err, "unknown", "no mapping between account names and security ids was done"):
+		return commonerrors.WrapError(commonerrors.ErrNotFound, err, "")
 	}
-	return fmt.Errorf("%w: %v", commonerrors.ErrUnknown, err.Error())
+	return commonerrors.WrapError(commonerrors.ErrUnknown, err, "")
 }

@@ -142,6 +142,10 @@ func TestEvalSymlinks_ResolvesToRealPath(t *testing.T) {
 			resolvedAbs := FilePathAbs(fs, resolved, currentDir)
 			resolvedAbs = FilePathClean(fs, resolvedAbs)
 			expectedAbs = FilePathClean(fs, expectedAbs)
+			canonicalExpectedAbs, err := EvalSymlinks(fs, expectedAbs)
+			require.NoError(t, err)
+			canonicalExpectedAbs = FilePathAbs(fs, canonicalExpectedAbs, currentDir)
+			canonicalExpectedAbs = FilePathClean(fs, canonicalExpectedAbs)
 
 			resolved2, err := EvalSymlinks(fs, symlinkFile)
 			require.NoError(t, err)
@@ -149,11 +153,11 @@ func TestEvalSymlinks_ResolvesToRealPath(t *testing.T) {
 			resolvedAbs2 = FilePathClean(fs, resolvedAbs2)
 
 			if platform.IsWindows() {
-				assert.True(t, strings.EqualFold(resolvedAbs, expectedAbs))
-				assert.True(t, strings.EqualFold(resolvedAbs2, expectedAbs))
+				assert.True(t, strings.EqualFold(resolvedAbs, canonicalExpectedAbs))
+				assert.True(t, strings.EqualFold(resolvedAbs2, canonicalExpectedAbs))
 			} else {
-				assert.Equal(t, expectedAbs, resolvedAbs)
-				assert.Equal(t, expectedAbs, resolvedAbs2)
+				assert.Equal(t, canonicalExpectedAbs, resolvedAbs)
+				assert.Equal(t, canonicalExpectedAbs, resolvedAbs2)
 			}
 
 			content, err := fs.ReadFile(symlinkFile)

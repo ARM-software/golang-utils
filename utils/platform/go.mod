@@ -7,7 +7,7 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.5.0
 	github.com/iamacarpet/go-win64api v0.0.0-20240507095429-873e84e85847
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/shirou/gopsutil/v4 v4.26.9
+	github.com/shirou/gopsutil/v4 v4.26.10
 	github.com/stretchr/testify v1.12.1
 	golang.org/x/sys v0.49.0
 )
@@ -41,7 +41,7 @@ require (
 	github.com/ARM-software/golang-utils/utils/safecast v1.171.2
 	github.com/ARM-software/golang-utils/utils/subprocess/command v1.171.2
 	github.com/ARM-software/golang-utils/utils/validation v1.171.2
-	github.com/ebitengine/purego v0.11.1 // indirect
+	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/google/cabbie v1.0.2 // indirect
 	github.com/google/glazier v0.0.0-20211029225403-9f766cca891d // indirect
