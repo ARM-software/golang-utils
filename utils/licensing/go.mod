@@ -3,15 +3,15 @@ module github.com/ARM-software/golang-utils/utils/licensing
 go 1.26.0
 
 require (
-	github.com/git-pkgs/spdx v0.3.4
+	github.com/git-pkgs/spdx v0.3.6
 	github.com/go-ozzo/ozzo-validation/v4 v4.5.0
 	github.com/stretchr/testify v1.12.1
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/ptr v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.172.0 // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -20,11 +20,11 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.171.2
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.2
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.2
-	github.com/ARM-software/golang-utils/utils/field v1.171.2
-	github.com/ARM-software/golang-utils/utils/reflection v1.171.2
+	github.com/ARM-software/golang-utils/utils/collection v1.172.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.172.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.172.0
+	github.com/ARM-software/golang-utils/utils/field v1.172.0
+	github.com/ARM-software/golang-utils/utils/reflection v1.172.0
 	github.com/github/go-spdx/v2 v2.8.0 // indirect
 )
 
