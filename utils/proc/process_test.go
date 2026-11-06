@@ -151,12 +151,18 @@ func TestWaitForCompletion(t *testing.T) {
 		require.NoError(t, cmd.Start())
 		defer func() { _ = cmd.Process.Kill() }()
 
+		waitErrCh := make(chan error, 1)
+		go func() {
+			waitErrCh <- cmd.Wait()
+		}()
+
 		start := time.Now()
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		err := WaitForCompletion(ctx, cmd.Process.Pid)
 		assert.Greater(t, time.Since(start), time.Second)
 		errortest.AssertError(t, err, nil, commonerrors.ErrNotFound)
+		require.NoError(t, <-waitErrCh)
 	})
 
 	t.Run("Wait for existing process (completes before wait)", func(t *testing.T) {
