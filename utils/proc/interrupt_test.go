@@ -22,31 +22,69 @@ import (
 )
 
 func TestTerminateGracefully(t *testing.T) {
-	for _, test := range []struct {
-		name     string
-		testFunc func(ctx context.Context, pid int, gracePeriod time.Duration) error
-	}{
+	type terminateGracefullyTest struct {
+		name                    string
+		testFunc                func(ctx context.Context, pid int, gracePeriod time.Duration) error
+		expectBeforeGracePeriod bool
+		gracePeriodReason       string
+	}
+
+	tests := []terminateGracefullyTest{
 		{
-			name:     "TerminateGracefully",
-			testFunc: TerminateGracefully,
+			name:                    "TerminateGracefully",
+			testFunc:                TerminateGracefully,
+			expectBeforeGracePeriod: true,
+			gracePeriodReason:       "TerminateGracefully sends both SigInt and SigTerm before the fallback kill, so the process should exit before the grace period.",
 		},
 		{
-			name: "TerminateGracefullyWithSpecificInterrupts",
-			testFunc: func(ctx context.Context, pid int, gracePeriod time.Duration) error {
-				return TerminateGracefullyWithSpecificInterrupts(ctx, pid, gracePeriod, SigInt)
+			name:                    "TerminateGracefullyWithChildren",
+			testFunc:                TerminateGracefullyWithChildren,
+			expectBeforeGracePeriod: true,
+			gracePeriodReason:       "TerminateGracefullyWithChildren ultimately applies the default graceful shutdown sequence, so the target process should exit before the grace period instead of waiting for the fallback kill.",
+		},
+	}
+
+	if runtime.GOOS == "windows" {
+		tests = append(tests,
+			terminateGracefullyTest{
+				name:                    "TerminateGracefullyWithSpecificInterrupts",
+				expectBeforeGracePeriod: false,
+				gracePeriodReason:       "On Windows, this variant only sends SigInt and proc.Interrupt documents SigInt as a no-op, so the process should remain alive until the fallback kill after the grace period.",
+				testFunc: func(ctx context.Context, pid int, gracePeriod time.Duration) error {
+					return TerminateGracefullyWithSpecificInterrupts(ctx, pid, gracePeriod, SigInt)
+				},
 			},
-		},
-		{
-			name:     "TerminateGracefullyWithChildren",
-			testFunc: TerminateGracefullyWithChildren,
-		},
-		{
-			name: "TerminateGracefullyWithChildrenWithSpecificInterrupts",
-			testFunc: func(ctx context.Context, pid int, gracePeriod time.Duration) error {
-				return TerminateGracefullyWithChildrenWithSpecificInterrupts(ctx, pid, gracePeriod, SigInt)
+			terminateGracefullyTest{
+				name:                    "TerminateGracefullyWithChildrenWithSpecificInterrupts",
+				expectBeforeGracePeriod: false,
+				gracePeriodReason:       "On Windows, this variant only sends SigInt to each process and SigInt is a no-op, so the process should remain alive until the fallback kill after the grace period.",
+				testFunc: func(ctx context.Context, pid int, gracePeriod time.Duration) error {
+					return TerminateGracefullyWithChildrenWithSpecificInterrupts(ctx, pid, gracePeriod, SigInt)
+				},
 			},
-		},
-	} {
+		)
+	} else {
+		tests = append(tests,
+			terminateGracefullyTest{
+				name:                    "TerminateGracefullyWithSpecificInterrupts",
+				expectBeforeGracePeriod: true,
+				gracePeriodReason:       "On Unix, this variant only sends SigInt and sleep exits on SigInt, so the process should finish before the grace period.",
+				testFunc: func(ctx context.Context, pid int, gracePeriod time.Duration) error {
+					return TerminateGracefullyWithSpecificInterrupts(ctx, pid, gracePeriod, SigInt)
+				},
+			},
+			terminateGracefullyTest{
+				name:                    "TerminateGracefullyWithChildrenWithSpecificInterrupts",
+				expectBeforeGracePeriod: true,
+				gracePeriodReason:       "On Unix, this variant only sends SigInt to each process and that should stop the process tree before the grace period.",
+				testFunc: func(ctx context.Context, pid int, gracePeriod time.Duration) error {
+					return TerminateGracefullyWithChildrenWithSpecificInterrupts(ctx, pid, gracePeriod, SigInt)
+				},
+			},
+		)
+	}
+
+	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			t.Run("single process", func(t *testing.T) {
@@ -75,7 +113,12 @@ func TestTerminateGracefully(t *testing.T) {
 				now := time.Now()
 				gracePeriod := 10 * time.Second
 				require.NoError(t, test.testFunc(context.Background(), cmd.Process.Pid, gracePeriod))
-				assert.Less(t, time.Since(now), gracePeriod) // this indicates that the process was closed by INT/SIG not KILL
+				elapsed := time.Since(now)
+				if test.expectBeforeGracePeriod {
+					assert.Lessf(t, elapsed, gracePeriod, "expected completion before the grace period: %s", test.gracePeriodReason)
+				} else {
+					assert.GreaterOrEqualf(t, elapsed, gracePeriod, "expected to wait for the grace period on this platform: %s", test.gracePeriodReason)
+				}
 
 				time.Sleep(500 * time.Millisecond)
 				process, err = FindProcess(context.Background(), cmd.Process.Pid)
@@ -123,7 +166,12 @@ func TestTerminateGracefully(t *testing.T) {
 				now := time.Now()
 				gracePeriod := 10 * time.Second
 				require.NoError(t, test.testFunc(context.Background(), cmd.Process.Pid, gracePeriod))
-				assert.Less(t, time.Since(now), gracePeriod) // this indicates that the process was closed by INT/SIG not KILL
+				elapsed := time.Since(now)
+				if test.expectBeforeGracePeriod {
+					assert.Lessf(t, elapsed, gracePeriod, "expected completion before the grace period: %s", test.gracePeriodReason)
+				} else {
+					assert.GreaterOrEqualf(t, elapsed, gracePeriod, "expected to wait for the grace period on this platform: %s", test.gracePeriodReason)
+				}
 
 				p, err = FindProcess(context.Background(), cmd.Process.Pid)
 				if err == nil {
