@@ -39,6 +39,7 @@
   <li><a href="#AddUser">func AddUser(ctx context.Context, username, fullname, password string) error</a></li>
   <li><a href="#AssociateUserToGroup">func AssociateUserToGroup(ctx context.Context, username, groupName string) error</a></li>
   <li><a href="#BootTime">func BootTime() (bootime time.Time, err error)</a></li>
+  <li><a href="#CanCurrentUserMutateUsers">func CanCurrentUserMutateUsers() (bool, error)</a></li>
   <li><a href="#ConvertError">func ConvertError(err error) error</a></li>
   <li><a href="#ConvertUserGroupError">func ConvertUserGroupError(err error) error</a></li>
   <li><a href="#DefineSudoCommand">func DefineSudoCommand(args ...string)</a></li>
@@ -58,6 +59,7 @@
   <li><a href="#Hostname">func Hostname() (string, error)</a></li>
   <li><a href="#IsAdmin">func IsAdmin(username string) (admin bool, err error)</a></li>
   <li><a href="#IsCurrentUserAnAdmin">func IsCurrentUserAnAdmin() (admin bool, err error)</a></li>
+  <li><a href="#IsCurrentWithRootPrivileges">func IsCurrentWithRootPrivileges() (bool, error)</a></li>
   <li><a href="#IsUserAdmin">func IsUserAdmin(user *user.User) (admin bool, err error)</a></li>
   <li><a href="#IsWindows">func IsWindows() bool</a></li>
   <li><a href="#LineSeparator">func LineSeparator() string</a></li>
@@ -123,11 +125,11 @@
 </span><span class="w">	</span><span id="WindowsVariableNameRegexString"><span class="nx">WindowsVariableNameRegexString</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;^[A-Za-z#$&#39;()*+,.?@\\[\\]_`{}~][A-Za-z0-9#$&#39;()*+,.?@\\[\\]_`{}~\\s]*$&#34;</span><span class="w">
 </span><span class="w">
 </span><span class="w">	</span><span class="c1">// IsWindowsVariableName defines a validation rule for variable names on Windows for use with github.com/go-ozzo/ozzo-validation</span><span class="w">
-</span><span class="w">	</span><span id="IsWindowsVariableName"><span class="nx">IsWindowsVariableName</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1"><span class="nx">validation</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1#NewStringRuleWithError"><span class="nf">NewStringRuleWithError</span></a><span class="p">(</span><span class="nx">isWindowsVarName</span><span class="p">,</span><span class="w"> </span><span class="nx">errVariableNameInvalid</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="IsWindowsVariableName"><span class="nx">IsWindowsVariableName</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.5.0"><span class="nx">validation</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.5.0#NewStringRuleWithError"><span class="nf">NewStringRuleWithError</span></a><span class="p">(</span><span class="nx">isWindowsVarName</span><span class="p">,</span><span class="w"> </span><span class="nx">errVariableNameInvalid</span><span class="p">)</span><span class="w">
 </span><span class="w">	</span><span class="c1">// IsUnixVariableName defines a validation rule for variable names on Unix for use with github.com/go-ozzo/ozzo-validation</span><span class="w">
-</span><span class="w">	</span><span id="IsUnixVariableName"><span class="nx">IsUnixVariableName</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1"><span class="nx">validation</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1#NewStringRuleWithError"><span class="nf">NewStringRuleWithError</span></a><span class="p">(</span><span class="nx">isUnixVarName</span><span class="p">,</span><span class="w"> </span><span class="nx">errVariableNameInvalid</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="IsUnixVariableName"><span class="nx">IsUnixVariableName</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.5.0"><span class="nx">validation</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.5.0#NewStringRuleWithError"><span class="nf">NewStringRuleWithError</span></a><span class="p">(</span><span class="nx">isUnixVarName</span><span class="p">,</span><span class="w"> </span><span class="nx">errVariableNameInvalid</span><span class="p">)</span><span class="w">
 </span><span class="w">	</span><span class="c1">// IsVariableName defines a validation rule for variable names for use with github.com/go-ozzo/ozzo-validation</span><span class="w">
-</span><span class="w">	</span><span id="IsVariableName"><span class="nx">IsVariableName</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1"><span class="nx">validation</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.4.1#NewStringRuleWithError"><span class="nf">NewStringRuleWithError</span></a><span class="p">(</span><span class="nx">isVarName</span><span class="p">,</span><span class="w"> </span><span class="nx">errVariableNameInvalid</span><span class="p">)</span><span class="w">
+</span><span class="w">	</span><span id="IsVariableName"><span class="nx">IsVariableName</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.5.0"><span class="nx">validation</span></a><span class="p">.</span><a href="https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4@v4.5.0#NewStringRuleWithError"><span class="nf">NewStringRuleWithError</span></a><span class="p">(</span><span class="nx">isVarName</span><span class="p">,</span><span class="w"> </span><span class="nx">errVariableNameInvalid</span><span class="p">)</span><span class="w">
 </span><span class="p">)</span></pre>
   <h3 id="pkg-functions">Functions</h3>
   
@@ -147,6 +149,12 @@
   
   <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">BootTime</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">bootime</span><span class="w"> </span><a href="https://pkg.go.dev/time"><span class="nx">time</span></a><span class="p">.</span><a href="https://pkg.go.dev/time#Time"><span class="nx">Time</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
   <p>BootTime returns system uptime.
+<h4 id="CanCurrentUserMutateUsers">func CanCurrentUserMutateUsers</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CanCurrentUserMutateUsers</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>CanCurrentUserMutateUsers reports whether the current process has enough
+privileges and platform support to create, modify, and remove local users
+and groups.
 <h4 id="ConvertError">func ConvertError</h4>
   
   <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">ConvertError</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a></pre>
@@ -240,6 +248,11 @@ WARNING: currently the function only works with one parameter substitution in `s
   
   <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsCurrentUserAnAdmin</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><span class="nx">admin</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
   <p>IsCurrentUserAnAdmin states whether the current user is a superuser or not.
+<h4 id="IsCurrentWithRootPrivileges">func IsCurrentWithRootPrivileges</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsCurrentWithRootPrivileges</span><span class="p">()</span><span class="w"> </span><span class="p">(</span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>IsCurrentWithRootPrivileges reports whether the current process is running
+with elevated privileges.
 <h4 id="IsUserAdmin">func IsUserAdmin</h4>
   
   <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">IsUserAdmin</span><span class="p">(</span><span class="nx">user</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/os/user"><span class="nx">user</span></a><span class="p">.</span><a href="https://pkg.go.dev/os/user#User"><span class="nx">User</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">admin</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>

@@ -14,6 +14,34 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+# 1.172.0 (2026-11-06)
+
+## Features
+
+- :sparkles: `subprocess` Add ExecuteInteractiveWithDir to the shared Subprocess executor for interactive commands with inherited terminal controls (#20261104150420)
+- :sparkles: [platform] Added cross-platform privilege helpers, including `IsCurrentWithRootPrivileges`, and consolidated admin and elevated-command helpers behind platform-specific implementations. (#20261104164100)
+- :sparkles: [proc] Added the cross-platform `SleepCommand` helper and improved process wait coverage so process-control tests behave consistently across Windows and Unix-like platforms. (#20261104164200)
+
+## Bugfixes
+
+- :bug: Roll back filesystem lock acquisition when the lock context is cancelled immediately after creating the lock directory. (#202611051930)
+- :bug: [safecast] Fixed 32-bit overflow handling so safe casts compile and clamp correctly on `GOARCH=386` instead of failing on integer boundary checks such as `math.MaxUint32`, `math.MinInt64`, and `math.MaxInt64`. (#20261104164000)
+- :bug: [proc] Fix graceful termination helpers so they stop waiting for the full grace period once the target process has already exited. (#20261106122000)
+- :bug: `[proc]` Convert `signal: interrupt` process wait errors into `ErrInterrupted` instead of leaving them as ignored raw process errors. (#20261106150000)
+- Dependency upgrade: mod-0.42.0 (#20261028111705204149516)
+- Dependency upgrade: v4-4.5.0 (#20261102112324722755826, #20261102112329702376984, #20261102112337004176613, #20261102112342927064607, #20261102112351652841019, #20261102112406917798895, #20261105111625231021988, #20261105111637767963107, #20261105111646379027602, #20261105111657509415028, #20261105111659898259717, #20261105111703230319929)
+- Dependency upgrade: net-0.62.0 (#20261102112509657391564, #20261102112510899659245)
+- Dependency upgrade: v4-4.26.9 (#20261104192602335424898)
+- Dependency upgrade: spdx-0.3.4 (#20261105111631859123118)
+- Dependency upgrade: v4-4.26.10 (#20261105111647366995125, #20261105111647374346630)
+- Dependency upgrade: codeql-action-4.39.2 (#20261106111315530199948)
+- Dependency upgrade: pflag-1.1.0 (#20261106111546028792101)
+
+## Misc
+
+- #20261104162753171671350, #20261104165412808358949
+
+
 # 1.171.2 (2026-10-27)
 
 ## Bugfixes

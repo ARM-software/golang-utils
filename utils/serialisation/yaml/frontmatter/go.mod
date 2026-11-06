@@ -5,33 +5,33 @@ go 1.26.0
 replace github.com/ARM-software/golang-utils/utils => ../../../
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.2
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.2
-	github.com/ARM-software/golang-utils/utils/reflection v1.171.2
-	github.com/ARM-software/golang-utils/utils/serialisation v1.171.2
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.172.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.172.0
+	github.com/ARM-software/golang-utils/utils/reflection v1.172.0
+	github.com/ARM-software/golang-utils/utils/serialisation v1.172.0
 	github.com/stretchr/testify v1.12.1
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/config v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/encoding v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/field v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/keyring v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/maps v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/safeio v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/url v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/validation v1.171.2 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.171.2 // indirect
+	github.com/ARM-software/golang-utils/utils/collection v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/config v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/encoding v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/keyring v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/maps v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safeio v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/url v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/validation v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.172.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
 	github.com/dolmen-go/contextio v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/go-ozzo/ozzo-validation/v4 v4.4.1 // indirect
+	github.com/go-ozzo/ozzo-validation/v4 v4.5.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -47,7 +47,7 @@ require (
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
-	github.com/spf13/pflag v1.0.10 // indirect
+	github.com/spf13/pflag v1.1.0 // indirect
 	github.com/spf13/viper v1.21.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/zalando/go-keyring v0.2.8 // indirect
@@ -56,7 +56,7 @@ require (
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
-	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
