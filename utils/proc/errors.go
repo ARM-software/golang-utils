@@ -15,10 +15,11 @@ import (
 )
 
 const (
-	errKilledProcess     = "signal: killed"
-	errTerminatedProcess = "signal: terminated"
-	errAccessDenied      = "Access is denied"
-	errNotImplemented    = "not implemented"
+	errKilledProcess      = "signal: killed"
+	errInterruptedProcess = "signal: interrupt"
+	errTerminatedProcess  = "signal: terminated"
+	errAccessDenied       = "Access is denied"
+	errNotImplemented     = "not implemented"
 )
 
 func ConvertProcessError(err error) error {
@@ -26,6 +27,8 @@ func ConvertProcessError(err error) error {
 	switch {
 	case err == nil:
 		return err
+	case commonerrors.CorrespondTo(err, errInterruptedProcess):
+		return commonerrors.WrapError(commonerrors.ErrInterrupted, err, "")
 	case commonerrors.CorrespondTo(err, errKilledProcess, errTerminatedProcess):
 		return os.ErrProcessDone
 	case commonerrors.Any(err, syscall.ESRCH):

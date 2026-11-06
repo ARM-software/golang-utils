@@ -5,8 +5,6 @@
 package platform
 
 import (
-	"fmt"
-
 	"github.com/mitchellh/go-homedir"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -24,7 +22,7 @@ func GetHomeDirectory(username string) (string, error) {
 // GetDefaultHomeDirectory returns the default home directory for a user based on the convention listed in https://en.wikipedia.org/wiki/Home_directory#Default_home_directory_per_operating_system
 func GetDefaultHomeDirectory(username string) (string, error) {
 	if username == "" {
-		return "", fmt.Errorf("%w: missing username", commonerrors.ErrUndefined)
+		return "", commonerrors.UndefinedVariable("username")
 	}
 	return determineDefaultHomeDirectory(username)
 }
@@ -36,7 +34,7 @@ func fetchHomeDirectory(username, homedirPath string) (home string, err error) {
 	}
 	home, err = GetDefaultHomeDirectory(username)
 	if err != nil {
-		err = fmt.Errorf("%w: could not determine user [%v]'s home directory: %v", commonerrors.ErrUnexpected, username, err.Error())
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not determine user [%v]'s home directory", username)
 	}
 	return
 }

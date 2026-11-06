@@ -110,6 +110,90 @@ jobs:
           task: verify
           build-tags: integration
 
+  verify-platform-specific-go-modules:
+    name: Test platform-specific Go modules
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: safecast on linux/386
+            runs-on: ubuntu-latest
+            modules: ./utils/safecast
+            go-os: linux
+            go-arch: 386
+            race: 'false'
+            artifact-prefix: safecast-linux-386-
+            report-name: Safecast tests on linux/386
+          - name: filesystem on Linux
+            runs-on: ubuntu-latest
+            modules: ./utils/filesystem
+            artifact-prefix: filesystem-linux-
+            report-name: Filesystem tests on Linux
+          - name: filesystem on macOS
+            runs-on: macOS-latest
+            modules: ./utils/filesystem
+            artifact-prefix: filesystem-macos-
+            report-name: Filesystem tests on macOS
+          - name: filesystem on Windows
+            runs-on: windows-latest
+            modules: ./utils/filesystem
+            artifact-prefix: filesystem-windows-
+            report-name: Filesystem tests on Windows
+          - name: platform on Linux
+            runs-on: ubuntu-latest
+            modules: ./utils/platform
+            artifact-prefix: platform-linux-
+            report-name: Platform tests on Linux
+          - name: platform on macOS
+            runs-on: macOS-latest
+            modules: ./utils/platform
+            artifact-prefix: platform-macos-
+            report-name: Platform tests on macOS
+          - name: platform on Windows
+            runs-on: windows-latest
+            modules: ./utils/platform
+            artifact-prefix: platform-windows-
+            report-name: Platform tests on Windows
+          - name: proc on Linux
+            runs-on: ubuntu-latest
+            modules: ./utils/proc
+            artifact-prefix: proc-linux-
+            report-name: Proc tests on Linux
+          - name: proc on macOS
+            runs-on: macOS-latest
+            modules: ./utils/proc
+            artifact-prefix: proc-macos-
+            report-name: Proc tests on macOS
+          - name: proc on Windows
+            runs-on: windows-latest
+            modules: ./utils/proc
+            artifact-prefix: proc-windows-
+            report-name: Proc tests on Windows
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.go_version }}
+          cache: true
+          cache-dependency-path: ${{ matrix.modules }}/go.sum
+      - name: Sync workspace
+        uses: $/actions/sync-go-workspace
+      - name: Set up gotestsum
+        uses: $/actions/setup-gotestsum
+        with:
+          version: v1.13.0
+      - name: Run ${{ matrix.name }}
+        uses: $/actions/test-go-modules
+        with:
+          modules: ${{ matrix.modules }}
+          go-os: ${{ matrix.go-os }}
+          go-arch: ${{ matrix.go-arch }}
+          race: ${{ matrix.race || 'true' }}
+          artifact-prefix: ${{ matrix.artifact-prefix }}
+          report-name: ${{ matrix.report-name }}
+
   build-all-modules:
     name: Build all modules
     strategy:

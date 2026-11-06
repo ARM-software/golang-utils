@@ -600,24 +600,24 @@ func TestCastingToInt(t *testing.T) {
 			assert.Equal(t, float64(-4.6), ptr.From(ToFloat64Ref(ptr.To(-4.6))))                             //nolint: gosec //G115: testing
 			assert.Equal(t, float64(4.6), ToFloat64(4.6))                                                    //nolint: gosec //G115: testing
 			assert.Equal(t, float64(4.6), ptr.From(ToFloat64Ref(ptr.To(4.6))))                               //nolint: gosec //G115: testing
-			assert.Equal(t, float64(math.MaxInt64), ToFloat64(math.MaxInt64))                                //nolint: gosec //G115: testing
-			assert.Equal(t, float64(math.MaxInt64), ptr.From(ToFloat64Ref(ptr.To(math.MaxInt64))))           //nolint: gosec //G115: testing
+			assert.Equal(t, float64(math.MaxInt64), ToFloat64(int64(math.MaxInt64)))                         //nolint: gosec //G115: testing
+			assert.Equal(t, float64(math.MaxInt64), ptr.From(ToFloat64Ref(ptr.To(int64(math.MaxInt64)))))    //nolint: gosec //G115: testing
 			assert.Equal(t, float64(math.MaxUint64), ToFloat64[uint64](math.MaxUint64))                      //nolint: gosec //G115: testing
 			assert.Equal(t, float64(math.MaxUint64), ptr.From(ToFloat64Ref(ptr.To(uint64(math.MaxUint64))))) //nolint: gosec //G115: testing
-			assert.Equal(t, float64(math.MinInt64), ToFloat64(math.MinInt64))                                //nolint: gosec //G115: testing
-			assert.Equal(t, float64(math.MinInt64), ptr.From(ToFloat64Ref(ptr.To(math.MinInt64))))           //nolint: gosec //G115: testing
+			assert.Equal(t, float64(math.MinInt64), ToFloat64(int64(math.MinInt64)))                         //nolint: gosec //G115: testing
+			assert.Equal(t, float64(math.MinInt64), ptr.From(ToFloat64Ref(ptr.To(int64(math.MinInt64)))))    //nolint: gosec //G115: testing
 		})
 		t.Run("float32", func(t *testing.T) {
-			assert.Equal(t, float32(-4.6), ToFloat32(-4.6))                                                   //nolint: gosec //G115: testing
-			assert.Equal(t, float32(-4.6), ptr.From(ToFloat32Ref(ptr.To(-4.6))))                              //nolint: gosec //G115: testing
-			assert.Equal(t, float32(4.6), ToFloat32(4.6))                                                     //nolint: gosec //G115: testing
-			assert.Equal(t, float32(4.6), ptr.From(ToFloat32Ref(ptr.To(4.6))))                                //nolint: gosec //G115: testing
-			assert.Equal(t, float32(math.MaxFloat32), ToFloat32(math.MaxFloat64))                             //nolint: gosec //G115: testing
-			assert.Equal(t, float32(math.MaxFloat32), ptr.From(ToFloat32Ref(ptr.To(math.MaxFloat64))))        //nolint: gosec //G115: testing
-			assert.Equal(t, float32(math.MaxFloat32), ToFloat32[uint64](math.MaxUint64))                      //nolint: gosec //G115: testing
-			assert.Equal(t, float32(math.MaxFloat32), ptr.From(ToFloat32Ref(ptr.To(uint64(math.MaxUint64))))) //nolint: gosec //G115: testing
-			assert.Equal(t, float32(math.MinInt64), ToFloat32(math.MinInt64))                                 //nolint: gosec //G115: testing
-			assert.Equal(t, float32(math.MinInt64), ptr.From(ToFloat32Ref(ptr.To(math.MinInt64))))            //nolint: gosec //G115: testing
+			assert.Equal(t, float32(-4.6), ToFloat32(-4.6))                                                          //nolint: gosec //G115: testing
+			assert.Equal(t, float32(-4.6), ptr.From(ToFloat32Ref(ptr.To(-4.6))))                                     //nolint: gosec //G115: testing
+			assert.Equal(t, float32(4.6), ToFloat32(4.6))                                                            //nolint: gosec //G115: testing
+			assert.Equal(t, float32(4.6), ptr.From(ToFloat32Ref(ptr.To(4.6))))                                       //nolint: gosec //G115: testing
+			assert.Equal(t, float32(math.MaxFloat32), ToFloat32(math.MaxFloat64))                                    //nolint: gosec //G115: testing
+			assert.Equal(t, float32(math.MaxFloat32), ptr.From(ToFloat32Ref(ptr.To(math.MaxFloat64))))               //nolint: gosec //G115: testing
+			assert.Equal(t, float32(uint64(math.MaxUint64)), ToFloat32[uint64](math.MaxUint64))                      //nolint: gosec //G115: testing
+			assert.Equal(t, float32(uint64(math.MaxUint64)), ptr.From(ToFloat32Ref(ptr.To(uint64(math.MaxUint64))))) //nolint: gosec //G115: testing
+			assert.Equal(t, float32(math.MinInt64), ToFloat32(int64(math.MinInt64)))                                 //nolint: gosec //G115: testing
+			assert.Equal(t, float32(math.MinInt64), ptr.From(ToFloat32Ref(ptr.To(int64(math.MinInt64)))))            //nolint: gosec //G115: testing
 		})
 	})
 }
@@ -1724,11 +1724,11 @@ func TestRobustCast(t *testing.T) {
 
 			c4, err := RobustCast[uint64, float32](math.MaxUint64)
 			require.NoError(t, err)
-			assert.Equal(t, float32(math.MaxFloat32), c4) //nolint: gosec //G115: testing
+			assert.Equal(t, float32(uint64(math.MaxUint64)), c4) //nolint: gosec //G115: testing
 
 			c4r, err := RobustCastRef[uint64, float32](ptr.To(uint64(math.MaxUint64)))
 			require.NoError(t, err)
-			assert.Equal(t, float32(math.MaxFloat32), ptr.From(c4r)) //nolint: gosec //G115: testing
+			assert.Equal(t, float32(uint64(math.MaxUint64)), ptr.From(c4r)) //nolint: gosec //G115: testing
 
 			c5, err := RobustCast[int64, float32](math.MinInt64)
 			require.NoError(t, err)
@@ -1739,4 +1739,21 @@ func TestRobustCast(t *testing.T) {
 			assert.Equal(t, float32(math.MinInt64), ptr.From(c5r)) //nolint: gosec //G115: testing
 		})
 	})
+}
+
+func TestArchitectureSizedIntBoundaries(t *testing.T) {
+	overInt32 := int64(math.MaxInt32) + 1
+	underInt32 := int64(math.MinInt32) - 1
+	overUint32 := uint64(math.MaxUint32) + 1
+
+	castInt, err := RobustCast[int64, int](overInt32)
+	require.NoError(t, err)
+	castUint, err := RobustCast[uint64, uint](overUint32)
+	require.NoError(t, err)
+
+	assert.Equal(t, expectedIntFromAboveInt32(overInt32), ToInt(overInt32))
+	assert.Equal(t, expectedIntFromBelowInt32(underInt32), ToInt(underInt32))
+	assert.Equal(t, expectedUintFromAboveUint32(overUint32), ToUint(overUint32))
+	assert.Equal(t, expectedIntFromAboveInt32(overInt32), castInt)
+	assert.Equal(t, expectedUintFromAboveUint32(overUint32), castUint)
 }

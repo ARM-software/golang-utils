@@ -9,7 +9,6 @@ package platform
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/user"
 
@@ -70,7 +69,7 @@ func isAdmin(username string) (admin bool, err error) {
 		admin = true
 		return
 	}
-	err = fmt.Errorf("%w: could not check whether the user is a superuser or not", commonerrors.ErrNotImplemented)
+	err = commonerrors.New(commonerrors.ErrNotImplemented, "could not check whether the user is a superuser or not")
 	return
 }
 

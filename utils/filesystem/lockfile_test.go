@@ -8,11 +8,13 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"os"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/go-faker/faker/v4"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
@@ -25,6 +27,19 @@ import (
 var (
 	random = rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
 )
+
+type cancellingMkdirFs struct {
+	afero.Fs
+	cancel context.CancelFunc
+}
+
+func (fs *cancellingMkdirFs) Mkdir(name string, perm os.FileMode) error {
+	err := fs.Fs.Mkdir(name, perm)
+	if err == nil && fs.cancel != nil {
+		fs.cancel()
+	}
+	return err
+}
 
 func TestLockStale(t *testing.T) {
 	lockFuncs := []struct {
@@ -302,6 +317,22 @@ func TestLockSequential(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestTryLockRollsBackWhenContextCancelsImmediatelyAfterAcquisition(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
+	baseFs := afero.NewMemMapFs()
+	ctx, cancel := context.WithCancel(context.Background())
+	fs := NewVirtualFileSystem(&cancellingMkdirFs{Fs: baseFs, cancel: cancel}, InMemoryFS, IdentityPathConverterFunc)
+	dirToLock, err := fs.TempDirInTempDir(fmt.Sprintf("test-lock-dir-%v", faker.DomainName()))
+	require.NoError(t, err)
+	defer func() { _ = fs.Rm(dirToLock) }()
+
+	lock := fs.NewRemoteLockFile("lock", dirToLock)
+	err = lock.TryLock(ctx)
+	errortest.AssertError(t, err, commonerrors.ErrCancelled)
+	assert.False(t, fs.Exists(FilePathJoin(fs, dirToLock, fmt.Sprintf("%v-%v", LockFilePrefix, "lock"))))
 }
 
 func TestLockConcurrentSafeguard(t *testing.T) {

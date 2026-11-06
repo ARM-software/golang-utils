@@ -140,8 +140,14 @@ func terminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration
 			return nil
 		},
 		func(ctx context.Context) bool {
-			_, fErr := FindProcess(ctx, pid)
-			return commonerrors.Any(fErr, commonerrors.ErrNotFound)
+			p, fErr := FindProcess(ctx, pid)
+			if commonerrors.Any(fErr, commonerrors.ErrNotFound) {
+				return false
+			}
+			if fErr != nil {
+				return true
+			}
+			return p.IsRunning()
 
 		}, 200*time.Millisecond)
 }
@@ -162,7 +168,11 @@ func TerminateGracefullyWithSpecificInterrupts(ctx context.Context, pid int, gra
 	return
 }
 
-// CancelExecCommand defines a more robust way to cancel subprocesses than what is done per default by [CommandContext](https://pkg.go.dev/os/exec#CommandContext)
+// CancelExecCommand defines a more robust way to cancel subprocesses than what is done per default by [CommandContext](https://pkg.go.dev/os/exec#CommandContext).
+//
+// This stops the subprocess tree but does not replace cmd.Wait(). Callers that started the command must still call
+// cmd.Wait() to reap the process and release starter-owned handles. This is especially important on Windows, where a
+// terminated process can remain observable until outstanding handles are closed.
 func CancelExecCommand(cmd *exec.Cmd) (err error) {
 	if cmd == nil {
 		err = commonerrors.UndefinedVariable("command")
@@ -181,6 +191,7 @@ func CancelExecCommand(cmd *exec.Cmd) (err error) {
 }
 
 // DefineCmdCancel sets and overwrites the cmd.Cancel function with CancelExecCommand so that it is more robust and thorough.
+// This only changes cancellation behaviour; callers must still call cmd.Wait() after cmd.Start().
 func DefineCmdCancel(cmd *exec.Cmd) (*exec.Cmd, error) {
 	if cmd == nil {
 		return nil, commonerrors.UndefinedVariable("command")
@@ -193,6 +204,11 @@ func DefineCmdCancel(cmd *exec.Cmd) (*exec.Cmd, error) {
 
 // WaitForCompletion will wait for a given process to complete.
 // This allows check to work if the underlying process was stopped without needing the os.Process that started it.
+//
+// WaitForCompletion only observes process state by PID. It cannot reap a process or close handles held by the code that
+// started it. Callers that own an *exec.Cmd must still call cmd.Wait() after cmd.Start(). This matters most on Windows,
+// where a terminated process can remain observable until outstanding handles are closed, but other platforms can also
+// continue to report an exited process until the starter has reaped it.
 func WaitForCompletion(ctx context.Context, pid int) (err error) {
 	pids, err := getGroupProcesses(ctx, pid)
 	err = commonerrors.Ignore(err, commonerrors.ErrNotFound)

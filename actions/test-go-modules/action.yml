@@ -21,6 +21,22 @@ inputs:
     description: Prefix for uploaded JUnit and coverage artifacts (including any separator).
     required: false
     default: ''
+  go-os:
+    description: Optional GOOS value for every test invocation.
+    required: false
+    default: ''
+  go-arch:
+    description: Optional GOARCH value for every test invocation.
+    required: false
+    default: ''
+  race:
+    description: Whether to include `-race` in every test invocation.
+    required: false
+    default: 'true'
+  report-name:
+    description: Label used for published test results and summaries.
+    required: false
+    default: Go multimodules tests
 outputs:
   combined-coverage:
     description: Combined statement coverage percentage, or n/a when no statements are coverable.
@@ -54,12 +70,19 @@ runs:
         BUILD_TAGS: ${{ inputs.build-tags }}
         GENERATION_RESULTS: ${{ inputs.generation-results }}
         LINT_RESULTS: ${{ inputs.lint-results }}
+        TEST_GOOS: ${{ inputs.go-os }}
+        TEST_GOARCH: ${{ inputs.go-arch }}
+        ENABLE_RACE: ${{ inputs.race }}
       run: |
         set -euo pipefail
         cd "$GITHUB_WORKSPACE"
         artifacts="$PWD/artifacts"
         results="$artifacts/module-tests.tsv"
         failed=0
+        race_arg=''
+        if [[ "$ENABLE_RACE" == 'true' ]]; then
+          race_arg='-race'
+        fi
         while IFS= read -r module; do
           [[ -n "$module" ]] || continue
           echo "test $module"
@@ -89,7 +112,7 @@ runs:
           if [[ "$generation" == fail || "$generation" == skipped || "$generation" == missing ]]; then
             test=skipped
           else
-            if ! (cd "$module" && gotestsum --format standard-verbose --junitfile "$junit" -- -race -covermode=atomic -coverprofile "$profile" -tags "$BUILD_TAGS" -timeout 30m ./...); then
+            if ! (cd "$module" && if [[ -n "$TEST_GOOS" ]]; then export GOOS="$TEST_GOOS"; fi; if [[ -n "$TEST_GOARCH" ]]; then export GOARCH="$TEST_GOARCH"; fi; gotestsum --format standard-verbose --junitfile "$junit" -- $race_arg -covermode=atomic -coverprofile "$profile" -tags "$BUILD_TAGS" -timeout 30m ./...); then
               test=fail
               failed=1
             fi
@@ -110,7 +133,7 @@ runs:
         failed=0
         while IFS=$'\t' read -r module generation lint test junit_name profile_name; do
           coverage='not available'
-          if [[ "$generation" != fail && "$generation" != skipped && "$generation" != missing ]]; then
+          if [[ "$generation" != fail && "$generation" != skipped && "$generation" != missing && "$test" == pass ]]; then
             profile="$artifacts/coverage/$profile_name"
             if [[ -f "$profile" ]]; then
               if [[ $(wc -l < "$profile") -le 1 ]]; then
@@ -125,6 +148,8 @@ runs:
               coverage='missing profile'
               failed=1
             fi
+          elif [[ "$test" == fail ]]; then
+            coverage='not available (tests failed)'
           fi
           printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$module" "$generation" "$lint" "$test" "$coverage" "$junit_name" "$profile_name" >> "$artifacts/module-results.tsv"
         done < "$artifacts/module-tests.tsv"
@@ -169,19 +194,39 @@ runs:
         printf '%s\n' "$total" > "$artifacts/combined-coverage.txt"
         printf 'combined-coverage=%s\n' "$total" >> "$GITHUB_OUTPUT"
         exit "$failed"
+    - name: Detect generated reports
+      id: reports
+      if: ${{ always() && steps.prepare.outcome == 'success' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
+        shopt -s nullglob
+        junit=(artifacts/junit/*.xml)
+        coverage=(artifacts/coverage/*.out)
+        if [[ ${#junit[@]} -gt 0 ]]; then
+          printf 'has-junit=true\n' >> "$GITHUB_OUTPUT"
+        else
+          printf 'has-junit=false\n' >> "$GITHUB_OUTPUT"
+        fi
+        if [[ ${#coverage[@]} -gt 0 ]]; then
+          printf 'has-coverage=true\n' >> "$GITHUB_OUTPUT"
+        else
+          printf 'has-coverage=false\n' >> "$GITHUB_OUTPUT"
+        fi
     - name: Publish JUnit test results
-      if: ${{ always() }}
+      if: ${{ always() && runner.os == 'Linux' && steps.reports.outputs.has-junit == 'true' }}
       uses: EnricoMi/publish-unit-test-result-action@v2
       with:
         files: artifacts/junit/*.xml
         json_file: artifacts/junit/combined-report.json
-        check_name: Go multimodules tests
+        check_name: ${{ inputs.report-name }}
         comment_mode: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && 'always' || 'off' }}
         check_run: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         compare_to_earlier_commit: false
         action_fail: false
     - name: Upload JUnit reports
-      if: ${{ always() }}
+      if: ${{ always() && steps.reports.outputs.has-junit == 'true' }}
       id: junit
       uses: actions/upload-artifact@v7
       with:
@@ -189,7 +234,7 @@ runs:
         path: ${{ github.workspace }}/artifacts/junit
         if-no-files-found: error
     - name: Upload coverage profiles
-      if: ${{ always() }}
+      if: ${{ always() && steps.reports.outputs.has-coverage == 'true' }}
       id: coverage
       uses: actions/upload-artifact@v7
       with:
@@ -207,7 +252,7 @@ runs:
         cd "$GITHUB_WORKSPACE"
         artifacts="$PWD/artifacts"
         summary="$GITHUB_STEP_SUMMARY"
-        printf '## Go multimodules verification\n\n' >> "$summary"
+        printf '## %s\n\n' "${{ inputs.report-name }}" >> "$summary"
         if [[ ! -s "$artifacts/module-results.tsv" ]]; then
           printf 'Module results were not produced; see the workflow log.\n\n' >> "$summary"
         else
