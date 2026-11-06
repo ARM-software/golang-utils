@@ -141,7 +141,7 @@ func terminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration
 		},
 		func(ctx context.Context) bool {
 			_, fErr := FindProcess(ctx, pid)
-			return commonerrors.Any(fErr, commonerrors.ErrNotFound)
+			return !commonerrors.Any(fErr, commonerrors.ErrNotFound)
 
 		}, 200*time.Millisecond)
 }
