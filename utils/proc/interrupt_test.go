@@ -52,11 +52,13 @@ func TestTerminateGracefully(t *testing.T) {
 			t.Run("single process", func(t *testing.T) {
 				cmd := exec.Command("sleep", "50")
 				require.NoError(t, cmd.Start())
+				waitErrCh := waitForCmdInBackground(cmd)
 				defer func() {
 					p, _ := FindProcess(context.Background(), cmd.Process.Pid)
 					if p != nil && (p.IsRunning() || p.IsAZombie()) {
-						_ = cmd.Wait()
+						_ = p.KillWithChildren(context.Background())
 					}
+					<-waitErrCh
 				}()
 				timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer cancel()

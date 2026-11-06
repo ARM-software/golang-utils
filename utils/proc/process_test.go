@@ -151,10 +151,7 @@ func TestWaitForCompletion(t *testing.T) {
 		require.NoError(t, cmd.Start())
 		defer func() { _ = cmd.Process.Kill() }()
 
-		waitErrCh := make(chan error, 1)
-		go func() {
-			waitErrCh <- cmd.Wait()
-		}()
+		waitErrCh := waitForCmdInBackground(cmd)
 
 		start := time.Now()
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

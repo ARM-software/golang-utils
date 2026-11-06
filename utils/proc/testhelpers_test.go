@@ -6,6 +6,14 @@ package proc
 
 import "os/exec"
 
+func waitForCmdInBackground(cmd *exec.Cmd) <-chan error {
+	waitErrCh := make(chan error, 1)
+	go func() {
+		waitErrCh <- cmd.Wait()
+	}()
+	return waitErrCh
+}
+
 // newCommandWithChildProcess returns a portable bash command that stays alive
 // while also spawning a child process, so process-tree termination behaviour
 // can be exercised in tests.
