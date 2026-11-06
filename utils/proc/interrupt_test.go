@@ -110,10 +110,7 @@ func TestTerminateGracefully(t *testing.T) {
 					if p != nil && (p.IsRunning() || p.IsAZombie()) {
 						_ = p.KillWithChildren(context.Background())
 					}
-					waitErr := <-waitErrCh
-					if waitErr != nil {
-						waitErr = commonerrors.WrapIfNotCommonError(commonerrors.ErrInterrupted, waitErr, "")
-					}
+					waitErr := ConvertProcessError(<-waitErrCh)
 					errortest.AssertError(t, waitErr, nil, commonerrors.ErrInterrupted)
 				}()
 				timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
