@@ -22,8 +22,8 @@ import (
 // looks correct.
 const utf8BOM = "\uFEFF"
 
-// leadingBOM locates the BOM bytes accepted after whitespace by delimiter detection.
-func leadingBOM(line []byte) (start int, end int) {
+// LeadingBOM locates the BOM bytes accepted after whitespace by delimiter detection.
+func LeadingBOM(line []byte) (start int, end int) {
 	trimmed := bytes.TrimLeftFunc(line, unicode.IsSpace)
 	start = len(line) - len(trimmed)
 	end = len(line) - len(bytes.TrimLeft(trimmed, utf8BOM))

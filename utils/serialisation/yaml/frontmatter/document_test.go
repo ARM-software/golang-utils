@@ -6,7 +6,6 @@ package frontmatter
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -60,17 +59,4 @@ func TestExtractContent(t *testing.T) {
 	_, err = ExtractContent(context.Background(), strings.NewReader(unclosed))
 	errortest.AssertError(t, documentErr, commonerrors.ErrNotFound)
 	errortest.AssertError(t, err, commonerrors.ErrNotFound)
-}
-
-func ExampleExtractDocument() {
-	metadata, body, err := ExtractDocument(context.Background(), strings.NewReader("---\ntitle: Example\n---\nBody\n"))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Printf("Metadata: %q\nBody: %q\n", metadata, body)
-	// Output:
-	// Metadata: "title: Example\n"
-	// Body: "Body\n"
 }

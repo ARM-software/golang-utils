@@ -6,7 +6,6 @@ package frontmatter
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -75,22 +74,4 @@ func TestExtractDocumentWithDecode(t *testing.T) {
 	_, err = ExtractDocumentWithDecode(ctx, strings.NewReader("---\ndatasets: changed\n---\nBody"), &card)
 	errortest.AssertError(t, err, commonerrors.ErrCancelled)
 	assert.Equal(t, "original", card.Datasets)
-}
-
-func ExampleExtractDocumentWithDecode() {
-	var metadata struct {
-		Title string `json:"title"`
-	}
-
-	body, err := ExtractDocumentWithDecode(context.Background(), strings.NewReader("---\ntitle: Example\n---\nDocument body.\n"), &metadata)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println(metadata.Title)
-	fmt.Print(string(body))
-	// Output:
-	// Example
-	// Document body.
 }

@@ -176,7 +176,7 @@ func (e *extractor) detect() (candidates []*candidateFormat, found bool, err err
 		}
 		if commentEnded {
 			commentStart := read
-			bomStart, bomEnd := leadingBOM(e.output.Bytes()[read:e.read])
+			bomStart, bomEnd := LeadingBOM(e.output.Bytes()[read:e.read])
 			if bomEnd > bomStart {
 				if bomStart > 0 {
 					e.comments = append(e.comments, byteRange{start: read, end: read + bomStart})
@@ -243,7 +243,7 @@ func (e *extractor) capture(candidates []*candidateFormat) (start int, end int, 
 		read := e.read
 
 		line, err := e.readLine()
-		if commonerrors.Ignore(err, commonerrors.ErrEOF) != nil || commonerrors.Any(err, io.ErrUnexpectedEOF) {
+		if commonerrors.Ignore(err, commonerrors.ErrEOF, io.ErrUnexpectedEOF) != nil {
 			return 0, 0, false, err
 		}
 
@@ -317,7 +317,7 @@ func (e *extractor) readLine() (line string, err error) {
 	lineB, err := e.reader.ReadBytes('\n')
 	if errors.Is(err, io.ErrUnexpectedEOF) {
 		// Keep truncation distinguishable from a normal EOF during detection.
-		err = errors.Join(commonerrors.ErrEOF, err)
+		err = commonerrors.Join(commonerrors.ErrEOF, err)
 	} else {
 		err = safeio.ConvertIOError(err)
 	}

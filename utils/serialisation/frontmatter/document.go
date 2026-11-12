@@ -73,7 +73,7 @@ func (p *documentParser) Parse(ctx context.Context, r io.Reader) (frontmatter io
 
 	if !e.noFrontmatter {
 		preamble = buffered[:e.blockStart]
-		bomStart, bomEnd := leadingBOM(buffered[e.blockStart:])
+		bomStart, bomEnd := LeadingBOM(buffered[e.blockStart:])
 		if bomEnd > bomStart {
 			preamble = append(bytes.Clone(preamble), buffered[e.blockStart+bomStart:e.blockStart+bomEnd]...)
 		}
@@ -97,9 +97,9 @@ func (p *documentParser) Parse(ctx context.Context, r io.Reader) (frontmatter io
 	// Replay both before continuing from the buffered reader, not the original input.
 	content = safeio.NewContextualReader(ctx, io.MultiReader(bytes.NewReader(preamble), bytes.NewReader(lookahead), e.reader))
 	if p.options.NormaliseContent {
-		body, subErr := io.ReadAll(content)
+		body, subErr := safeio.ReadAll(ctx, content)
 		if subErr != nil {
-			err = safeio.ConvertIOError(subErr)
+			err = subErr
 			return
 		}
 
@@ -123,13 +123,11 @@ func (p *documentParser) Extract(ctx context.Context, r io.Reader) (frontmatter 
 		return
 	}
 
-	frontmatter, err = io.ReadAll(metadataReader)
+	frontmatter, err = safeio.ReadAll(ctx, metadataReader)
 	if err != nil {
-		err = safeio.ConvertIOError(err)
 		return
 	}
 
-	content, err = io.ReadAll(contentReader)
-	err = safeio.ConvertIOError(err)
+	content, err = safeio.ReadAll(ctx, contentReader)
 	return
 }
