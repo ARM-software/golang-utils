@@ -15,6 +15,14 @@ type ParserOptions struct {
 	// BufferCapacity specifies the capacity of the buffer used to read the front
 	// matter.
 	BufferCapacity int
+
+	// NormaliseContent trims outer whitespace and converts CRLF and CR to LF in
+	// document content. It does not affect metadata-only parsing or extraction.
+	NormaliseContent bool
+
+	// DiscardIntroductoryComments removes leading HTML comment lines from document
+	// content. Comments after front matter or ordinary body text are unaffected.
+	DiscardIntroductoryComments bool
 }
 
 // ParserOption is for configuring the front matter parser.
@@ -60,6 +68,32 @@ func WithBufferCapacity(capacity int) ParserOption {
 			options = DefaultParserOptions()
 		}
 		options.BufferCapacity = capacity
+		return options
+	}
+}
+
+// WithNormaliseContent enables or disables document content normalisation.
+// Normalisation is disabled by default and leaves front matter unchanged.
+func WithNormaliseContent(normalise bool) ParserOption {
+	return func(options *ParserOptions) *ParserOptions {
+		if options == nil {
+			options = DefaultParserOptions()
+		}
+
+		options.NormaliseContent = normalise
+		return options
+	}
+}
+
+// WithDiscardIntroductoryComments enables or disables removal of introductory
+// HTML comment lines. By default introductory comments are preserved.
+func WithDiscardIntroductoryComments(discard bool) ParserOption {
+	return func(options *ParserOptions) *ParserOptions {
+		if options == nil {
+			options = DefaultParserOptions()
+		}
+
+		options.DiscardIntroductoryComments = discard
 		return options
 	}
 }
