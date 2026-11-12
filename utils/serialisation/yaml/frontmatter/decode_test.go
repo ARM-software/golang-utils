@@ -66,7 +66,7 @@ func TestExtractDocumentWithDecode(t *testing.T) {
 	src := io.MultiReader(strings.NewReader("---\ndatasets: changed\n---\npartial body"), iotest.ErrReader(io.ErrUnexpectedEOF))
 	body, err = ExtractDocumentWithDecode(ctx, src, &card)
 	errortest.AssertError(t, err, commonerrors.ErrEOF)
-	assert.Equal(t, "partial body", string(body))
+	assert.Nil(t, body)
 	assert.Equal(t, "original", card.Datasets, "extraction failure must prevent decoding")
 
 	ctx, cancel := context.WithCancel(ctx)

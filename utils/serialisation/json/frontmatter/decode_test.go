@@ -68,7 +68,7 @@ func TestExtractDocumentWithDecode(t *testing.T) {
 	src := io.MultiReader(strings.NewReader("---json\n{\"title\": \"changed\"}\n---\npartial body"), iotest.ErrReader(io.ErrUnexpectedEOF))
 	body, err = ExtractDocumentWithDecode(ctx, src, &metadata)
 	errortest.AssertError(t, err, commonerrors.ErrEOF)
-	assert.Equal(t, "partial body", string(body))
+	assert.Nil(t, body)
 	assert.Equal(t, "original", metadata.Title, "extraction failure must prevent decoding")
 
 	ctx, cancel := context.WithCancel(ctx)

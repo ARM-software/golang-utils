@@ -226,7 +226,7 @@ func TestDocumentParserErrors(t *testing.T) {
 		{name: "truncated metadata", input: io.MultiReader(strings.NewReader("---\n"), &terminalDocumentReader{data: "partial", err: io.ErrUnexpectedEOF}), expected: commonerrors.ErrEOF},
 		{name: "truncated lookahead", input: io.MultiReader(strings.NewReader("{\nvalue\n}\n"), iotest.ErrReader(io.ErrUnexpectedEOF)), format: NewFormat(WithStart("{"), WithEnd("}"), WithRequiresNewLine()), expected: commonerrors.ErrEOF},
 		{name: "unclosed JSON", input: strings.NewReader("{\nvalue\n}\nBody"), format: NewFormat(WithStart("{"), WithEnd("}"), WithRequiresNewLine()), expected: commonerrors.ErrNotFound},
-		{name: "body error", input: io.MultiReader(strings.NewReader("---\ntitle: Test\n---\n"), iotest.ErrReader(commonerrors.ErrUnexpected)), expected: commonerrors.ErrUnexpected},
+		{name: "body error", input: io.MultiReader(strings.NewReader("---\ntitle: Test\n---\n"), &terminalDocumentReader{data: "partial body", err: commonerrors.ErrUnexpected}), expected: commonerrors.ErrUnexpected},
 		{name: "normalised body error", input: io.MultiReader(strings.NewReader("Body\n"), iotest.ErrReader(commonerrors.ErrUnexpected)), normalise: true, expected: commonerrors.ErrUnexpected},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -239,8 +239,9 @@ func TestDocumentParserErrors(t *testing.T) {
 
 			p, err := NewDocumentParser(format)
 			require.NoError(t, err)
-			_, _, err = p.Configure(WithNormaliseContent(test.normalise)).Extract(context.Background(), test.input)
+			_, content, err := p.Configure(WithNormaliseContent(test.normalise)).Extract(context.Background(), test.input)
 			errortest.RequireError(t, err, test.expected)
+			assert.Nil(t, content)
 		})
 	}
 

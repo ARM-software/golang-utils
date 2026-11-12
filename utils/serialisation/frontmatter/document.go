@@ -98,8 +98,8 @@ func (p *documentParser) Parse(ctx context.Context, r io.Reader) (frontmatter io
 	content = safeio.NewContextualReader(ctx, io.MultiReader(bytes.NewReader(preamble), bytes.NewReader(lookahead), e.reader))
 	if p.options.NormaliseContent {
 		body, subErr := safeio.ReadAll(ctx, content)
-		if subErr != nil {
-			err = subErr
+		err = commonerrors.Ignore(subErr, commonerrors.ErrEmpty)
+		if err != nil {
 			return
 		}
 
@@ -113,6 +113,7 @@ func (p *documentParser) Parse(ctx context.Context, r io.Reader) (frontmatter io
 }
 
 // Extract materialises both document parts. Empty metadata and content are valid.
+// Read failures do not return partially read content.
 func (p *documentParser) Extract(ctx context.Context, r io.Reader) (frontmatter []byte, content []byte, err error) {
 	if err = parallelisation.DetermineContextError(ctx); err != nil {
 		return
@@ -124,10 +125,12 @@ func (p *documentParser) Extract(ctx context.Context, r io.Reader) (frontmatter 
 	}
 
 	frontmatter, err = safeio.ReadAll(ctx, metadataReader)
+	err = commonerrors.Ignore(err, commonerrors.ErrEmpty)
 	if err != nil {
 		return
 	}
 
 	content, err = safeio.ReadAll(ctx, contentReader)
+	err = commonerrors.Ignore(err, commonerrors.ErrEmpty)
 	return
 }

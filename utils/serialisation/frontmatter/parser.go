@@ -243,7 +243,7 @@ func (e *extractor) capture(candidates []*candidateFormat) (start int, end int, 
 		read := e.read
 
 		line, err := e.readLine()
-		if commonerrors.Ignore(err, commonerrors.ErrEOF, io.ErrUnexpectedEOF) != nil {
+		if commonerrors.Ignore(err, commonerrors.ErrEOF) != nil || commonerrors.Any(err, io.ErrUnexpectedEOF) {
 			return 0, 0, false, err
 		}
 
