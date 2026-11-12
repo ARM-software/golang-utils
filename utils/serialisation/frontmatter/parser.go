@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"strings"
 
@@ -114,6 +115,16 @@ type extractor struct {
 	read    int
 	start   int
 	end     int
+
+	noFrontmatter bool
+	blockStart    int
+	bodyStart     int
+	comments      []byteRange
+}
+
+type byteRange struct {
+	start int
+	end   int
 }
 
 func (e *extractor) extract() ([]byte, error) {
@@ -122,6 +133,7 @@ func (e *extractor) extract() ([]byte, error) {
 		return nil, err
 	}
 	if !found {
+		e.noFrontmatter = true
 		return nil, commonerrors.New(commonerrors.ErrNotFound, "front matter not found")
 	}
 
@@ -145,7 +157,7 @@ func (e *extractor) detect() (candidates []*candidateFormat, found bool, err err
 
 		line, err := e.readLine()
 
-		if commonerrors.Ignore(err, commonerrors.ErrEOF) != nil {
+		if commonerrors.Ignore(err, commonerrors.ErrEOF) != nil || commonerrors.Any(err, io.ErrUnexpectedEOF) {
 			return nil, false, err
 		}
 		if err != nil && line == "" {
@@ -163,6 +175,18 @@ func (e *extractor) detect() (candidates []*candidateFormat, found bool, err err
 			return nil, false, commentErr
 		}
 		if commentEnded {
+			commentStart := read
+			bomStart, bomEnd := leadingBOM(e.output.Bytes()[read:e.read])
+			if bomEnd > bomStart {
+				if bomStart > 0 {
+					e.comments = append(e.comments, byteRange{start: read, end: read + bomStart})
+				}
+
+				commentStart += bomEnd
+			}
+
+			e.comments = append(e.comments, byteRange{start: commentStart, end: e.read})
+
 			if err != nil {
 				return nil, false, nil
 			}
@@ -186,6 +210,8 @@ func (e *extractor) detect() (candidates []*candidateFormat, found bool, err err
 			return nil, false, nil
 		}
 
+		e.blockStart = read
+
 		return candidates, true, nil
 	}
 }
@@ -200,11 +226,11 @@ func (e *extractor) skipLeadingHTMLComment(line string) (bool, error) {
 
 	for {
 		nextLine, err := e.readLine()
+		if commonerrors.Ignore(err, commonerrors.ErrEOF) != nil || commonerrors.Any(err, io.ErrUnexpectedEOF) {
+			return false, err
+		}
 		if strings.HasSuffix(nextLine, "-->") {
 			return true, nil
-		}
-		if commonerrors.Ignore(err, commonerrors.ErrEOF) != nil {
-			return false, err
 		}
 		if err != nil {
 			return false, nil
@@ -217,7 +243,7 @@ func (e *extractor) capture(candidates []*candidateFormat) (start int, end int, 
 		read := e.read
 
 		line, err := e.readLine()
-		if commonerrors.Ignore(err, commonerrors.ErrEOF) != nil {
+		if commonerrors.Ignore(err, commonerrors.ErrEOF) != nil || commonerrors.Any(err, io.ErrUnexpectedEOF) {
 			return 0, 0, false, err
 		}
 
@@ -240,9 +266,11 @@ func (e *extractor) capture(candidates []*candidateFormat) (start int, end int, 
 				candidateEnd = e.read
 			}
 
+			e.bodyStart = e.read
 			return candidate.start, candidateEnd, true, nil
 		}
 
+		closingLineEnd := e.read
 		endAfterClosingLine := read
 		if matchingCandidates[0].format.IncludeDelimitersWhenUnmarshalling {
 			endAfterClosingLine = e.read
@@ -250,7 +278,7 @@ func (e *extractor) capture(candidates []*candidateFormat) (start int, end int, 
 
 		nextLine, nextErr := e.readLine()
 		nextEOF := commonerrors.Any(nextErr, commonerrors.ErrEOF)
-		if commonerrors.Ignore(nextErr, commonerrors.ErrEOF) != nil {
+		if commonerrors.Ignore(nextErr, commonerrors.ErrEOF) != nil || commonerrors.Any(nextErr, io.ErrUnexpectedEOF) {
 			return 0, 0, false, nextErr
 		}
 
@@ -268,6 +296,7 @@ func (e *extractor) capture(candidates []*candidateFormat) (start int, end int, 
 			candidateEnd = read
 		}
 
+		e.bodyStart = closingLineEnd
 		return candidate.start, candidateEnd, true, nil
 	}
 }
@@ -286,7 +315,12 @@ func matchingEndCandidates(candidates []*candidateFormat, line string) (matching
 
 func (e *extractor) readLine() (line string, err error) {
 	lineB, err := e.reader.ReadBytes('\n')
-	err = safeio.ConvertIOError(err)
+	if errors.Is(err, io.ErrUnexpectedEOF) {
+		// Keep truncation distinguishable from a normal EOF during detection.
+		err = errors.Join(commonerrors.ErrEOF, err)
+	} else {
+		err = safeio.ConvertIOError(err)
+	}
 
 	lineSize := len(lineB)
 	if lineSize == 0 {
@@ -294,7 +328,11 @@ func (e *extractor) readLine() (line string, err error) {
 	}
 
 	e.read += lineSize
-	_, err = e.output.Write(lineB)
+	if _, writeErr := e.output.Write(lineB); writeErr != nil {
+		err = writeErr
+		return
+	}
+
 	line = string(bytes.TrimSpace(lineB))
 	line = strings.TrimLeft(line, utf8BOM)
 	return

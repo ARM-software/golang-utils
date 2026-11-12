@@ -28,3 +28,18 @@ type IFrontMatterParser interface {
 	// matter content as raw bytes.
 	Extract(context.Context, io.Reader) (frontmatter []byte, err error)
 }
+
+// IDocumentParser extracts front matter and the remaining document content.
+// It is separate from IFrontMatterParser so existing implementations remain valid.
+type IDocumentParser interface {
+	// Configure applies options to the document parser.
+	Configure(...ParserOption) IDocumentParser
+
+	// Parse returns independent readers for metadata and content. Content preserves
+	// introductory comments and whitespace unless the corresponding options are set.
+	// The input must remain available until the content reader has been consumed.
+	Parse(context.Context, io.Reader) (frontmatter io.Reader, content io.Reader, err error)
+
+	// Extract reads metadata and content into memory. Empty parts are valid.
+	Extract(context.Context, io.Reader) (frontmatter []byte, content []byte, err error)
+}

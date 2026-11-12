@@ -26,6 +26,21 @@ func ExtractJSONFrontmatter(ctx context.Context, r io.Reader) ([]byte, error) {
 	return serialisation.ExtractJSONFrontmatter(ctx, r)
 }
 
+// ExtractDocument extracts JSON front matter and the remaining document from a reader.
+func ExtractDocument(ctx context.Context, r io.Reader, options ...core.ParserOption) ([]byte, []byte, error) {
+	return serialisation.ExtractDocument(ctx, r, options...)
+}
+
+// ExtractContent returns document content without the JSON front matter block.
+func ExtractContent(ctx context.Context, r io.Reader, options ...core.ParserOption) ([]byte, error) {
+	return serialisation.ExtractContent(ctx, r, options...)
+}
+
+// ExtractDocumentWithDecode decodes front matter into v and returns document content.
+func ExtractDocumentWithDecode(ctx context.Context, r io.Reader, v any, options ...core.ParserOption) ([]byte, error) {
+	return serialisation.ExtractDocumentWithDecode(ctx, r, v, options...)
+}
+
 // UnmarshallJSONFrontMatter extracts and unmarshals JSON front matter.
 func UnmarshallJSONFrontMatter(ctx context.Context, r io.Reader, v any) error {
 	return serialisation.UnmarshallJSONFrontMatter(ctx, r, v)

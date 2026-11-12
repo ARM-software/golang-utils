@@ -4,6 +4,11 @@
  */
 package frontmatter
 
+import (
+	"bytes"
+	"unicode"
+)
+
 // utf8BOM is the Unicode byte order mark character sometimes emitted at the
 // start of UTF-8 encoded text files.
 //
@@ -16,3 +21,11 @@ package frontmatter
 // otherwise a valid frontmatter block may be missed even though the visible text
 // looks correct.
 const utf8BOM = "\uFEFF"
+
+// leadingBOM locates the BOM bytes accepted after whitespace by delimiter detection.
+func leadingBOM(line []byte) (start int, end int) {
+	trimmed := bytes.TrimLeftFunc(line, unicode.IsSpace)
+	start = len(line) - len(trimmed)
+	end = len(line) - len(bytes.TrimLeft(trimmed, utf8BOM))
+	return
+}

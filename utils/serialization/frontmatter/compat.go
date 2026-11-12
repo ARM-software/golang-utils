@@ -21,6 +21,9 @@ type ParserOption = serialisation.ParserOption
 // IFrontMatterParser extracts front matter from a reader.
 type IFrontMatterParser = serialisation.IFrontMatterParser
 
+// IDocumentParser extracts front matter and document content from a reader.
+type IDocumentParser = serialisation.IDocumentParser
+
 // DefaultFormat returns a format with the package defaults.
 func DefaultFormat() *Format { return serialisation.DefaultFormat() }
 
@@ -51,6 +54,21 @@ func NewParserOptions(options ...ParserOption) *ParserOptions {
 
 // WithBufferCapacity configures the parser's buffer capacity.
 func WithBufferCapacity(capacity int) ParserOption { return serialisation.WithBufferCapacity(capacity) }
+
+// WithNormaliseContent configures document body whitespace and line-ending normalisation.
+func WithNormaliseContent(normalise bool) ParserOption {
+	return serialisation.WithNormaliseContent(normalise)
+}
+
+// WithDiscardIntroductoryComments configures removal of introductory HTML comments.
+func WithDiscardIntroductoryComments(discard bool) ParserOption {
+	return serialisation.WithDiscardIntroductoryComments(discard)
+}
+
+// NewDocumentParser creates a document parser for the supplied formats.
+func NewDocumentParser(formats ...*Format) (IDocumentParser, error) {
+	return serialisation.NewDocumentParser(formats...)
+}
 
 // NewParser creates a parser for the supplied formats.
 func NewParser(formats ...*Format) (IFrontMatterParser, error) {
