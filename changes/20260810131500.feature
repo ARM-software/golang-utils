@@ -1,0 +1,1 @@
+:recycle: `[validation]` Add field-level conditional validation helpers such as `WhenPresent`, `WhenAbsent`, `WhenEqualsValue`, `WhenNotEqualsValue`, `WhenInValues`, and `WhenNotInValues` so callers can compose conditional rules directly inside `validation.Field(...)`.
