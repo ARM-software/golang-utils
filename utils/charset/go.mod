@@ -6,7 +6,7 @@ require (
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/mock v0.6.0
-	golang.org/x/text v0.43.0
+	golang.org/x/text v0.44.0
 )
 
 require (
@@ -33,8 +33,8 @@ require (
 	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.172.0
 	github.com/ARM-software/golang-utils/utils/safeio v1.172.0
 	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
 )
 
 tool go.uber.org/mock/mockgen
