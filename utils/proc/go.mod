@@ -8,7 +8,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/goleak v1.3.0
 	go.uber.org/mock v0.6.0
-	golang.org/x/sync v0.24.0
+	golang.org/x/sync v0.25.0
 )
 
 require (
@@ -30,7 +30,7 @@ require (
 	github.com/ARM-software/golang-utils/utils/url v1.172.0 // indirect
 	github.com/ARM-software/golang-utils/utils/validation v1.172.0 // indirect
 	github.com/ARM-software/golang-utils/utils/value v1.172.0 // indirect
-	github.com/DeRuina/timberjack v1.4.9 // indirect
+	github.com/DeRuina/timberjack v1.4.10 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/avast/retry-go/v4 v4.7.0 // indirect
@@ -111,9 +111,9 @@ require (
 	github.com/tklauser/numcpus v0.12.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
 )
 
 tool (
