@@ -10,31 +10,31 @@ tool (
 replace github.com/ARM-software/golang-utils/utils => ../../
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.172.0
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.172.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.172.0
-	github.com/ARM-software/golang-utils/utils/field v1.172.0
-	github.com/ARM-software/golang-utils/utils/logs v1.172.0
-	github.com/ARM-software/golang-utils/utils/reflection v1.172.0
+	github.com/ARM-software/golang-utils/utils/collection v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.173.0
+	github.com/ARM-software/golang-utils/utils/field v1.173.0
+	github.com/ARM-software/golang-utils/utils/logs v1.173.0
+	github.com/ARM-software/golang-utils/utils/reflection v1.173.0
 	github.com/stretchr/testify v1.12.1
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/diodes v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/encoding v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/platform v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/proc v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/subprocess/command v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/units/multiplication v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/units/size v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/url v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/validation v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.172.0 // indirect
-	github.com/DeRuina/timberjack v1.4.9 // indirect
+	github.com/ARM-software/golang-utils/utils/diodes v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/encoding v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/platform v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/proc v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/subprocess/command v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/units/multiplication v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/units/size v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/url v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/validation v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.173.0 // indirect
+	github.com/DeRuina/timberjack v1.4.10 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/bombsimon/logrusr/v4 v4.2.0 // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
@@ -76,12 +76,12 @@ require (
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/mod v0.42.0 // indirect
+	golang.org/x/mod v0.43.0 // indirect
 	golang.org/x/net v0.62.0 // indirect
-	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
 )
 
 replace github.com/ARM-software/golang-utils/utils/cache => ../../cache

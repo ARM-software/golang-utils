@@ -11,15 +11,15 @@ require (
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/crypto v0.58.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/crypto v0.59.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.172.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.172.0
-	github.com/ARM-software/golang-utils/utils/encryption v1.172.0
-	golang.org/x/text v0.43.0 // indirect
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.173.0
+	github.com/ARM-software/golang-utils/utils/encryption v1.173.0
+	golang.org/x/text v0.44.0 // indirect
 )
 
 replace github.com/ARM-software/golang-utils/utils/commonerrors => ../commonerrors

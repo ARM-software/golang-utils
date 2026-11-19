@@ -13,11 +13,11 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/encoding v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/field v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/url v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/encoding v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/url v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.173.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -28,19 +28,19 @@ require (
 	go.uber.org/atomic v1.12.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/net v0.62.0 // indirect
-	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.172.0
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.172.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.172.0
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.172.0
-	github.com/ARM-software/golang-utils/utils/proc v1.172.0
-	github.com/ARM-software/golang-utils/utils/reflection v1.172.0
-	github.com/ARM-software/golang-utils/utils/safecast v1.172.0
-	github.com/ARM-software/golang-utils/utils/subprocess/command v1.172.0
-	github.com/ARM-software/golang-utils/utils/validation v1.172.0
+	github.com/ARM-software/golang-utils/utils/collection v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.173.0
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.173.0
+	github.com/ARM-software/golang-utils/utils/proc v1.173.0
+	github.com/ARM-software/golang-utils/utils/reflection v1.173.0
+	github.com/ARM-software/golang-utils/utils/safecast v1.173.0
+	github.com/ARM-software/golang-utils/utils/subprocess/command v1.173.0
+	github.com/ARM-software/golang-utils/utils/validation v1.173.0
 	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/google/cabbie v1.0.2 // indirect
@@ -51,7 +51,7 @@ require (
 	github.com/tklauser/go-sysconf v0.4.0 // indirect
 	github.com/tklauser/numcpus v0.12.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 )
 
 replace github.com/ARM-software/golang-utils/utils/collection => ../collection
