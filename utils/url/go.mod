@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.5.0
 	github.com/stretchr/testify v1.12.1
-	golang.org/x/net v0.62.0
+	golang.org/x/net v0.63.0
 )
 
 require (
