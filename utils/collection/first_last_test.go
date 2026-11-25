@@ -5,6 +5,7 @@
 package collection
 
 import (
+	"errors"
 	"iter"
 	"slices"
 	"testing"
@@ -28,6 +29,37 @@ func TestFirstBy(t *testing.T) {
 
 	_, ok = FirstBy([]int{1, 3, 5}, func(v int) bool { return v%2 == 0 })
 	assert.False(t, ok)
+}
+
+func TestFirstByWithError(t *testing.T) {
+	value, ok, err := FirstByWithError([]int{1, 2, 3, 4}, func(v int) (bool, error) { return v%2 == 0, nil })
+	assert.NoError(t, err)
+	assert.True(t, ok)
+	assert.Equal(t, 2, value)
+
+	_, ok, err = FirstByWithError([]int{1, 3, 5}, func(v int) (bool, error) { return v%2 == 0, nil })
+	assert.NoError(t, err)
+	assert.False(t, ok)
+
+	expectedErr := errors.New("boom")
+	called := 0
+	_, ok, err = FirstByWithError([]int{1, 2, 3}, func(v int) (bool, error) {
+		called++
+		if v == 2 {
+			return false, expectedErr
+		}
+		return false, nil
+	})
+	assert.False(t, ok)
+	assert.ErrorIs(t, err, expectedErr)
+	assert.Equal(t, 2, called)
+}
+
+func TestFirstByRefWithError(t *testing.T) {
+	value, ok, err := FirstByRefWithError([]int{1, 2, 3, 4}, func(v *int) (bool, error) { return *v > 2, nil })
+	assert.NoError(t, err)
+	assert.True(t, ok)
+	assert.Equal(t, 3, value)
 }
 
 func TestFirstSequence(t *testing.T) {
@@ -66,6 +98,37 @@ func TestLastBy(t *testing.T) {
 
 	_, ok = LastBy([]int{1, 3, 5}, func(v int) bool { return v%2 == 0 })
 	assert.False(t, ok)
+}
+
+func TestLastByWithError(t *testing.T) {
+	value, ok, err := LastByWithError([]int{1, 2, 3, 4}, func(v int) (bool, error) { return v%2 == 0, nil })
+	assert.NoError(t, err)
+	assert.True(t, ok)
+	assert.Equal(t, 4, value)
+
+	_, ok, err = LastByWithError([]int{1, 3, 5}, func(v int) (bool, error) { return v%2 == 0, nil })
+	assert.NoError(t, err)
+	assert.False(t, ok)
+
+	expectedErr := errors.New("boom")
+	called := 0
+	_, ok, err = LastByWithError([]int{1, 2, 3}, func(v int) (bool, error) {
+		called++
+		if v == 2 {
+			return false, expectedErr
+		}
+		return false, nil
+	})
+	assert.False(t, ok)
+	assert.ErrorIs(t, err, expectedErr)
+	assert.Equal(t, 2, called)
+}
+
+func TestLastByRefWithError(t *testing.T) {
+	value, ok, err := LastByRefWithError([]int{1, 2, 3, 4}, func(v *int) (bool, error) { return *v < 4, nil })
+	assert.NoError(t, err)
+	assert.True(t, ok)
+	assert.Equal(t, 3, value)
 }
 
 func TestLastSequence(t *testing.T) {

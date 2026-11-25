@@ -24,9 +24,34 @@ func FirstBy[S ~[]E, E any](slice S, predicate Predicate[E]) (element E, ok bool
 	return FirstSequence(FilterSequence(slices.Values(slice), predicate))
 }
 
+// FirstByWithError returns the first element of slice that satisfies predicate.
+// If predicate returns an error, processing stops and that error is returned.
+func FirstByWithError[S ~[]E, E any](slice S, predicate PredicateWithError[E]) (element E, ok bool, err error) {
+	for i := range slice {
+		matched, subErr := predicate(slice[i])
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		if matched {
+			element = slice[i]
+			ok = true
+			return
+		}
+	}
+	return
+}
+
 // FirstByRef returns the first element of slice that satisfies a reference-based predicate.
 func FirstByRef[S ~[]E, E any](slice S, predicate PredicateRef[E]) (element E, ok bool) {
 	return FirstBy(slice, toPredicateFunc(predicate))
+}
+
+// FirstByRefWithError returns the first element of slice that satisfies a
+// reference-based predicate. If predicate returns an error, processing stops
+// and that error is returned.
+func FirstByRefWithError[S ~[]E, E any](slice S, predicate PredicateRefWithError[E]) (element E, ok bool, err error) {
+	return FirstByWithError(slice, toPredicateWithErrorFunc(predicate))
 }
 
 // FirstSequence returns the first element yielded by seq.
@@ -64,9 +89,34 @@ func LastBy[S ~[]E, E any](slice S, predicate Predicate[E]) (element E, ok bool)
 	return LastSequence(FilterSequence(slices.Values(slice), predicate))
 }
 
+// LastByWithError returns the last element of slice that satisfies predicate.
+// If predicate returns an error, processing stops and that error is returned.
+func LastByWithError[S ~[]E, E any](slice S, predicate PredicateWithError[E]) (element E, ok bool, err error) {
+	for i := len(slice) - 1; i >= 0; i-- {
+		matched, subErr := predicate(slice[i])
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		if matched {
+			element = slice[i]
+			ok = true
+			return
+		}
+	}
+	return
+}
+
 // LastByRef returns the last element of slice that satisfies a reference-based predicate.
 func LastByRef[S ~[]E, E any](slice S, predicate PredicateRef[E]) (element E, ok bool) {
 	return LastBy(slice, toPredicateFunc(predicate))
+}
+
+// LastByRefWithError returns the last element of slice that satisfies a
+// reference-based predicate. If predicate returns an error, processing stops
+// and that error is returned.
+func LastByRefWithError[S ~[]E, E any](slice S, predicate PredicateRefWithError[E]) (element E, ok bool, err error) {
+	return LastByWithError(slice, toPredicateWithErrorFunc(predicate))
 }
 
 // LastSequence returns the last element yielded by seq.
