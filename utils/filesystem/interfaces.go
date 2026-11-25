@@ -204,6 +204,15 @@ type FS interface {
 	// WalkWithContextAndExclusionPatterns walks through the file tree rooted at root, calling fn for each file or
 	// directory in the tree as long as they do not match an exclusion pattern.
 	WalkWithContextAndExclusionPatterns(ctx context.Context, root string, fn filepath.WalkFunc, exclusionPatterns ...string) error
+	// WalkUp walks from start to the filesystem root, visiting start before its ancestors.
+	// The traversal is lexical and does not resolve symbolic links.
+	WalkUp(ctx context.Context, start string, fn func(dir string) (stop bool, err error)) error
+	// WalkUpWithExclusionPatterns walks from start to the filesystem root while skipping callback
+	// invocations for directories matching any exclusion pattern.
+	WalkUpWithExclusionPatterns(ctx context.Context, start string, fn func(dir string) (stop bool, err error), exclusionPatterns ...string) error
+	// FindUp searches for a relative Glob pattern from start upwards to the filesystem root.
+	// The search is lexical and does not resolve symbolic links in the traversed path.
+	FindUp(ctx context.Context, start, pattern string) (string, error)
 	// Ls lists all files and directory (equivalent to ls)
 	Ls(dir string) (files []string, err error)
 	// LsRecursive lists all files recursively, including subdirectories
