@@ -5,25 +5,25 @@ go 1.26.0
 replace github.com/ARM-software/golang-utils/utils => ../../
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.172.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.172.0
-	github.com/ARM-software/golang-utils/utils/http/headers v1.172.0
-	github.com/ARM-software/golang-utils/utils/reflection v1.172.0
-	github.com/ARM-software/golang-utils/utils/safecast v1.172.0
-	github.com/ARM-software/golang-utils/utils/safeio v1.172.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.173.0
+	github.com/ARM-software/golang-utils/utils/http/headers v1.173.0
+	github.com/ARM-software/golang-utils/utils/reflection v1.173.0
+	github.com/ARM-software/golang-utils/utils/safecast v1.173.0
+	github.com/ARM-software/golang-utils/utils/safeio v1.173.0
 	github.com/go-faker/faker/v4 v4.12.0
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/stretchr/testify v1.12.1
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/encoding v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/field v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/http/schemes v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/collection v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/encoding v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/http/schemes v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.173.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
 	github.com/dolmen-go/contextio v1.0.0 // indirect
@@ -35,8 +35,8 @@ require (
 	go.mongodb.org/mongo-driver v1.17.7 // indirect
 	go.uber.org/atomic v1.12.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 )
 
 replace github.com/ARM-software/golang-utils/utils/cache => ../../cache

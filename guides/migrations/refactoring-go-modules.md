@@ -74,8 +74,9 @@ behaviour.
   use values from the two packages together. Compile-time assignments can
   confirm that exported types really are aliases.
 - Run `go generate`, lint, and tests for each affected module with the project's
-  build tags. Check modules independently with `GOWORK=off go test ./...` and
-  `GOWORK=off go mod download`.
+  build tags. Check modules independently with
+  `GOPROXY='https://proxy.golang.org|direct' GOWORK=off go test ./...` and
+  `GOPROXY='https://proxy.golang.org|direct' GOWORK=off go mod download`.
 - Verify that every `go.mod` appears in `go.work`, that internal requirements
   point to the shared release version, and that the release publishes the
   modules consumers need. See the [Go modules guide](../go-modules.md) for the

@@ -5,7 +5,7 @@ go 1.26.0
 replace github.com/ARM-software/golang-utils/utils => ../../
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.172.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.173.0
 	github.com/bombsimon/logrusr/v4 v4.2.0
 	github.com/evanphx/hclogr v0.2.0
 	github.com/go-faker/faker/v4 v4.12.0
@@ -26,8 +26,8 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 )
 
 replace github.com/ARM-software/golang-utils/utils/cache => ../../cache

@@ -14,6 +14,31 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+# 1.173.0 (2026-11-19)
+
+## Features
+
+- :sparkles: `serialisation` Add frontmatter document extraction that returns metadata and body together (#202611120001)
+- :sparkles: `[validation]` Add `validation.SequenceItems` for validating each item yielded by iterator-backed sequences. (#202611191502)
+
+## Bugfixes
+
+- Dependency upgrade: spdx-0.3.6 (#20261106155912533229571)
+- Dependency upgrade: v4-4.5.0 (#20261106155948389147431, #20261106155957736963266, #20261106155959185005560)
+- Dependency upgrade: codeql-action-4.39.3 (#20261109112026903220115)
+- Dependency upgrade: sync-0.25.0 (#20261110111533407113796, #20261110111606052088031, #20261116112537246475119, #20261116112546128476489)
+- Dependency upgrade: sys-0.50.0 (#20261110111603307038574, #20261110111630389663261, #20261116112600902435656)
+- Dependency upgrade: oauth2-0.38.0 (#20261110111613713768698)
+- Dependency upgrade: timberjack-1.4.10 (#20261112111630569217024)
+- Dependency upgrade: text-0.44.0 (#20261113111551547339294, #20261113111606797953691)
+- Dependency upgrade: mod-0.43.0 (#20261113111642325809144)
+- Dependency upgrade: crypto-0.59.0 (#20261116112513515913564)
+
+## Misc
+
+- #20261112154919510875147
+
+
 # 1.172.0 (2026-11-06)
 
 ## Features

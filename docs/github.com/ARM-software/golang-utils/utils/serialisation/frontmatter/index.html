@@ -33,8 +33,11 @@
 * SPDX-License-Identifier: Apache-2.0
 <p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
 * SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
 <h3 id="pkg-index">Index</h3>
 <ul>
+  <li><a href="#LeadingBOM">func LeadingBOM(line []byte) (start int, end int)</a></li>
   <li>
       <a href="#Format">type Format</a>
       <ul>
@@ -55,6 +58,12 @@
           </ul>
       </li>
   <li>
+      <a href="#IDocumentParser">type IDocumentParser</a>
+      <ul>
+          <li><a href="#NewDocumentParser">func NewDocumentParser(formats ...*Format) (p IDocumentParser, err error)</a></li>
+          </ul>
+      </li>
+  <li>
       <a href="#IFrontMatterParser">type IFrontMatterParser</a>
       <ul>
           <li><a href="#NewParser">func NewParser(formats ...*Format) (p IFrontMatterParser, err error)</a></li>
@@ -65,6 +74,8 @@
       <a href="#ParserOption">type ParserOption</a>
       <ul>
           <li><a href="#WithBufferCapacity">func WithBufferCapacity(capacity int) ParserOption</a></li>
+          <li><a href="#WithDiscardIntroductoryComments">func WithDiscardIntroductoryComments(discard bool) ParserOption</a></li>
+          <li><a href="#WithNormaliseContent">func WithNormaliseContent(normalise bool) ParserOption</a></li>
           </ul>
       </li>
   <li>
@@ -76,7 +87,13 @@
           <li><a href="#ParserOptions.Default">func (o *ParserOptions) Default() *ParserOptions</a></li>
           </ul>
       </li>
-  </ul><h3 id="pkg-types">Types</h3>
+  </ul><h3 id="pkg-functions">Functions</h3>
+  
+  <h4 id="LeadingBOM">func LeadingBOM</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">LeadingBOM</span><span class="p">(</span><span class="nx">line</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">start</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">,</span><span class="w"> </span><span class="nx">end</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span></pre>
+  <p>LeadingBOM locates the BOM bytes accepted after whitespace by delimiter detection.
+<h3 id="pkg-types">Types</h3>
   
   <h4 id="Format">type Format</h4>
     
@@ -143,6 +160,28 @@ delimiter of the front matter.
   
   <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithStart</span><span class="p">(</span><span class="nx">start</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><a href="#FormatOption"><span class="nx">FormatOption</span></a></pre>
   <p>WithStart sets the opening delimiter of a front matter Format.
+<h4 id="IDocumentParser">type IDocumentParser</h4>
+    
+    <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IDocumentParser</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Configure applies options to the document parser.</span><span class="w">
+</span><span class="w">	</span><span id="IDocumentParser.Configure"><span class="nf">Configure</span></span><span class="p">(</span><span class="o">...</span><a href="#ParserOption"><span class="nx">ParserOption</span></a><span class="p">)</span><span class="w"> </span><a href="#IDocumentParser"><span class="nx">IDocumentParser</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Parse returns independent readers for metadata and content. Content preserves</span><span class="w">
+</span><span class="w">	</span><span class="c1">// introductory comments and whitespace unless the corresponding options are set.</span><span class="w">
+</span><span class="w">	</span><span class="c1">// The input must remain available until the content reader has been consumed.</span><span class="w">
+</span><span class="w">	</span><span id="IDocumentParser.Parse"><span class="nf">Parse</span></span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">frontmatter</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// Extract reads metadata and content into memory. Empty parts are valid.</span><span class="w">
+</span><span class="w">	</span><span id="IDocumentParser.Extract"><span class="nf">Extract</span></span><span class="p">(</span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><a href="https://pkg.go.dev/io"><span class="nx">io</span></a><span class="p">.</span><a href="https://pkg.go.dev/io#Reader"><span class="nx">Reader</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">frontmatter</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">content</span><span class="w"> </span><span class="p">[]</span><a href="https://pkg.go.dev/builtin#byte"><span class="kt">byte</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span><span class="w">
+</span><span class="p">}</span></pre>
+    <p>IDocumentParser extracts front matter and the remaining document content.
+It is separate from IFrontMatterParser so existing implementations remain valid.
+<h5 id="NewDocumentParser">func NewDocumentParser</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">NewDocumentParser</span><span class="p">(</span><span class="nx">formats</span><span class="w"> </span><span class="o">...*</span><a href="#Format"><span class="nx">Format</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">p</span><span class="w"> </span><a href="#IDocumentParser"><span class="nx">IDocumentParser</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>NewDocumentParser constructs a parser returning both metadata and content using
+the supplied formats. Unlike NewParser, absence of front matter is not an error:
+the entire document is returned as content. Unclosed front matter remains an error.
 <h4 id="IFrontMatterParser">type IFrontMatterParser</h4>
     
     <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">IFrontMatterParser</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span><span class="w">
@@ -179,12 +218,30 @@ supplied format options.
   
   <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithBufferCapacity</span><span class="p">(</span><span class="nx">capacity</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="p">)</span><span class="w"> </span><a href="#ParserOption"><span class="nx">ParserOption</span></a></pre>
   <p>WithBufferCapacity is for configuring the front matter parser.
+<h5 id="WithDiscardIntroductoryComments">func WithDiscardIntroductoryComments</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithDiscardIntroductoryComments</span><span class="p">(</span><span class="nx">discard</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><a href="#ParserOption"><span class="nx">ParserOption</span></a></pre>
+  <p>WithDiscardIntroductoryComments enables or disables removal of introductory
+HTML comment lines. By default introductory comments are preserved.
+<h5 id="WithNormaliseContent">func WithNormaliseContent</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">WithNormaliseContent</span><span class="p">(</span><span class="nx">normalise</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="p">)</span><span class="w"> </span><a href="#ParserOption"><span class="nx">ParserOption</span></a></pre>
+  <p>WithNormaliseContent enables or disables document content normalisation.
+Normalisation is disabled by default and leaves front matter unchanged.
 <h4 id="ParserOptions">type ParserOptions</h4>
     
     <pre class="chroma"><span class="kd">type</span><span class="w"> </span><span class="nx">ParserOptions</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span><span class="w">	</span><span class="c1">// BufferCapacity specifies the capacity of the buffer used to read the front</span><span class="w">
 </span><span class="w">	</span><span class="c1">// matter.</span><span class="w">
 </span><span class="w">	</span><span id="ParserOptions.BufferCapacity"><span class="nx">BufferCapacity</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#int"><span class="kt">int</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// NormaliseContent trims outer whitespace and converts CRLF and CR to LF in</span><span class="w">
+</span><span class="w">	</span><span class="c1">// document content. It does not affect metadata-only parsing or extraction.</span><span class="w">
+</span><span class="w">	</span><span id="ParserOptions.NormaliseContent"><span class="nx">NormaliseContent</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
+</span><span class="w">
+</span><span class="w">	</span><span class="c1">// DiscardIntroductoryComments removes leading HTML comment lines from document</span><span class="w">
+</span><span class="w">	</span><span class="c1">// content. Comments after front matter or ordinary body text are unaffected.</span><span class="w">
+</span><span class="w">	</span><span id="ParserOptions.DiscardIntroductoryComments"><span class="nx">DiscardIntroductoryComments</span></span><span class="w"> </span><a href="https://pkg.go.dev/builtin#bool"><span class="kt">bool</span></a><span class="w">
 </span><span class="p">}</span></pre>
     <p>ParserOptions is for configuring the front matter parser.
 <h5 id="DefaultParserOptions">func DefaultParserOptions</h5>

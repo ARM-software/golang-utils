@@ -38,4 +38,30 @@ func TestCollectionRules(t *testing.T) {
 		var nilSeq iter.Seq[any]
 		assert.NoError(t, validation.Validate(nilSeq, ArrayItems(Type("string"))))
 	})
+
+	t.Run("sequence items", func(t *testing.T) {
+		seq := iter.Seq[any](func(yield func(any) bool) {
+			_ = yield("a")
+			_ = yield("b")
+		})
+		assert.NoError(t, validation.Validate(seq, SequenceItems(Type("string"))))
+
+		invalidSeq := iter.Seq[any](func(yield func(any) bool) {
+			_ = yield("a")
+			_ = yield(1)
+		})
+		assert.Error(t, validation.Validate(invalidSeq, SequenceItems(Type("string"))))
+
+		var nilSeq iter.Seq[any]
+		assert.NoError(t, validation.Validate(nilSeq, SequenceItems(Type("string"))))
+
+		errortest.AssertErrorDescription(t, validation.Validate([]any{"a", "b"}, SequenceItems(Type("string"))), "must be a sequence")
+		errortest.AssertErrorDescription(t, validation.Validate("abc", SequenceItems(Type("string"))), "must be a sequence")
+
+		var s *string
+		errortest.AssertErrorDescription(t, validation.Validate(s, SequenceItems(Type("string"))), "must be a sequence")
+
+		var f func() = nil
+		errortest.AssertErrorDescription(t, validation.Validate(f, SequenceItems(Type("string"))), "must be a sequence")
+	})
 }
