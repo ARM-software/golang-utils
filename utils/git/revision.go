@@ -25,6 +25,7 @@ const (
 // ResolveReference returns a local commit hash without fetching or checkout.
 // Short names prefer tags, then origin branches, then local branches.
 // Call after Clone completes; cancellation is checked between Git reads.
+// If the resolution was successful then revision will always have a value.
 func (c *CloneObject) ResolveReference(ctx context.Context, reference string) (revision string, err error) {
 	if err = parallelisation.DetermineContextError(ctx); err != nil {
 		return

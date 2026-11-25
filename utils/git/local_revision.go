@@ -84,6 +84,8 @@ func hasLocalGitMetadata(ctx context.Context, directory string) (found bool, err
 			return
 		}
 
+		// This is not just checking for existence, it checks wehther thhe .git is also valid to avoid mistaking
+		// an unreadable git metadata for a non-git directory
 		_, subErr := fs.Lstat(filesystem.FilePathJoin(fs, ancestor, ".git"))
 		if subErr == nil {
 			found = true
