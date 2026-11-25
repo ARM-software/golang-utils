@@ -6,7 +6,6 @@ package collection
 
 import (
 	"iter"
-	"slices"
 )
 
 // First returns the first element of slice.
@@ -21,7 +20,10 @@ func FirstRef[S ~[]E, E any](slice S, predicate PredicateRef[E]) (element E, ok 
 
 // FirstBy returns the first element of slice that satisfies predicate.
 func FirstBy[S ~[]E, E any](slice S, predicate Predicate[E]) (element E, ok bool) {
-	return FirstSequence(FilterSequence(slices.Values(slice), predicate))
+	element, ok, _ = FirstByWithError(slice, func(e E) (bool, error) {
+		return predicate(e), nil
+	})
+	return
 }
 
 // FirstByWithError returns the first element of slice that satisfies predicate.
@@ -86,7 +88,10 @@ func LastRef[S ~[]E, E any](slice S, predicate PredicateRef[E]) (element E, ok b
 
 // LastBy returns the last element of slice that satisfies predicate.
 func LastBy[S ~[]E, E any](slice S, predicate Predicate[E]) (element E, ok bool) {
-	return LastSequence(FilterSequence(slices.Values(slice), predicate))
+	element, ok, _ = LastByWithError(slice, func(e E) (bool, error) {
+		return predicate(e), nil
+	})
+	return
 }
 
 // LastByWithError returns the last element of slice that satisfies predicate.
