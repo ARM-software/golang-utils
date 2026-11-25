@@ -260,7 +260,9 @@ func TestResolveReferenceEmptyCollidingTag(t *testing.T) {
 	require.NoError(t, err)
 
 	tagFile := filepath.Join(fixture.directory, ".git", "refs", "tags", "shared")
-	require.NoError(t, filesystem.WriteFile(tagFile, nil, 0o600))
+	emptyTag, err := filesystem.CreateFile(tagFile)
+	require.NoError(t, err)
+	require.NoError(t, emptyTag.Close())
 	clone := &CloneObject{repo: fixture.repo}
 	before := revisionFiles(t, fixture.directory)
 
@@ -463,7 +465,7 @@ func TestResolveReferenceCancellation(t *testing.T) {
 
 	t.Run("before a repository exists", func(t *testing.T) {
 		revision, err := (*CloneObject)(nil).ResolveReference(ctx, "HEAD")
-		errortest.AssertError(t, err, context.Canceled)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
 		assert.Empty(t, revision)
 	})
 
@@ -473,7 +475,7 @@ func TestResolveReferenceCancellation(t *testing.T) {
 		before := revisionFiles(t, fixture.directory)
 
 		revision, err := clone.ResolveReference(ctx, "main")
-		errortest.AssertError(t, err, context.Canceled)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
 		assert.Empty(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
@@ -539,7 +541,7 @@ func revisionFiles(t *testing.T, directory string) (files map[string]string) {
 		require.NoError(t, err)
 
 		var content []byte
-		if !info.IsDir() {
+		if !info.IsDir() && info.Size() > 0 {
 			content, err = filesystem.ReadFile(path)
 			require.NoError(t, err)
 		}

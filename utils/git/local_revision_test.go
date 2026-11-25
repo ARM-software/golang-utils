@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
@@ -291,7 +292,9 @@ func TestLocalRevisionErrors(t *testing.T) {
 		head := plumbing.NewSymbolicReference(plumbing.HEAD, unbornBranch)
 		require.NoError(t, fixture.repo.Storer.SetReference(head))
 		emptyRefFile := filepath.Join(fixture.directory, ".git", "refs", "heads", "empty")
-		require.NoError(t, filesystem.WriteFile(emptyRefFile, []byte(""), 0o600))
+		emptyRef, err := filesystem.CreateFile(emptyRefFile)
+		require.NoError(t, err)
+		require.NoError(t, emptyRef.Close())
 		before := revisionFiles(t, fixture.directory)
 
 		revision, err := LocalRevision(context.Background(), fixture.directory)
@@ -361,7 +364,7 @@ func TestLocalRevisionCancellation(t *testing.T) {
 		directory := filepath.Join(t.TempDir(), "missing")
 
 		revision, err := LocalRevision(ctx, directory)
-		errortest.AssertError(t, err, context.Canceled)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
 		assert.Nil(t, revision)
 	})
 
@@ -370,7 +373,7 @@ func TestLocalRevisionCancellation(t *testing.T) {
 		before := revisionFiles(t, fixture.directory)
 
 		revision, err := LocalRevision(ctx, fixture.directory)
-		errortest.AssertError(t, err, context.Canceled)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
 		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
