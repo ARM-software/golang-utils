@@ -6,10 +6,9 @@ package git
 
 import (
 	"context"
-	"errors"
-	"path/filepath"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	git "github.com/go-git/go-git/v5"
@@ -17,23 +16,28 @@ import (
 )
 
 // LocalRevision reads HEAD without changing the worktree or index.
-// Non-Git directories and valid unborn HEADs return an empty revision.
-func LocalRevision(ctx context.Context, directory string) (revision string, err error) {
+// Non-Git directories and valid unborn HEADs return nil.
+func LocalRevision(ctx context.Context, directory string) (revision *string, err error) {
 	if err = parallelisation.DetermineContextError(ctx); err != nil {
 		return
 	}
 
-	directory, err = filepath.Abs(directory)
+	fs := filesystem.GetGlobalFileSystem()
+	var currentDirectory string
+	if !filesystem.FilePathIsAbs(fs, directory) {
+		currentDirectory, err = fs.CurrentDirectory()
+		if err != nil {
+			return
+		}
+	}
+	directory = filesystem.FilePathAbs(fs, directory, currentDirectory)
+
+	info, err := fs.Stat(directory)
 	if err != nil {
 		return
 	}
 
-	info, err := filesystem.Stat(directory)
-	if err != nil {
-		return
-	}
-
-	if !info.IsDir() {
+	if !filesystem.IsDirectory(info) {
 		err = commonerrors.Newf(commonerrors.ErrInvalid, "not a directory: %q", directory)
 		return
 	}
@@ -49,7 +53,7 @@ func LocalRevision(ctx context.Context, directory string) (revision string, err 
 	}
 
 	head, err := repo.Head()
-	if errors.Is(err, plumbing.ErrReferenceNotFound) {
+	if commonerrors.Any(err, plumbing.ErrReferenceNotFound) {
 		err = validateUnbornLocalHEAD(ctx, repo)
 		return
 	}
@@ -59,6 +63,7 @@ func LocalRevision(ctx context.Context, directory string) (revision string, err 
 	}
 
 	if _, err = repo.CommitObject(head.Hash()); err != nil {
+		err = commonerrors.WrapError(commonerrors.ErrInvalid, err, "could not read local HEAD commit")
 		return
 	}
 
@@ -66,18 +71,20 @@ func LocalRevision(ctx context.Context, directory string) (revision string, err 
 		return
 	}
 
-	revision = head.Hash().String()
+	revision = field.ToOptional(head.Hash().String())
 	return
 }
 
 func hasLocalGitMetadata(ctx context.Context, directory string) (found bool, err error) {
+	fs := filesystem.GetGlobalFileSystem()
+
 	// Absence is optional, unreadable metadata must not be treated as absence.
-	for ancestor := directory; ; ancestor = filepath.Dir(ancestor) {
+	for ancestor := directory; ; ancestor = filesystem.FilePathDir(fs, ancestor) {
 		if err = parallelisation.DetermineContextError(ctx); err != nil {
 			return
 		}
 
-		_, subErr := filesystem.Lstat(filepath.Join(ancestor, ".git"))
+		_, subErr := fs.Lstat(filesystem.FilePathJoin(fs, ancestor, ".git"))
 		if subErr == nil {
 			found = true
 			return
@@ -88,7 +95,7 @@ func hasLocalGitMetadata(ctx context.Context, directory string) (found bool, err
 			return
 		}
 
-		if filepath.Dir(ancestor) == ancestor {
+		if filesystem.FilePathDir(fs, ancestor) == ancestor {
 			return
 		}
 	}
@@ -117,6 +124,7 @@ func validateUnbornLocalHEAD(ctx context.Context, repo *git.Repository) (err err
 	}
 
 	if err = head.Target().Validate(); err != nil {
+		err = commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid local Git HEAD target")
 		return
 	}
 

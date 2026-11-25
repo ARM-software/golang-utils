@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -42,7 +43,8 @@ func TestLocalRevision(t *testing.T) {
 		for _, directory := range []string{fixture.directory, nested} {
 			revision, subErr := LocalRevision(context.Background(), directory)
 			require.NoError(t, subErr)
-			assert.Equal(t, fixture.headCommit.String(), revision)
+			require.NotNil(t, revision)
+			assert.Equal(t, fixture.headCommit.String(), field.Optional(revision, ""))
 		}
 
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
@@ -71,11 +73,28 @@ func TestLocalRevision(t *testing.T) {
 		for _, directory := range []string{fixture.directory, nested} {
 			revision, subErr := LocalRevision(context.Background(), directory)
 			require.NoError(t, subErr)
-			assert.Equal(t, fixture.headCommit.String(), revision)
+			require.NotNil(t, revision)
+			assert.Equal(t, fixture.headCommit.String(), field.Optional(revision, ""))
 		}
 
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
+}
+
+func TestLocalRevisionRelativePath(t *testing.T) {
+	t.Parallel()
+
+	fixture := newRevisionFixture(t)
+	fs := filesystem.GetGlobalFileSystem()
+	currentDirectory, err := fs.CurrentDirectory()
+	require.NoError(t, err)
+	relative, err := filesystem.FilePathRel(fs, currentDirectory, fixture.directory)
+	require.NoError(t, err)
+
+	revision, err := LocalRevision(context.Background(), relative)
+	require.NoError(t, err)
+	require.NotNil(t, revision)
+	assert.Equal(t, fixture.headCommit.String(), field.Optional(revision, ""))
 }
 
 func TestLocalRevisionOptionalMetadata(t *testing.T) {
@@ -89,7 +108,7 @@ func TestLocalRevisionOptionalMetadata(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), directory)
 		require.NoError(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, directory))
 	})
 
@@ -103,7 +122,7 @@ func TestLocalRevisionOptionalMetadata(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), directory)
 		require.NoError(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, directory))
 	})
 }
@@ -140,7 +159,8 @@ func TestLocalRevisionLinkedWorktree(t *testing.T) {
 	for _, path := range []string{directory, nested} {
 		revision, err := LocalRevision(context.Background(), path)
 		require.NoError(t, err)
-		assert.Equal(t, fixture.initialCommit.String(), revision)
+		require.NotNil(t, revision)
+		assert.Equal(t, fixture.initialCommit.String(), field.Optional(revision, ""))
 	}
 
 	assert.Equal(t, beforeMain, revisionFiles(t, fixture.directory))
@@ -158,7 +178,7 @@ func TestLocalRevisionInvalidDirectories(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), directory)
 		require.Error(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
 
@@ -167,7 +187,7 @@ func TestLocalRevisionInvalidDirectories(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), filename)
 		require.Error(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
 }
@@ -186,7 +206,7 @@ func TestLocalRevisionErrors(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), fixture.directory)
 		require.Error(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
 
@@ -200,7 +220,7 @@ func TestLocalRevisionErrors(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), fixture.directory)
 		require.Error(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
 
@@ -214,7 +234,7 @@ func TestLocalRevisionErrors(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), fixture.directory)
 		require.Error(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
 
@@ -228,7 +248,7 @@ func TestLocalRevisionErrors(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), fixture.directory)
 		require.Error(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
 
@@ -242,7 +262,7 @@ func TestLocalRevisionErrors(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), fixture.directory)
 		require.Error(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
 
@@ -259,7 +279,7 @@ func TestLocalRevisionErrors(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), fixture.directory)
 		require.Error(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
 
@@ -276,7 +296,7 @@ func TestLocalRevisionErrors(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), fixture.directory)
 		require.Error(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
 
@@ -290,7 +310,7 @@ func TestLocalRevisionErrors(t *testing.T) {
 
 		revision, err := LocalRevision(context.Background(), fixture.directory)
 		require.Error(t, err)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
 }
@@ -324,7 +344,7 @@ func TestLocalRevisionInaccessibleMetadata(t *testing.T) {
 
 			revision, err := LocalRevision(context.Background(), fixture.directory)
 			require.Error(t, err)
-			assert.Empty(t, revision)
+			assert.Nil(t, revision)
 			require.NoError(t, filesystem.Chmod(inaccessible, info.Mode().Perm()))
 			assert.Equal(t, before, revisionFiles(t, fixture.directory))
 		})
@@ -342,7 +362,7 @@ func TestLocalRevisionCancellation(t *testing.T) {
 
 		revision, err := LocalRevision(ctx, directory)
 		errortest.AssertError(t, err, context.Canceled)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 	})
 
 	t.Run("cancelled discovery leaves the repository unchanged", func(t *testing.T) {
@@ -351,7 +371,7 @@ func TestLocalRevisionCancellation(t *testing.T) {
 
 		revision, err := LocalRevision(ctx, fixture.directory)
 		errortest.AssertError(t, err, context.Canceled)
-		assert.Empty(t, revision)
+		assert.Nil(t, revision)
 		assert.Equal(t, before, revisionFiles(t, fixture.directory))
 	})
 }

@@ -6,19 +6,20 @@ package git
 
 import (
 	"context"
-	"errors"
+	"iter"
 	"strings"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 const (
-	branchRefPrefix = "refs/heads/"
-	tagRefPrefix    = "refs/tags/"
-	defaultRemote   = "origin"
+	BranchRefPrefix = "refs/heads/"
+	TagRefPrefix    = "refs/tags/"
+	DefaultRemote   = "origin"
 )
 
 // ResolveReference returns a local commit hash without fetching or checkout.
@@ -79,15 +80,15 @@ func (c *CloneObject) ResolveReference(ctx context.Context, reference string) (r
 
 func referenceCandidates(reference string) (candidates []plumbing.ReferenceName) {
 	switch {
-	case reference == "" || reference == string(plumbing.HEAD):
+	case reflection.IsEmpty(reference) || reference == string(plumbing.HEAD):
 		candidates = []plumbing.ReferenceName{plumbing.HEAD}
-	case strings.HasPrefix(reference, branchRefPrefix):
-		branch := strings.TrimPrefix(reference, branchRefPrefix)
-		candidates = []plumbing.ReferenceName{plumbing.NewRemoteReferenceName(defaultRemote, branch), plumbing.ReferenceName(reference)}
-	case strings.HasPrefix(reference, tagRefPrefix):
+	case strings.HasPrefix(reference, BranchRefPrefix):
+		branch := strings.TrimPrefix(reference, BranchRefPrefix)
+		candidates = []plumbing.ReferenceName{plumbing.NewRemoteReferenceName(DefaultRemote, branch), plumbing.ReferenceName(reference)}
+	case strings.HasPrefix(reference, TagRefPrefix):
 		candidates = []plumbing.ReferenceName{plumbing.ReferenceName(reference)}
 	case !strings.HasPrefix(reference, refPrefix):
-		candidates = []plumbing.ReferenceName{plumbing.NewTagReferenceName(reference), plumbing.NewRemoteReferenceName(defaultRemote, reference), plumbing.NewBranchReferenceName(reference)}
+		candidates = []plumbing.ReferenceName{plumbing.NewTagReferenceName(reference), plumbing.NewRemoteReferenceName(DefaultRemote, reference), plumbing.NewBranchReferenceName(reference)}
 	}
 
 	return
@@ -99,7 +100,7 @@ func (c *CloneObject) lookupReference(ctx context.Context, name plumbing.Referen
 	}
 
 	ref, err = c.getReference(name)
-	if !errors.Is(err, plumbing.ErrReferenceNotFound) {
+	if !commonerrors.Any(err, plumbing.ErrReferenceNotFound) {
 		return
 	}
 
@@ -114,33 +115,70 @@ func (c *CloneObject) lookupReference(ctx context.Context, name plumbing.Referen
 }
 
 func (c *CloneObject) peelReferenceCommit(ctx context.Context, hash plumbing.Hash) (commitHash plumbing.Hash, err error) {
-	objectType := plumbing.AnyObject
+	if err = parallelisation.DetermineContextError(ctx); err != nil {
+		return
+	}
 
-	for {
-		if err = parallelisation.DetermineContextError(ctx); err != nil {
-			return
-		}
-
-		value, subErr := c.getObject(objectType, hash)
+	for value, subErr := range c.referenceObjects(ctx, hash) {
 		if subErr != nil {
 			err = subErr
 			return
 		}
 
-		switch value := value.(type) {
-		case *object.Commit:
-			if err = parallelisation.DetermineContextError(ctx); err != nil {
+		if commit, ok := value.(*object.Commit); ok {
+			commitHash = commit.Hash
+			return
+		}
+	}
+
+	err = commonerrors.New(commonerrors.ErrInvalid, "Git reference did not resolve to a commit")
+	return
+}
+
+// referenceObjects yields a tag chain and its commit, or one terminal error.
+func (c *CloneObject) referenceObjects(ctx context.Context, hash plumbing.Hash) iter.Seq2[object.Object, error] {
+	return func(yield func(object.Object, error) bool) {
+		seen := map[plumbing.Hash]bool{}
+		objectType := plumbing.AnyObject
+
+		for {
+			if err := parallelisation.DetermineContextError(ctx); err != nil {
+				yield(nil, err)
 				return
 			}
 
-			commitHash = value.Hash
-			return
-		case *object.Tag:
-			hash = value.Target
-			objectType = value.TargetType
-		default:
-			err = commonerrors.Newf(commonerrors.ErrInvalid, "Git reference points to a %s, not a commit", value.Type())
-			return
+			if seen[hash] {
+				yield(nil, commonerrors.Newf(commonerrors.ErrInvalid, "cyclic Git tag reference at %s", hash))
+				return
+			}
+			seen[hash] = true
+
+			value, err := c.getObject(objectType, hash)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if err = parallelisation.DetermineContextError(ctx); err != nil {
+				yield(nil, err)
+				return
+			}
+
+			switch value := value.(type) {
+			case *object.Commit:
+				yield(value, nil)
+				return
+			case *object.Tag:
+				if !yield(value, nil) {
+					return
+				}
+
+				hash = value.Target
+				objectType = value.TargetType
+			default:
+				yield(nil, commonerrors.Newf(commonerrors.ErrInvalid, "Git reference points to a %s, not a commit", value.Type()))
+				return
+			}
 		}
 	}
 }

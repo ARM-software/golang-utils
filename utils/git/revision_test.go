@@ -178,6 +178,51 @@ func TestResolveReferenceAnnotatedTags(t *testing.T) {
 		assert.Empty(t, revision)
 	})
 
+	t.Run("iterator yields the tag chain and stops at the commit", func(t *testing.T) {
+		var hashes []plumbing.Hash
+		for value, subErr := range clone.referenceObjects(context.Background(), nested.Hash()) {
+			require.NoError(t, subErr)
+			hashes = append(hashes, value.ID())
+		}
+
+		assert.Equal(t, []plumbing.Hash{nested.Hash(), annotated.Hash(), fixture.initialCommit}, hashes)
+	})
+
+	t.Run("iterator stops when the consumer breaks", func(t *testing.T) {
+		var first object.Object
+		for value, subErr := range clone.referenceObjects(context.Background(), nested.Hash()) {
+			require.NoError(t, subErr)
+			first = value
+			require.True(t, clone.mu.TryLock(), "the iterator must release the mutex before yielding")
+			clone.mu.Unlock()
+			break
+		}
+
+		require.NotNil(t, first)
+		assert.Equal(t, nested.Hash(), first.ID())
+	})
+
+	t.Run("iterator reports cancellation between yields", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		var hashes []plumbing.Hash
+		var terminalErr error
+		for value, subErr := range clone.referenceObjects(ctx, nested.Hash()) {
+			if subErr != nil {
+				terminalErr = subErr
+				assert.Nil(t, value)
+				break
+			}
+
+			hashes = append(hashes, value.ID())
+			cancel()
+		}
+
+		errortest.RequireError(t, terminalErr, commonerrors.ErrCancelled)
+		assert.Equal(t, []plumbing.Hash{nested.Hash()}, hashes)
+	})
+
 	assert.Equal(t, before, revisionFiles(t, fixture.directory))
 }
 
