@@ -10,12 +10,23 @@ Since this is a Go library, there is no application to run.
 The repository root `go.work` defines the workspace. The `utils/` directory contains the umbrella module plus the individual submodules.
 
 Detailed multi-module guidance lives in the [Go modules guide](guides/go-modules.md).
+
+For this repository, use `GOPROXY='https://proxy.golang.org|direct'` in your current shell or per command so Go can fall back to direct downloads on proxy errors without changing your global Go configuration. For example:
+
+```bash
+export GOPROXY='https://proxy.golang.org|direct'
+```
+
+```powershell
+$env:GOPROXY = 'https://proxy.golang.org|direct'
+```
  
 ### Running tests
 
 To run all checks across every module from the repository root:
 
 ```bash
+export GOPROXY='https://proxy.golang.org|direct'
 go work sync
 go work edit -json |
   sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p' |
@@ -27,7 +38,7 @@ go work edit -json |
 CI's `go-multimodules` action writes per-module JUnit XML and coverage to
 `artifacts/`, then publishes parsed JUnit results in the workflow summary. To
 run checks for one module, run the Go commands from its directory with
-`GOWORK=off`.
+`GOWORK=off` and the same `GOPROXY` setting.
 
 ### Mocks
 
@@ -37,6 +48,7 @@ it needs in its `go.mod` `tool` block; `go:generate` runs them via `go tool`.
 
 To generate mocks:
 ```bash
+export GOPROXY='https://proxy.golang.org|direct'
 for module in $(go work edit -json | sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p'); do
   (cd "$module" && go generate -tags integration ./...)
 done
@@ -55,6 +67,7 @@ It is up to the individual developer to ensure their change complies with this.
 Static analysis tools and linters are run as part of CI.
 They come from [golangci-lint](https://golangci-lint.run/). To run this locally:
 ```bash
+export GOPROXY='https://proxy.golang.org|direct'
 for module in $(go work edit -json | sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p'); do
   (cd "$module" && golangci-lint run --build-tags integration ./...)
 done
