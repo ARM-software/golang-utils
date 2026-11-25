@@ -9,7 +9,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -322,7 +321,7 @@ func TestFindUp_InvalidPattern(t *testing.T) {
 			require.NoError(t, fs.MkDirAll(start, 0o755))
 
 			tests := []string{FilePathJoin(fs, root, "target"), FilePathJoin(fs, "..", "target"), FilePathJoin(fs, "child", "..", "..", "target"), "["}
-			if runtime.GOOS == "windows" {
+			if platform.IsWindows() {
 				tests = append(tests, `C:target`)
 			}
 			for _, pattern := range tests {
@@ -374,21 +373,18 @@ func TestFindUp_ContextErrors(t *testing.T) {
 }
 
 func TestFindUp_PermissionErrors(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("permission test is not deterministic on Windows")
-	}
-	fs := NewStandardFileSystem()
+	fs := NewTestPermissionDeniedFS(t)
 	root := createWalkUpTestRoot(t, fs, "findup-perms")
 	start := FilePathJoin(fs, root, "a", "b")
 	require.NoError(t, fs.MkDirAll(start, 0o755))
 	blocked := FilePathJoin(fs, root, "blocked")
 	require.NoError(t, fs.MkDirAll(blocked, 0o755))
-	require.NoError(t, fs.Chmod(blocked, 0o000))
-	defer func() { _ = fs.Chmod(blocked, 0o755) }()
+	writeWalkUpTestFile(t, fs, FilePathJoin(fs, blocked, "target.txt"))
+	fs.DenyPath(blocked)
 
 	_, err := fs.FindUp(context.Background(), start, FilePathJoin(fs, "blocked", "*"))
 	assert.Error(t, err)
-	assert.False(t, commonerrors.Any(err, commonerrors.ErrNotFound))
+	errortest.AssertError(t, err, commonerrors.ErrConflict, commonerrors.ErrNotFound)
 }
 
 func TestFindUp_SymlinkTraversalIsLexical(t *testing.T) {
