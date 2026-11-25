@@ -65,13 +65,7 @@ func (c *CloneObject) ResolveReference(ctx context.Context, reference string) (r
 	}
 
 	hash := plumbing.NewHash(reference)
-	err = func() (err error) {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		_, err = c.repo.CommitObject(hash)
-		return
-	}()
-	if err != nil {
+	if _, err = c.getCommitObject(hash); err != nil {
 		return
 	}
 
@@ -104,12 +98,7 @@ func (c *CloneObject) lookupReference(ctx context.Context, name plumbing.Referen
 		return
 	}
 
-	ref, err = func() (ref *plumbing.Reference, err error) {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		ref, err = c.repo.Reference(name, true)
-		return
-	}()
+	ref, err = c.getReference(name)
 	if !errors.Is(err, plumbing.ErrReferenceNotFound) {
 		return
 	}
@@ -119,15 +108,7 @@ func (c *CloneObject) lookupReference(ctx context.Context, name plumbing.Referen
 	}
 
 	// Loose-ref lookup can hide read errors; verify absence before falling back.
-	err = func() (err error) {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		refs, err := c.repo.References()
-		if err == nil {
-			refs.Close()
-		}
-		return
-	}()
+	err = c.checkReferences()
 
 	return
 }
@@ -140,12 +121,7 @@ func (c *CloneObject) peelReferenceCommit(ctx context.Context, hash plumbing.Has
 			return
 		}
 
-		value, subErr := func() (value object.Object, err error) {
-			c.mu.Lock()
-			defer c.mu.Unlock()
-			value, err = c.repo.Object(objectType, hash)
-			return
-		}()
+		value, subErr := c.getObject(objectType, hash)
 		if subErr != nil {
 			err = subErr
 			return
