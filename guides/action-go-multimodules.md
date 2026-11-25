@@ -42,6 +42,8 @@ on: [push, pull_request]
 jobs:
   verify:
     runs-on: ubuntu-latest
+    env:
+      GOPROXY: 'https://proxy.golang.org|direct'
     permissions:
       contents: read
       checks: write
@@ -139,7 +141,7 @@ additional tags.
 | Top-level `task` | Result |
 | --- | --- |
 | `list` | List the modules selected from `go.work` or `go.mod` files. |
-| `download` | Run `go mod download` for each module with `GOWORK=off`. |
+| `download` | Run `go mod download` for each module with `GOWORK=off` and `GOPROXY='https://proxy.golang.org|direct'`. |
 | `build` | Build every module. |
 | `analyze` | Compile tests in every module without running test cases (for CodeQL). |
 | `generate` | Run `go generate` in every module. |
