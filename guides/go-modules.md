@@ -121,6 +121,7 @@ to preserve consumer imports and dependencies.
 From the repository root:
 
 ```bash
+export GOPROXY='https://proxy.golang.org|direct'
 go work sync
 go work edit -json |
   sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p' |
@@ -134,7 +135,7 @@ produces per-module JUnit XML and coverage profiles, plus combined reports,
 under `artifacts/`. Local commands use Bash on Linux and macOS; on Windows, use
 WSL with Go and `golangci-lint` installed.
 To confirm that one module builds without workspace resolution, run
-`GOWORK=off go test ./...` from its directory.
+`GOPROXY='https://proxy.golang.org|direct' GOWORK=off go test ./...` from its directory.
 
 ## CI behaviour
 

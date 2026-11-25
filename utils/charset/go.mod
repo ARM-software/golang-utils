@@ -10,13 +10,13 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/field v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/reflection v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/collection v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/reflection v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.173.0 // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
 	github.com/dolmen-go/contextio v1.0.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -29,10 +29,10 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.172.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.172.0
-	github.com/ARM-software/golang-utils/utils/safeio v1.172.0
-	golang.org/x/mod v0.42.0 // indirect
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.173.0
+	github.com/ARM-software/golang-utils/utils/safeio v1.173.0
+	golang.org/x/mod v0.43.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
 	golang.org/x/tools v0.52.0 // indirect
 )

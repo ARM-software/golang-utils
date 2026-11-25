@@ -7,15 +7,15 @@ tool go.uber.org/mock/mockgen
 replace github.com/ARM-software/golang-utils/utils => ../../
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.172.0
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.172.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.172.0
-	github.com/ARM-software/golang-utils/utils/encoding v1.172.0
-	github.com/ARM-software/golang-utils/utils/field v1.172.0
-	github.com/ARM-software/golang-utils/utils/hashing v1.172.0
-	github.com/ARM-software/golang-utils/utils/http/schemes v1.172.0
-	github.com/ARM-software/golang-utils/utils/reflection v1.172.0
-	github.com/ARM-software/golang-utils/utils/value v1.172.0
+	github.com/ARM-software/golang-utils/utils/collection v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.173.0
+	github.com/ARM-software/golang-utils/utils/encoding v1.173.0
+	github.com/ARM-software/golang-utils/utils/field v1.173.0
+	github.com/ARM-software/golang-utils/utils/hashing v1.173.0
+	github.com/ARM-software/golang-utils/utils/http/schemes v1.173.0
+	github.com/ARM-software/golang-utils/utils/reflection v1.173.0
+	github.com/ARM-software/golang-utils/utils/value v1.173.0
 	github.com/deckarep/golang-set/v2 v2.9.0
 	github.com/go-faker/faker/v4 v4.12.0
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
@@ -23,11 +23,11 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/safeio v1.172.0 // indirect
-	github.com/ARM-software/golang-utils/utils/strings v1.172.0 // indirect
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/safeio v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/strings v1.173.0 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/dolmen-go/contextio v1.0.0 // indirect
@@ -41,12 +41,12 @@ require (
 	go.uber.org/atomic v1.12.0 // indirect
 	go.uber.org/mock v0.6.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/crypto v0.58.0 // indirect
-	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
+	golang.org/x/crypto v0.59.0 // indirect
+	golang.org/x/mod v0.43.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
 )
 
 replace github.com/ARM-software/golang-utils/utils/cache => ../../cache
