@@ -100,7 +100,7 @@ func TestLockStale(t *testing.T) {
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 				defer goleak.VerifyNone(t)
-				fs := NewFs(fsType)
+				fs := NewTestFs(t, fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
 					test(t, ctx, fs, lockFunc.LockFunc)
@@ -168,7 +168,7 @@ func TestLockReleaseIfStale(t *testing.T) {
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 				defer goleak.VerifyNone(t)
-				fs := NewFs(fsType)
+				fs := NewTestFs(t, fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
 					test(t, ctx, fs, lockFunc.LockFunc)
@@ -231,7 +231,7 @@ func TestLockSimpleSequential(t *testing.T) { // Several lock/unlock sequences p
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 				defer goleak.VerifyNone(t)
-				fs := NewFs(fsType)
+				fs := NewTestFs(t, fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
 					test(t, ctx, fs, lockFunc.LockFunc, lockFunc.ExpectedError)
@@ -309,7 +309,7 @@ func TestLockSequential(t *testing.T) {
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 				defer goleak.VerifyNone(t)
-				fs := NewFs(fsType)
+				fs := NewTestFs(t, fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
 					test(t, ctx, fs, lockFunc.LockFunc, lockFunc.ExpectedError)
@@ -414,7 +414,7 @@ func TestLockConcurrentSafeguard(t *testing.T) {
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 				defer goleak.VerifyNone(t)
-				fs := NewFs(fsType)
+				fs := NewTestFs(t, fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
 					test(t, ctx, fs, lockFunc.LockFunc, lockFunc.ExpectedError)
@@ -490,7 +490,7 @@ func TestLockWithConcurrentAccess(t *testing.T) {
 			if fsType != InMemoryFS {
 				t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 					defer goleak.VerifyNone(t)
-					fs := NewFs(fsType)
+					fs := NewTestFs(t, fsType)
 					ctx := context.Background()
 					for c := 0; c < 5; c++ {
 						test(t, ctx, fs, lockFunc.LockFunc)

@@ -7,6 +7,7 @@ package filesystem
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +16,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
@@ -85,10 +87,10 @@ func GenerateTestFileTree(t *testing.T, fs FS, testDir, basePath string, withLin
 	require.NoError(t, err)
 
 	// unifying timestamps
-	for _, path := range tree {
-		err = fs.Chtimes(path, fileAccessTime, fileModTime)
-		require.NoError(t, err)
-	}
+	err = collection.ForAll(tree, func(path string) error {
+		return fs.Chtimes(path, fileAccessTime, fileModTime)
+	})
+	require.NoError(t, err)
 
 	return tree
 }
@@ -101,6 +103,57 @@ func NewTestFilesystem(t *testing.T, pathSeparator rune) FS {
 func NewTestOSFilesystem(t *testing.T) FS {
 	t.Helper()
 	return NewVirtualFileSystemWithPathSeparator(afero.NewOsFs(), StandardFS, IdentityPathConverterFunc, platform.PathSeparator)
+}
+
+func NewTestFs(t *testing.T, fsType FilesystemType) FS {
+	t.Helper()
+
+	switch fsType {
+	case OsBasePathFS:
+		tempDir := t.TempDir()
+		currentDirectory, err := os.Getwd()
+		require.NoError(t, err)
+		basePath := determineTestFsBasePath(tempDir, currentDirectory)
+
+		wrapped, err := newOsBasePathFSAdapter(basePath)
+		require.NoError(t, err)
+
+		fs := NewCloseableVirtualFileSystem(
+			wrapped,
+			OsBasePathFS,
+			wrapped,
+			fmt.Sprintf("os root `%v`", basePath),
+			IdentityPathConverterFunc,
+		)
+		t.Cleanup(func() {
+			require.NoError(t, fs.Close())
+		})
+		return fs
+	case PermissionDeniedFS:
+		return NewTestPermissionDeniedFS(t)
+	default:
+		return NewFs(fsType)
+	}
+}
+
+func determineTestFsBasePath(paths ...string) string {
+	if len(paths) == 0 {
+		return string(filepath.Separator)
+	}
+
+	commonPath := filepath.Clean(paths[0])
+	for i := 1; i < len(paths); i++ {
+		targetPath := filepath.Clean(paths[i])
+		for !PathContains(commonPath, targetPath) {
+			parentPath := filepath.Dir(commonPath)
+			if parentPath == commonPath {
+				return commonPath
+			}
+			commonPath = parentPath
+		}
+	}
+
+	return commonPath
 }
 
 type permissionDeniedOpenFs struct {

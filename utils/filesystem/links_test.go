@@ -38,7 +38,7 @@ func TestLink(t *testing.T) {
 	printWarningOnWindows(t)
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-link-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -101,7 +101,7 @@ func TestEvalSymlinks_ResolvesToRealPath(t *testing.T) {
 	printWarningOnWindows(t)
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-eval-link-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -172,7 +172,7 @@ func TestEvalSymlinks_notExist(t *testing.T) {
 	printWarningOnWindows(t)
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-eval-link-not-exist-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()

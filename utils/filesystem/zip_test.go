@@ -29,7 +29,7 @@ import (
 func TestZip(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			for i := 0; i < 10; i++ {
 				func() {
@@ -121,7 +121,7 @@ func TestZip(t *testing.T) {
 func TestZipWithExclusion(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			for i := 0; i < 10; i++ {
 				func() {
@@ -168,7 +168,7 @@ func TestZipWithExclusion(t *testing.T) {
 }
 
 func Test_IsZip(t *testing.T) {
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 
 	testInDir := "testdata"
 	tests := []struct {
@@ -253,7 +253,7 @@ func Test_IsZip(t *testing.T) {
 }
 
 func TestUnzip_Limits(t *testing.T) {
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 
 	testInDir := "testdata"
 	testFile := "validlargezipfile"
@@ -318,7 +318,7 @@ func TestUnzip_ZipBomb(t *testing.T) {
 		},
 	}
 
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 	testInDir := "testdata"
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
@@ -343,7 +343,7 @@ func TestUnzip_ZipBomb(t *testing.T) {
 }
 
 func TestUnzip(t *testing.T) {
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 
 	testInDir := "testdata"
 	testFile := "testunzip"
@@ -373,7 +373,7 @@ func TestUnzip(t *testing.T) {
 }
 
 func TestUnzip_NonRecursive(t *testing.T) {
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 
 	testInDir := "testdata"
 	destPath, err := fs.TempDirInTempDir("test-unzip-recursive-")
@@ -443,7 +443,7 @@ func TestUnzip_NonRecursive(t *testing.T) {
 }
 
 func TestUnzip_Recursive(t *testing.T) {
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 
 	testInDir := "testdata"
 	destPath, err := fs.TempDirInTempDir("test-unzip-recursive-")
@@ -547,7 +547,7 @@ func TestUnzip_Recursive(t *testing.T) {
 }
 
 func TestUnzip_Failures(t *testing.T) {
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 
 	testInDir := "testdata"
 	destPath, err := fs.TempDirInTempDir("unzip")
@@ -590,7 +590,7 @@ func TestUnzip_Failures(t *testing.T) {
 }
 
 func TestUnzip_DepthLimit(t *testing.T) {
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 
 	testInDir := "testdata"
 	destPath, err := fs.TempDirInTempDir("test-unzip-depth-limit-")
@@ -634,7 +634,7 @@ func TestUnzip_DepthLimit(t *testing.T) {
 }
 
 func TestUnzipWithNonUTF8Filenames(t *testing.T) {
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 	// Testing zip file attached to https://github.com/golang/go/issues/10741
 	testInDir := "testdata"
 	tests := []struct {
@@ -702,7 +702,7 @@ func TestUnzipWithNonUTF8Filenames(t *testing.T) {
 }
 
 func TestUnzipFileCountLimit(t *testing.T) {
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 
 	testInDir := "testdata"
 	limits := NewLimits(int64(size.GiB), uint64(10*size.GiB), multiplication.Deka, multiplication.Deka, true)
@@ -740,7 +740,7 @@ func TestUnzipFileCountLimit(t *testing.T) {
 }
 
 func testSanitiseZipExtractPath(t *testing.T, filePath string) {
-	fs := NewStandardFileSystem()
+	fs := NewTestFs(t, StandardFS)
 	dst := FilePathJoin(fs, faker.Word(), faker.Name(), faker.UUIDHyphenated(), faker.Name())
 	rootDepth, err := FileTreeDepth(fs, "", dst)
 	require.NoError(t, err)

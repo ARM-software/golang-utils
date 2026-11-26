@@ -13,11 +13,11 @@ import (
 	"strings"
 )
 
-const _FilesystemTypeName = "StandardFSInMemoryFSEmbedCustomZipFSTarFS"
+const _FilesystemTypeName = "StandardFSInMemoryFSEmbedCustomZipFSTarFSOsBasePathFSPermissionDeniedFS"
 
-var _FilesystemTypeIndex = [...]uint8{0, 10, 20, 25, 31, 36, 41}
+var _FilesystemTypeIndex = [...]uint8{0, 10, 20, 25, 31, 36, 41, 53, 71}
 
-const _FilesystemTypeLowerName = "standardfsinmemoryfsembedcustomzipfstarfs"
+const _FilesystemTypeLowerName = "standardfsinmemoryfsembedcustomzipfstarfsosbasepathfspermissiondeniedfs"
 
 func (i FilesystemType) String() string {
 	if i < 0 || i >= FilesystemType(len(_FilesystemTypeIndex)-1) {
@@ -36,9 +36,11 @@ func _FilesystemTypeNoOp() {
 	_ = x[Custom-(3)]
 	_ = x[ZipFS-(4)]
 	_ = x[TarFS-(5)]
+	_ = x[OsBasePathFS-(6)]
+	_ = x[PermissionDeniedFS-(7)]
 }
 
-var _FilesystemTypeValues = []FilesystemType{StandardFS, InMemoryFS, Embed, Custom, ZipFS, TarFS}
+var _FilesystemTypeValues = []FilesystemType{StandardFS, InMemoryFS, Embed, Custom, ZipFS, TarFS, OsBasePathFS, PermissionDeniedFS}
 
 var _FilesystemTypeNameToValueMap = map[string]FilesystemType{
 	_FilesystemTypeName[0:10]:       StandardFS,
@@ -53,6 +55,10 @@ var _FilesystemTypeNameToValueMap = map[string]FilesystemType{
 	_FilesystemTypeLowerName[31:36]: ZipFS,
 	_FilesystemTypeName[36:41]:      TarFS,
 	_FilesystemTypeLowerName[36:41]: TarFS,
+	_FilesystemTypeName[41:53]:      OsBasePathFS,
+	_FilesystemTypeLowerName[41:53]: OsBasePathFS,
+	_FilesystemTypeName[53:71]:      PermissionDeniedFS,
+	_FilesystemTypeLowerName[53:71]: PermissionDeniedFS,
 }
 
 var _FilesystemTypeNames = []string{
@@ -62,6 +68,8 @@ var _FilesystemTypeNames = []string{
 	_FilesystemTypeName[25:31],
 	_FilesystemTypeName[31:36],
 	_FilesystemTypeName[36:41],
+	_FilesystemTypeName[41:53],
+	_FilesystemTypeName[53:71],
 }
 
 // FilesystemTypeString retrieves an enum value from the enum constants string name.

@@ -29,7 +29,7 @@ func TestNothingInCacheWorkflow(t *testing.T) { // Single fetch with no file pre
 			t.Run(testName, func(t *testing.T) {
 				t.Parallel()
 				ctx := context.Background()
-				fs := filesystem.NewFs(fsType)
+				fs := filesystem.NewTestFs(t, fsType)
 				// set up temp remote directory
 				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
 				require.NoError(t, err)
@@ -71,7 +71,7 @@ func TestSimpleCacheWorkflow(t *testing.T) { // Simple store, followed by fetch
 			t.Run(testName, func(t *testing.T) {
 				t.Parallel()
 				ctx := context.Background()
-				fs := filesystem.NewFs(fsType)
+				fs := filesystem.NewTestFs(t, fsType)
 				// set up temp remote directory
 				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
 				require.NoError(t, err)
@@ -142,7 +142,7 @@ func TestSimpleCacheWorkflow_WithExcludedFilesystemItems(t *testing.T) { // Simp
 			t.Run(testName, func(t *testing.T) {
 				t.Parallel()
 				ctx := context.Background()
-				fs := filesystem.NewFs(fsType)
+				fs := filesystem.NewTestFs(t, fsType)
 				// set up temp remote directory
 				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
 				require.NoError(t, err)
@@ -239,7 +239,7 @@ func TestComplexCacheWorkflow(t *testing.T) { // Multiple Store action. The fetc
 			t.Run(testName, func(t *testing.T) {
 				t.Parallel()
 				ctx := context.Background()
-				fs := filesystem.NewFs(fsType)
+				fs := filesystem.NewTestFs(t, fsType)
 				// set up temp remote directory
 				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
 				require.NoError(t, err)
@@ -316,7 +316,7 @@ func TestComplexCacheWorkflowWithCleanCache(t *testing.T) { // Multiple Store ac
 			t.Run(testName, func(t *testing.T) {
 				t.Parallel()
 				ctx := context.Background()
-				fs := filesystem.NewFs(fsType)
+				fs := filesystem.NewTestFs(t, fsType)
 				// set up temp remote directory
 				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
 				require.NoError(t, err)
@@ -390,7 +390,7 @@ func TestRemoveEntry(t *testing.T) { // A store followed by a remove entry follo
 			t.Run(testName, func(t *testing.T) {
 				t.Parallel()
 				ctx := context.Background()
-				fs := filesystem.NewFs(fsType)
+				fs := filesystem.NewTestFs(t, fsType)
 				// set up temp remote directory
 				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
 				require.NoError(t, err)
@@ -451,7 +451,7 @@ func TestEntryAge(t *testing.T) { // A store followed by a remove entry followed
 				t.Parallel()
 				random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
 				ctx := context.Background()
-				fs := filesystem.NewFs(fsType)
+				fs := filesystem.NewTestFs(t, fsType)
 				// set up temp remote directory
 				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
 				require.NoError(t, err)
