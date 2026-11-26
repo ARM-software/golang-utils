@@ -44,17 +44,16 @@ func TestWalkUp_RelativeStart(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			fs := NewTestFs(t, fsType)
+			if fsType == OsBasePathFS {
+				t.Chdir(t.TempDir())
+			}
 			currentDir, err := fs.CurrentDirectory()
 			require.NoError(t, err)
 			rootName := fmt.Sprintf(".walkup-relative-%s-%v", sanitiseTestName(t.Name()), fsType)
 			start := FilePathJoin(fs, rootName, "child")
 			absStart := FilePathJoin(fs, currentDir, start)
-			setupFs := fs
-			if fsType == OsBasePathFS {
-				setupFs = NewTestFs(t, StandardFS)
-			}
-			defer func() { _ = setupFs.Rm(FilePathJoin(setupFs, currentDir, rootName)) }()
-			require.NoError(t, setupFs.MkDirAll(absStart, 0o755))
+			defer func() { _ = fs.Rm(FilePathJoin(fs, currentDir, rootName)) }()
+			require.NoError(t, fs.MkDirAll(absStart, 0o755))
 
 			var visited []string
 			err = fs.WalkUp(context.Background(), start, func(dir string) (bool, error) {
