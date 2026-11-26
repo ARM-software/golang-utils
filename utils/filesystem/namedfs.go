@@ -41,7 +41,7 @@ func (fs *namedAferoFs) LstatIfPossible(name string) (os.FileInfo, bool, error) 
 	if underlying, ok := fs.Fs.(IStater); ok {
 		return underlying.LstatIfPossible(name)
 	}
-	fileInfo, err := fs.Fs.Stat(name)
+	fileInfo, err := fs.Stat(name)
 	return fileInfo, false, err
 }
 
