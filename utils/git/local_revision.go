@@ -88,12 +88,10 @@ func hasLocalGitMetadata(ctx context.Context, directory string) (found bool, err
 			return
 		}
 
-		if commonerrors.Any(subErr, commonerrors.ErrNotFound) {
-			subErr = nil
-		}
-
+		subErr = commonerrors.Ignore(subErr, commonerrors.ErrNotFound)
 		return
 	})
+
 	return
 }
 
