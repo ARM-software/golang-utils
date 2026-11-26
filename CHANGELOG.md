@@ -14,6 +14,27 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+# 1.174.0 (2026-11-26)
+
+## Features
+
+- :sparkles: `git` Add `ResolveReference` and `LocalRevision` to read locally available commit revisions without fetching, checking out, or changing worktree state. (#202611240001)
+- :sparkles: `[filesystem]` Add WalkUp, WalkUpWithExclusionPatterns, and FindUp helpers for upward filesystem traversal. (#202611251443)
+- :sparkles: `[collection]` Add FirstByWithError and LastByWithError helpers for error-returning predicates. (#202611251449)
+
+## Bugfixes
+
+- Dependency upgrade: crypto-0.59.0 (#20261116112516354434522)
+- Dependency upgrade: sync-0.25.0 (#20261116112548917575284)
+- Dependency upgrade: codeql-action-4.39.4 (#20261123112152277981110)
+- Dependency upgrade: scorecard-action-2.6.0 (#20261123112207177087507)
+- Dependency upgrade: net-0.63.0 (#20261123112553948710713)
+
+## Misc
+
+- #202611251314, #20261125114507429405395
+
+
 # 1.173.0 (2026-11-19)
 
 ## Features

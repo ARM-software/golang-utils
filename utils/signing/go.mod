@@ -16,9 +16,9 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.173.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.173.0
-	github.com/ARM-software/golang-utils/utils/encryption v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.174.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.174.0
+	github.com/ARM-software/golang-utils/utils/encryption v1.174.0
 	golang.org/x/text v0.44.0 // indirect
 )
 

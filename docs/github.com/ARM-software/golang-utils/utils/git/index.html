@@ -31,16 +31,22 @@
 * SPDX-License-Identifier: Apache-2.0
 <p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
 * SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
+<p>* Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+* SPDX-License-Identifier: Apache-2.0
 <h3 id="pkg-index">Index</h3>
 <ul>
-  <li><a href="#pkg-variables">Variables</a></li><li><a href="#CheckAccess">func CheckAccess(ctx context.Context, gitOptions *GitActionConfig) error</a></li>
+  <li><a href="#pkg-constants">Constants</a></li><li><a href="#pkg-variables">Variables</a></li><li><a href="#CheckAccess">func CheckAccess(ctx context.Context, gitOptions *GitActionConfig) error</a></li>
   <li><a href="#CloneWithLimits">func CloneWithLimits(ctx context.Context, dir string, limits ILimits, gitOptions *GitActionConfig) (err error)</a></li>
+  <li><a href="#LocalRevision">func LocalRevision(ctx context.Context, directory string) (revision *string, err error)</a></li>
   <li>
       <a href="#CloneObject">type CloneObject</a>
       <ul>
           <li><a href="#NewCloneObject">func NewCloneObject() *CloneObject</a></li>
           <li><a href="#CloneObject.Checkout">func (c *CloneObject) Checkout(gitOptions *GitActionConfig) (err error)</a></li>
           <li><a href="#CloneObject.Clone">func (c *CloneObject) Clone(ctx context.Context, path string, cfg *GitActionConfig) (err error)</a></li>
+          <li><a href="#CloneObject.ResolveReference">func (c *CloneObject) ResolveReference(ctx context.Context, reference string) (revision string, err error)</a></li>
           <li><a href="#CloneObject.SetupLimits">func (c *CloneObject) SetupLimits(cfg ILimits) (err error)</a></li>
           <li><a href="#CloneObject.ValidateRepository">func (c *CloneObject) ValidateRepository(ctx context.Context) (err error)</a></li>
           </ul>
@@ -98,7 +104,16 @@
           <li><a href="#SSHAuthConfig.Validate">func (s *SSHAuthConfig) Validate() error</a></li>
           </ul>
       </li>
-  </ul><h3 id="pkg-variables">Variables</h3>
+  </ul><h3 id="pkg-constants">Constants</h3>
+  
+  
+  
+  <pre class="chroma"><span class="kd">const</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span><span class="w">	</span><span id="BranchRefPrefix"><span class="nx">BranchRefPrefix</span></span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;refs/heads/&#34;</span><span class="w">
+</span><span class="w">	</span><span id="TagRefPrefix"><span class="nx">TagRefPrefix</span></span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;refs/tags/&#34;</span><span class="w">
+</span><span class="w">	</span><span id="DefaultRemote"><span class="nx">DefaultRemote</span></span><span class="w">   </span><span class="p">=</span><span class="w"> </span><span class="s">&#34;origin&#34;</span><span class="w">
+</span><span class="p">)</span></pre>
+  <h3 id="pkg-variables">Variables</h3>
   
   
   
@@ -119,6 +134,11 @@ only network access and valid auth.
   
   <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">CloneWithLimits</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">dir</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">limits</span><span class="w"> </span><a href="#ILimits"><span class="nx">ILimits</span></a><span class="p">,</span><span class="w"> </span><span class="nx">gitOptions</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
   <p>CloneWithLimits clones a repository with limits on the max tree depth, the max repository size, the max file count, the max individual file size, and the max entries
+<h4 id="LocalRevision">func LocalRevision</h4>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="nf">LocalRevision</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">directory</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">revision</span><span class="w"> </span><span class="o">*</span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>LocalRevision reads HEAD without changing the worktree or index.
+Non-Git directories and valid unborn HEADs return nil.
 <h3 id="pkg-types">Types</h3>
   
   <h4 id="CloneObject">type CloneObject</h4>
@@ -136,6 +156,13 @@ only network access and valid auth.
   
   <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#CloneObject"><span class="nx">CloneObject</span></a><span class="p">)</span><span class="w"> </span><span class="nf">Clone</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">cfg</span><span class="w"> </span><span class="o">*</span><a href="#GitActionConfig"><span class="nx">GitActionConfig</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
   <p>Clone without checkout or validation
+<h5 id="CloneObject.ResolveReference">func (*CloneObject) ResolveReference</h5>
+  
+  <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#CloneObject"><span class="nx">CloneObject</span></a><span class="p">)</span><span class="w"> </span><span class="nf">ResolveReference</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><a href="https://pkg.go.dev/context"><span class="nx">context</span></a><span class="p">.</span><a href="https://pkg.go.dev/context#Context"><span class="nx">Context</span></a><span class="p">,</span><span class="w"> </span><span class="nx">reference</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">revision</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#string"><span class="kt">string</span></a><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>
+  <p>ResolveReference returns a local commit hash without fetching or checkout.
+Short names prefer tags, then origin branches, then local branches.
+Call after Clone completes; cancellation is checked between Git reads.
+If the resolution was successful then revision will always have a value.
 <h5 id="CloneObject.SetupLimits">func (*CloneObject) SetupLimits</h5>
   
   <pre class="chroma"><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">c</span><span class="w"> </span><span class="o">*</span><a href="#CloneObject"><span class="nx">CloneObject</span></a><span class="p">)</span><span class="w"> </span><span class="nf">SetupLimits</span><span class="p">(</span><span class="nx">cfg</span><span class="w"> </span><a href="#ILimits"><span class="nx">ILimits</span></a><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><a href="https://pkg.go.dev/builtin#error"><span class="kt">error</span></a><span class="p">)</span></pre>

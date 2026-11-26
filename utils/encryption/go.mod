@@ -28,10 +28,10 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.173.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.173.0
-	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.173.0 // indirect
-	github.com/ARM-software/golang-utils/utils/logs/logstest v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.174.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.174.0
+	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.174.0 // indirect
+	github.com/ARM-software/golang-utils/utils/logs/logstest v1.174.0
 	golang.org/x/mod v0.43.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect

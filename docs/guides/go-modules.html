@@ -119,7 +119,8 @@ published <a href="https://github.com/ARMmbed/continuous-delivery-scripts">CDS</
 to preserve consumer imports and dependencies.</p>
 <h2>Running checks across all modules</h2>
 <p>From the repository root:</p>
-<pre><code class="language-bash">go work sync
+<pre><code class="language-bash">export GOPROXY='https://proxy.golang.org|direct'
+go work sync
 go work edit -json |
   sed -n 's/^[[:space:]]*&quot;DiskPath&quot;: &quot;\([^&quot;]*\)&quot;.*$/\1/p' |
   while IFS= read -r module; do
@@ -131,7 +132,7 @@ produces per-module JUnit XML and coverage profiles, plus combined reports,
 under <code>artifacts/</code>. Local commands use Bash on Linux and macOS; on Windows, use
 WSL with Go and <code>golangci-lint</code> installed.
 To confirm that one module builds without workspace resolution, run
-<code>GOWORK=off go test ./...</code> from its directory.</p>
+<code>GOPROXY='https://proxy.golang.org|direct' GOWORK=off go test ./...</code> from its directory.</p>
 <h2>CI behaviour</h2>
 <p>The CI workflows call the local <a href="action-go-multimodules.html">Go multimodules composite action</a>
 with <code>uses: $/actions/go-multimodules</code>. It:</p>

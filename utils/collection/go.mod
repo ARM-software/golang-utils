@@ -19,14 +19,14 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.173.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.173.0
-	github.com/ARM-software/golang-utils/utils/field v1.173.0
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.173.0
-	github.com/ARM-software/golang-utils/utils/ptr v1.173.0
-	github.com/ARM-software/golang-utils/utils/reflection v1.173.0
-	github.com/ARM-software/golang-utils/utils/safecast v1.173.0
-	github.com/ARM-software/golang-utils/utils/value v1.173.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.174.0
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.174.0
+	github.com/ARM-software/golang-utils/utils/field v1.174.0
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.174.0
+	github.com/ARM-software/golang-utils/utils/ptr v1.174.0
+	github.com/ARM-software/golang-utils/utils/reflection v1.174.0
+	github.com/ARM-software/golang-utils/utils/safecast v1.174.0
+	github.com/ARM-software/golang-utils/utils/value v1.174.0
 	github.com/dmarkham/enumer v1.6.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/pascaldekloe/name v1.0.0 // indirect

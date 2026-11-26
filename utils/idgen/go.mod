@@ -14,7 +14,7 @@ require (
 	golang.org/x/text v0.44.0 // indirect
 )
 
-require github.com/ARM-software/golang-utils/utils/commonerrors v1.173.0
+require github.com/ARM-software/golang-utils/utils/commonerrors v1.174.0
 
 replace github.com/ARM-software/golang-utils/utils/commonerrors => ../commonerrors
 
