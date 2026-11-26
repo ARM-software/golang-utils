@@ -191,7 +191,7 @@ func TestFileTreeDepth(t *testing.T) {
 
 	for fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(FileSystemTypes[fsType])
+			fs := NewTestFs(t, FileSystemTypes[fsType])
 			for i := range tests {
 				test := tests[i]
 				t.Run(fmt.Sprintf("#%v %v", i, FilepathStem(test.file)), func(t *testing.T) {
@@ -207,7 +207,7 @@ func TestFileTreeDepth(t *testing.T) {
 func TestEndsWithPathSeparator(t *testing.T) {
 	for fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(FileSystemTypes[fsType])
+			fs := NewTestFs(t, FileSystemTypes[fsType])
 
 			assert.True(t, EndsWithPathSeparator(fs, "test fsdfs .fsdffs /"))
 			assert.False(t, EndsWithPathSeparator(fs, "test fsdfs .fsdffs "))
@@ -219,6 +219,14 @@ func TestEndsWithPathSeparator(t *testing.T) {
 			assert.False(t, EndsWithPathSeparator(fs, filepath.Join(faker.DomainName(), "test fsdfs .fsdffs "+string(fs.PathSeparator()))), "join should trim the tailing separator")
 		})
 	}
+}
+
+func TestPathContains(t *testing.T) {
+	assert.True(t, PathContains(filepath.Join("a", "b"), filepath.Join("a", "b", "c")))
+	assert.True(t, PathContains(filepath.Join("a", "b"), filepath.Join("a", "b")))
+	assert.False(t, PathContains(filepath.Join("a", "b"), filepath.Join("a", "c")))
+	assert.False(t, PathContains(filepath.Join("a", "b"), filepath.Join("a", "b", "..", "..", "c")))
+	assert.False(t, PathContains("C:\\a", "D:\\a"))
 }
 
 func TestFilePathJoin(t *testing.T) {
@@ -237,13 +245,13 @@ func TestFilePathJoin(t *testing.T) {
 			expectedLinux:   "",
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			elements:        []string{"test1", "c"},
 			expectedWindows: "test1\\c",
 			expectedLinux:   "test1/c",
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			elements:        []string{},
 			expectedWindows: "",
 			expectedLinux:   "",
@@ -261,19 +269,19 @@ func TestFilePathJoin(t *testing.T) {
 			expectedLinux:   "",
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			elements:        []string{""},
 			expectedWindows: "",
 			expectedLinux:   "",
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			elements:        []string{"a"},
 			expectedWindows: "a",
 			expectedLinux:   "a",
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			elements:        []string{"a", ""},
 			expectedWindows: "a",
 			expectedLinux:   "a",
@@ -285,7 +293,7 @@ func TestFilePathJoin(t *testing.T) {
 			expectedLinux:   "a",
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			elements:        []string{"", "a"},
 			expectedWindows: "a",
 			expectedLinux:   "a",
@@ -297,7 +305,7 @@ func TestFilePathJoin(t *testing.T) {
 			expectedLinux:   "a",
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			elements:        []string{"", ""},
 			expectedWindows: "",
 			expectedLinux:   "",
@@ -321,7 +329,7 @@ func TestFilePathJoin(t *testing.T) {
 			expectedLinux:   `test1\c`,
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			elements:        []string{"test1", "test2", "..", "c"},
 			expectedWindows: `test1\c`,
 			expectedLinux:   "test1/c",
@@ -339,13 +347,13 @@ func TestFilePathJoin(t *testing.T) {
 			expectedLinux:   `test1\c`,
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			elements:        []string{"test1", "test2", "..", "\\c"},
 			expectedWindows: "test1\\c",
 			expectedLinux:   "test1/\\c",
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			elements:        []string{"test1", "test2", "..", "/c"},
 			expectedWindows: "test1\\c",
 			expectedLinux:   "test1/c",
@@ -400,7 +408,7 @@ func TestFilePathClean(t *testing.T) {
 			expectedLinux:   "",
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			path:            ".",
 			expectedWindows: ".",
 			expectedLinux:   ".",
@@ -424,13 +432,13 @@ func TestFilePathClean(t *testing.T) {
 			expectedLinux:   "a",
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			path:            filepath.Join("test1", "c"),
 			expectedWindows: "test1\\c",
 			expectedLinux:   "test1/c",
 		},
 		{
-			fs:              NewStandardFileSystem(),
+			fs:              NewTestFs(t, StandardFS),
 			path:            filepath.Join("test1", "test2", "..", "c"),
 			expectedWindows: "test1\\c",
 			expectedLinux:   "test1/c",
@@ -517,7 +525,7 @@ func TestFilePathBase(t *testing.T) {
 			expectedBase: "",
 		},
 		{
-			fs:           NewStandardFileSystem(),
+			fs:           NewTestFs(t, StandardFS),
 			pathLinux:    "",
 			pathWindows:  "",
 			expectedBase: ".",
@@ -529,13 +537,13 @@ func TestFilePathBase(t *testing.T) {
 			expectedBase: ".",
 		},
 		{
-			fs:           NewStandardFileSystem(),
+			fs:           NewTestFs(t, StandardFS),
 			pathLinux:    "/test1/test2/file.ext",
 			pathWindows:  "C:\\test1\\test2\\file.ext",
 			expectedBase: "file.ext",
 		},
 		{
-			fs:           NewStandardFileSystem(),
+			fs:           NewTestFs(t, StandardFS),
 			pathLinux:    "./test1/test2/",
 			pathWindows:  ".\\test1\\test2\\",
 			expectedBase: "test2",
@@ -589,7 +597,7 @@ func TestFilePathDir(t *testing.T) {
 			expectedDir: "",
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   "",
 			pathWindows: "",
 			expectedDir: ".",
@@ -601,7 +609,7 @@ func TestFilePathDir(t *testing.T) {
 			expectedDir: ".",
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   ".",
 			pathWindows: ".",
 			expectedDir: ".",
@@ -613,7 +621,7 @@ func TestFilePathDir(t *testing.T) {
 			expectedDir: ".",
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   "abc",
 			pathWindows: "abc",
 			expectedDir: ".",
@@ -643,13 +651,13 @@ func TestFilePathDir(t *testing.T) {
 			expectedDir: "test",
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   "./test/test",
 			pathWindows: "./test/test",
 			expectedDir: "test",
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   "./test////////////test",
 			pathWindows: "./test////////////test",
 			expectedDir: "test",
@@ -710,7 +718,7 @@ func TestFilePathIsAbs(t *testing.T) {
 			isAbs:       false,
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   "",
 			pathWindows: "",
 			isAbs:       false,
@@ -722,25 +730,25 @@ func TestFilePathIsAbs(t *testing.T) {
 			isAbs:       false,
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   ".",
 			pathWindows: ".",
 			isAbs:       false,
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   "/",
 			pathWindows: `C:\\`,
 			isAbs:       true,
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   "/usr/bin/gcc",
 			pathWindows: `C:\\usr\bin\gcc`,
 			isAbs:       true,
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   "/usr/../bin/gcc",
 			pathWindows: `C:\\usr\..\bin\gcc`,
 			isAbs:       true,
@@ -765,7 +773,7 @@ func TestFilePathIsAbs(t *testing.T) {
 			specialLinux: true,
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   "..",
 			pathWindows: "..",
 			isAbs:       false,
@@ -820,7 +828,7 @@ func TestFilePathExt(t *testing.T) {
 			ext:         "",
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   "test1/test2.test",
 			pathWindows: "test1\\test2.test",
 			ext:         ".test",
@@ -888,7 +896,7 @@ func TestFilePathSplit(t *testing.T) {
 			file:        "",
 		},
 		{
-			fs:          NewStandardFileSystem(),
+			fs:          NewTestFs(t, StandardFS),
 			pathLinux:   "test1/test2.test",
 			pathWindows: `test1\test2.test`,
 			dir:         FilePathToPlatformPathSeparator(NewTestFilesystem(t, '\\'), `test1\`),

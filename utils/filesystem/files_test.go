@@ -35,7 +35,7 @@ import (
 func TestCurrentDirectory(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			current, err := fs.CurrentDirectory()
 			require.NoError(t, err)
 			assert.NotEmpty(t, current)
@@ -46,7 +46,7 @@ func TestCurrentDirectory(t *testing.T) {
 func TestExists(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpFile, err := fs.TouchTempFileInTempDir("test-exist-")
 			require.NoError(t, err)
 
@@ -65,7 +65,7 @@ func TestOpen(t *testing.T) {
 	// Similar to https://github.com/spf13/afero/blob/787d034dfe70e44075ccc060d346146ef53270ad/afero_test.go#L79
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-open-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -134,7 +134,7 @@ func TestTouch(t *testing.T) {
 	// Similar to https://github.com/m-spitfire/go-touch/blob/master/touch_test.go
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-touch-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -196,7 +196,7 @@ func TestTouch(t *testing.T) {
 			assert.NotEqual(t, timesFile2.ModTime(), timesFile22.ModTime())
 
 			t.Run("empty path", func(t *testing.T) {
-				err = fs.Touch("                 ")
+				err = fs.Touch("")
 				require.Error(t, err)
 				errortest.AssertError(t, err, commonerrors.ErrUndefined)
 
@@ -244,7 +244,7 @@ func TestTouch(t *testing.T) {
 
 func TestFileHandle(t *testing.T) {
 	// Test for standard FS
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 	tmpFile1, err := fs.TempFileInTempDir("test-filehandle-*.txt")
 	require.NoError(t, err)
 	defer func() { _ = tmpFile1.Close() }()
@@ -255,7 +255,7 @@ func TestFileHandle(t *testing.T) {
 	_ = fs.Rm(tmpFile1.Name())
 
 	// Test for in memory FS
-	fs = NewFs(InMemoryFS)
+	fs = NewTestFs(t, InMemoryFS)
 	tmpFile2, err := fs.TempFileInTempDir("test-filehandle-*.txt")
 	require.NoError(t, err)
 	defer func() { _ = tmpFile2.Close() }()
@@ -269,7 +269,7 @@ func TestFileHandle(t *testing.T) {
 func TestCreate(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-create-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -293,7 +293,7 @@ func TestCreate(t *testing.T) {
 func TestCancelledWrite(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-cancel-write-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -326,7 +326,7 @@ func TestCancelledWrite(t *testing.T) {
 func TestCancelledRead(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-cancel-read-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -358,7 +358,7 @@ func TestCancelledRead(t *testing.T) {
 func TestChmod(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-chmod-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -384,7 +384,7 @@ func TestChmod(t *testing.T) {
 func TestChmodRecursive(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-chmod-recursive-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -429,7 +429,7 @@ func TestChmodRecursive(t *testing.T) {
 func TestChown(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-chown-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -460,7 +460,7 @@ func TestChown(t *testing.T) {
 func TestChangeOwnership(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-chown-changeownership-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -491,7 +491,7 @@ func TestChangeOwnership(t *testing.T) {
 func TestChangeOwnershipRecursive(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-chown-changeownership-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -546,7 +546,7 @@ func TestChangeOwnershipRecursive(t *testing.T) {
 func TestConvertPaths(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			// set up temp directory
 			tmpDir, err := fs.TempDirInTempDir("temp")
@@ -575,7 +575,7 @@ func TestConvertPaths(t *testing.T) {
 func TestIsFile(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprint(fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			tmpDir := t.TempDir()
 
@@ -595,7 +595,7 @@ func TestIsFile(t *testing.T) {
 func TestStatTimes(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpFile, err := fs.TouchTempFileInTempDir("test-file-times-*.txt")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpFile) }()
@@ -620,7 +620,7 @@ func TestStatTimes(t *testing.T) {
 func TestIsEmpty(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-isempty-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -658,7 +658,7 @@ func TestIsEmpty(t *testing.T) {
 func TestChtimes(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-isempty-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -703,7 +703,7 @@ func TestChtimes(t *testing.T) {
 func TestCleanDir(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-cleandir-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -738,7 +738,7 @@ func TestCleanDir(t *testing.T) {
 func TestCleanDirWithExclusion(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-cleandir-with-exclusion-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -781,7 +781,7 @@ func TestCleanDirWithExclusion(t *testing.T) {
 func TestRemoveWithExclusion(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-rm-with-exclusion-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -832,7 +832,7 @@ func TestRemoveWithExclusion(t *testing.T) {
 func TestRemoveWithPrivileges(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-rm-with-privileges-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -876,7 +876,7 @@ func TestRemoveWithPrivileges(t *testing.T) {
 func TestLs(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-ls-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -901,7 +901,7 @@ func TestLs(t *testing.T) {
 func TestLsWithExclusion(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-ls-with-exclusion-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -931,7 +931,7 @@ func TestLsWithExclusion(t *testing.T) {
 func TestWalk(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			// set up temp directory
 			tmpDir, err := fs.TempDirInTempDir("test_walk")
@@ -965,7 +965,7 @@ func TestWalk(t *testing.T) {
 func TestWalkWithExclusions(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			// set up temp directory
 			tmpDir, err := fs.TempDirInTempDir("test_walk_with_exclusion")
@@ -1010,7 +1010,7 @@ func TestWalkWithExclusions(t *testing.T) {
 func TestGarbageCollection(t *testing.T) {
 	for _, fsType := range []FilesystemType{StandardFS} {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-gc-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -1064,7 +1064,7 @@ func TestGarbageCollection(t *testing.T) {
 func TestFindAll(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-findall-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -1119,7 +1119,7 @@ func TestFindAll(t *testing.T) {
 func TestTempFile(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-tmp-file-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -1143,7 +1143,7 @@ func TestTempFile(t *testing.T) {
 func TestCopyToFile(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-copy-to-file-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -1246,7 +1246,7 @@ func TestCopyToFile(t *testing.T) {
 func TestCopyToDirectory(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-copy-to-dir-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -1320,7 +1320,7 @@ func TestCopyToDirectory(t *testing.T) {
 func TestCopyFile(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-copy-file-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -1431,7 +1431,7 @@ func TestCopyFile(t *testing.T) {
 func TestCopy(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-copy-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -1472,7 +1472,7 @@ func TestCopy(t *testing.T) {
 func TestCopyWithExclusion(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-copy-with-exclusion-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -1508,7 +1508,7 @@ func TestCopyWithExclusion(t *testing.T) {
 func TestCopyFolder(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-src-copy-")
 			require.NoError(t, err)
 
@@ -1538,7 +1538,7 @@ func TestCopyFolder(t *testing.T) {
 func TestCopyFolderWithExclusion(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-src-copy-with-exclusion-")
 			require.NoError(t, err)
 			defer func() {
@@ -1569,7 +1569,7 @@ func TestCopyFolderWithExclusion(t *testing.T) {
 func TestCopyTreeWithExistingDestination(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-copy-tree-with-existing-destination-")
 			require.NoError(t, err)
 			defer func() {
@@ -1605,7 +1605,7 @@ func TestCopyTreeWithExistingDestination(t *testing.T) {
 func TestCopyTreeWithMissingDestination(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-copy-tree-with-missing-destination-")
 			require.NoError(t, err)
 			defer func() {
@@ -1637,7 +1637,7 @@ func TestCopyTreeWithMissingDestination(t *testing.T) {
 func TestMove(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-move-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
@@ -1674,7 +1674,7 @@ func TestMove(t *testing.T) {
 }
 
 func TestReadFile(t *testing.T) {
-	fs := NewFs(InMemoryFS)
+	fs := NewTestFs(t, InMemoryFS)
 	tmpFile, err := fs.TempFileInTempDir("test-readfile-")
 	require.NoError(t, err)
 
@@ -1697,7 +1697,7 @@ func TestReadFile(t *testing.T) {
 }
 
 func TestGetFileSize(t *testing.T) {
-	fs := NewFs(InMemoryFS)
+	fs := NewTestFs(t, InMemoryFS)
 
 	tmpFile, err := fs.TouchTempFileInTempDir("test-filesize-*.test")
 	require.NoError(t, err)
@@ -1722,7 +1722,7 @@ func TestGetFileSize(t *testing.T) {
 func TestSubDirectories(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-subdirectories-")
 			require.NoError(t, err)
 
@@ -1760,7 +1760,7 @@ func TestSubDirectories(t *testing.T) {
 func TestSubDirectoriesWithExclusion(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-subdirectories-with-exclusion-")
 			require.NoError(t, err)
 
@@ -1789,7 +1789,7 @@ func TestSubDirectoriesWithExclusion(t *testing.T) {
 func TestListDirTree(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			testDir, err := fs.TempDirInTempDir("test-list-tree")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(testDir) }()
@@ -1843,7 +1843,7 @@ func TestListDirTree(t *testing.T) {
 func TestListDirTreeWithExclusion(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			testDir, err := fs.TempDirInTempDir("test-list-tree-with-exclusion")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(testDir) }()
@@ -2059,7 +2059,7 @@ func TestConvertToOSFile(t *testing.T) {
 func TestLsRecursive(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run("Test LsRecursive includes directories with available files and directories", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2086,7 +2086,7 @@ func TestLsRecursive(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursive without including directories with available files and directories", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2107,7 +2107,7 @@ func TestLsRecursive(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursive with canceled context", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2122,7 +2122,7 @@ func TestLsRecursive(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursive with non-existent directory", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			nonExistentDir := filepath.Join(t.TempDir(), "non_existent_dir")
 
@@ -2136,7 +2136,7 @@ func TestLsRecursive(t *testing.T) {
 func TestLsRecursiveWithExclusionPatterns(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run("Test LsRecursiveWithExtensionPatterns includes directories with exclusion patterns", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2165,7 +2165,7 @@ func TestLsRecursiveWithExclusionPatterns(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveWithExtensionPatterns without including directories with exclusion patterns", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2188,7 +2188,7 @@ func TestLsRecursiveWithExclusionPatterns(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveWithExtensionPatterns with canceled context", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2203,7 +2203,7 @@ func TestLsRecursiveWithExclusionPatterns(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveWithExtensionPatterns with non-existent directory", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			nonExistentDir := filepath.Join(t.TempDir(), "non_existent_dir")
 
@@ -2217,7 +2217,7 @@ func TestLsRecursiveWithExclusionPatterns(t *testing.T) {
 func TestLsRecursiveWithExclusionPatternsAndLimits(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits includes directories with enough max depth and enough max file count", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2244,7 +2244,7 @@ func TestLsRecursiveWithExclusionPatternsAndLimits(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits without including directories with enough max depth and enough max file count", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2265,7 +2265,7 @@ func TestLsRecursiveWithExclusionPatternsAndLimits(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits without including directories with enough max depth and enough max file count and exclusion patterns", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2289,7 +2289,7 @@ func TestLsRecursiveWithExclusionPatternsAndLimits(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits without including directories with NOT enough max depth and enough max file count", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2307,7 +2307,7 @@ func TestLsRecursiveWithExclusionPatternsAndLimits(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits without including directories with enough max depth and NOT enough max file count", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2322,7 +2322,7 @@ func TestLsRecursiveWithExclusionPatternsAndLimits(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits with nil limits", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2335,7 +2335,7 @@ func TestLsRecursiveWithExclusionPatternsAndLimits(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits with canceled context", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2351,7 +2351,7 @@ func TestLsRecursiveWithExclusionPatternsAndLimits(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits with non-existent directory", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			nonExistentDir := filepath.Join(t.TempDir(), "non_existent_dir")
 
@@ -2366,7 +2366,7 @@ func TestLsRecursiveWithExclusionPatternsAndLimits(t *testing.T) {
 func TestLsRecursiveFromOpenedDirectory(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run("Test LsRecursiveFromOpenedDirectory includes directories with available files and directories", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2395,7 +2395,7 @@ func TestLsRecursiveFromOpenedDirectory(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveFromOpenedDirectory without including directories with available files and directories", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2418,7 +2418,7 @@ func TestLsRecursiveFromOpenedDirectory(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveFromOpenedDirectory with canceled context", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			rootDir := t.TempDir()
 			err := generateTestTree(fs, rootDir)
@@ -2437,7 +2437,7 @@ func TestLsRecursiveFromOpenedDirectory(t *testing.T) {
 		})
 
 		t.Run("Test LsRecursiveFromOpenedDirectory with non-existent directory", func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			result, err := fs.LsRecursiveFromOpenedDirectory(context.Background(), nil, true)
 			errortest.AssertError(t, err, commonerrors.ErrUndefined)

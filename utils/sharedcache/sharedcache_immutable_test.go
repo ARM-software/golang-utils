@@ -25,7 +25,7 @@ func TestListCompleteFilesByModTime(t *testing.T) {
 		fsType := filesystem.FileSystemTypes[i]
 		testName := fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType)
 		t.Run(testName, func(t *testing.T) {
-			fs := filesystem.NewFs(fsType)
+			fs := filesystem.NewTestFs(t, fsType)
 
 			// Set up temp remote directory
 			tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
@@ -78,7 +78,7 @@ func TestStoreImmutableCache(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			t.Parallel()
 			ctx := context.Background()
-			fs := filesystem.NewFs(fsType)
+			fs := filesystem.NewTestFs(t, fsType)
 
 			// set up temp remote directory
 			tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
@@ -129,7 +129,7 @@ func TestCleanEntryImmutableCache(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			t.Parallel()
 			ctx := context.Background()
-			fs := filesystem.NewFs(fsType)
+			fs := filesystem.NewTestFs(t, fsType)
 
 			// set up temp remote directory
 			tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))

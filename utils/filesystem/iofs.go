@@ -33,5 +33,5 @@ func ConvertFromIOFilesystem(filesystem fs.FS) (FS, error) {
 	if filesystem == nil {
 		return nil, commonerrors.New(commonerrors.ErrUndefined, "missing filesystem")
 	}
-	return NewVirtualFileSystem(afero.FromIOFS{FS: filesystem}, Custom, IdentityPathConverterFunc), nil
+	return NewVirtualFileSystem(withFilesystemTypeName(afero.FromIOFS{FS: filesystem}, Custom), Custom, IdentityPathConverterFunc), nil
 }

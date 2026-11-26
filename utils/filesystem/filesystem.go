@@ -28,18 +28,49 @@ const (
 	Custom
 	ZipFS
 	TarFS
+	OsBasePathFS
+	PermissionDeniedFS
 )
 
 var (
-	FileSystemTypes = []FilesystemType{StandardFS, InMemoryFS}
+	FileSystemTypes = []FilesystemType{StandardFS, InMemoryFS, OsBasePathFS}
 )
 
 func NewInMemoryFileSystem() FS {
-	return NewVirtualFileSystem(afero.NewMemMapFs(), InMemoryFS, IdentityPathConverterFunc)
+	return NewVirtualFileSystem(withFilesystemTypeName(afero.NewMemMapFs(), InMemoryFS), InMemoryFS, IdentityPathConverterFunc)
 }
 
 func NewStandardFileSystem() FS {
 	return NewVirtualFileSystem(NewExtendedOsFs(), StandardFS, IdentityPathConverterFunc)
+}
+
+// NewOsBasePathFs returns a closeable filesystem rooted at basePath.
+//
+// The returned filesystem uses os.Root so all operations remain confined to
+// basePath, including traversal through symbolic links. Paths are interpreted
+// relative to basePath, while absolute paths already under basePath are mapped
+// back to filesystem-relative paths.
+//
+// Use this filesystem when code should behave like a writable base-path
+// filesystem on the host OS, but path resolution must stay safely confined to a
+// specific directory tree. It is suited to operations on untrusted or variable
+// paths where afero's lexical base-path restriction is not sufficient because
+// symbolic links also need to be contained.
+//
+// The filesystem must be closed after use to release the underlying root handle.
+func NewOsBasePathFs(basePath string) (ICloseableFS, error) {
+	wrapped, err := newOsBasePathFSAdapter(basePath)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewCloseableVirtualFileSystem(
+		wrapped,
+		OsBasePathFS,
+		wrapped,
+		fmt.Sprintf("os root `%v`", basePath),
+		basePathPathConverter(basePath),
+	), nil
 }
 
 func NewEmbedFileSystem(fs *embed.FS) (FS, error) {
@@ -49,7 +80,7 @@ func NewEmbedFileSystem(fs *embed.FS) (FS, error) {
 		return nil, err
 	}
 	// https://pkg.go.dev/embed#hdr-Directives The path separator is a forward slash, even on Windows systems.
-	return NewVirtualFileSystemWithPathSeparator(wrapped, Embed, IdentityPathConverterFunc, '/'), nil
+	return NewVirtualFileSystemWithPathSeparator(withFilesystemTypeName(wrapped, Embed), Embed, IdentityPathConverterFunc, '/'), nil
 }
 
 // NewZipFileSystem returns a filesystem over the contents of a .zip file.
@@ -61,7 +92,7 @@ func NewZipFileSystem(fs FS, source string, limits ILimits) (zipFs ICloseableFS,
 	if err != nil {
 		return
 	}
-	zipFs = NewCloseableVirtualFileSystem(wrapped, ZipFS, zipFile, fmt.Sprintf(".zip file `%v`", source), IdentityPathConverterFunc)
+	zipFs = NewCloseableVirtualFileSystem(withFilesystemTypeName(wrapped, ZipFS), ZipFS, zipFile, fmt.Sprintf(".zip file `%v`", source), IdentityPathConverterFunc)
 	return
 }
 
@@ -79,7 +110,7 @@ func NewTarFileSystem(fs FS, source string, limits ILimits) (squashFS ICloseable
 	if err != nil {
 		return
 	}
-	squashFS = NewCloseableVirtualFileSystem(wrapped, TarFS, tarFile, fmt.Sprintf(".tar file `%v`", source), IdentityPathConverterFunc)
+	squashFS = NewCloseableVirtualFileSystem(withFilesystemTypeName(wrapped, TarFS), TarFS, tarFile, fmt.Sprintf(".tar file `%v`", source), IdentityPathConverterFunc)
 	return
 }
 

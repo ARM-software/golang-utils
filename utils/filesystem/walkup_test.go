@@ -24,7 +24,7 @@ import (
 func TestWalkUp(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "walkup")
 			start := FilePathJoin(fs, root, "a", "b", "c")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -43,7 +43,10 @@ func TestWalkUp(t *testing.T) {
 func TestWalkUp_RelativeStart(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
+			if fsType == OsBasePathFS {
+				t.Chdir(t.TempDir())
+			}
 			currentDir, err := fs.CurrentDirectory()
 			require.NoError(t, err)
 			rootName := fmt.Sprintf(".walkup-relative-%s-%v", sanitiseTestName(t.Name()), fsType)
@@ -66,7 +69,7 @@ func TestWalkUp_RelativeStart(t *testing.T) {
 func TestWalkUp_StopEarly(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "walkup-stop")
 			start := FilePathJoin(fs, root, "a", "b", "c")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -86,7 +89,7 @@ func TestWalkUp_StopEarly(t *testing.T) {
 func TestWalkUpWithExclusionPatterns(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "walkup-exclusion")
 			start := FilePathJoin(fs, root, "a", "skip-me", "c")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -107,7 +110,7 @@ func TestWalkUpWithExclusionPatterns(t *testing.T) {
 func TestWalkUpWithExclusionPatterns_ExcludedStartStillWalksAncestors(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "walkup-exclusion-start")
 			start := FilePathJoin(fs, root, "excluded")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -127,7 +130,7 @@ func TestWalkUpWithExclusionPatterns_ExcludedStartStillWalksAncestors(t *testing
 func TestWalkUp_CallbackError(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "walkup-error")
 			start := FilePathJoin(fs, root, "a", "b")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -147,7 +150,7 @@ func TestWalkUp_CallbackError(t *testing.T) {
 func TestWalkUp_InvalidStart(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "walkup-invalid")
 
 			missing := FilePathJoin(fs, root, "missing")
@@ -169,7 +172,7 @@ func TestWalkUp_InvalidStart(t *testing.T) {
 func TestWalkUp_ContextErrors(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("cancelled_before_start_for_fs_%v", fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "walkup-cancel")
 			start := FilePathJoin(fs, root, "a", "b")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -186,7 +189,7 @@ func TestWalkUp_ContextErrors(t *testing.T) {
 		})
 
 		t.Run(fmt.Sprintf("cancelled_during_traversal_for_fs_%v", fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "walkup-cancel-during")
 			start := FilePathJoin(fs, root, "a", "b", "c")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -204,7 +207,7 @@ func TestWalkUp_ContextErrors(t *testing.T) {
 		})
 
 		t.Run(fmt.Sprintf("deadline_exceeded_for_fs_%v", fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "walkup-deadline")
 			start := FilePathJoin(fs, root, "a")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -223,7 +226,7 @@ func TestWalkUp_SymlinkTraversalIsLexical(t *testing.T) {
 	printWarningOnWindows(t)
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "walkup-symlink")
 			realStart := FilePathJoin(fs, root, "real", "parent", "start")
 			require.NoError(t, fs.MkDirAll(realStart, 0o755))
@@ -261,7 +264,7 @@ func TestWalkUp_WindowsUNCTraversalHelper(t *testing.T) {
 func TestFindUp(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "findup")
 			start := FilePathJoin(fs, root, "a", "b", "c")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -301,7 +304,7 @@ func TestFindUp(t *testing.T) {
 func TestFindUp_NotFound(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "findup-missing")
 			start := FilePathJoin(fs, root, "a", "b")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -315,7 +318,7 @@ func TestFindUp_NotFound(t *testing.T) {
 func TestFindUp_InvalidPattern(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "findup-invalid")
 			start := FilePathJoin(fs, root, "a")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -335,7 +338,7 @@ func TestFindUp_InvalidPattern(t *testing.T) {
 func TestFindUp_InvalidStart(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "findup-start")
 
 			_, err := fs.FindUp(context.Background(), FilePathJoin(fs, root, "missing"), "target")
@@ -347,7 +350,7 @@ func TestFindUp_InvalidStart(t *testing.T) {
 func TestFindUp_ContextErrors(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("cancelled_for_fs_%v", fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "findup-cancel")
 			start := FilePathJoin(fs, root, "a")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -359,7 +362,7 @@ func TestFindUp_ContextErrors(t *testing.T) {
 		})
 
 		t.Run(fmt.Sprintf("deadline_for_fs_%v", fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "findup-deadline")
 			start := FilePathJoin(fs, root, "a")
 			require.NoError(t, fs.MkDirAll(start, 0o755))
@@ -373,14 +376,16 @@ func TestFindUp_ContextErrors(t *testing.T) {
 }
 
 func TestFindUp_PermissionErrors(t *testing.T) {
-	fs := NewTestPermissionDeniedFS(t)
+	fs := NewTestFs(t, PermissionDeniedFS)
 	root := createWalkUpTestRoot(t, fs, "findup-perms")
 	start := FilePathJoin(fs, root, "a", "b")
 	require.NoError(t, fs.MkDirAll(start, 0o755))
 	blocked := FilePathJoin(fs, root, "blocked")
 	require.NoError(t, fs.MkDirAll(blocked, 0o755))
 	writeWalkUpTestFile(t, fs, FilePathJoin(fs, blocked, "target.txt"))
-	fs.DenyPath(blocked)
+	permissionDeniedFS, ok := fs.(*TestPermissionDeniedFS)
+	require.True(t, ok)
+	permissionDeniedFS.DenyPath(blocked)
 
 	_, err := fs.FindUp(context.Background(), start, FilePathJoin(fs, "blocked", "*"))
 	assert.Error(t, err)
@@ -391,7 +396,7 @@ func TestFindUp_SymlinkTraversalIsLexical(t *testing.T) {
 	printWarningOnWindows(t)
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 			root := createWalkUpTestRoot(t, fs, "findup-symlink")
 			realStart := FilePathJoin(fs, root, "real", "parent", "start")
 			require.NoError(t, fs.MkDirAll(realStart, 0o755))
@@ -408,7 +413,7 @@ func TestFindUp_SymlinkTraversalIsLexical(t *testing.T) {
 }
 
 func TestValidateFindUpPattern(t *testing.T) {
-	fs := NewStandardFileSystem()
+	fs := NewTestFs(t, StandardFS)
 	errortest.AssertError(t, validateFindUpPattern(fs, ""), commonerrors.ErrUndefined)
 	errortest.AssertError(t, validateFindUpPattern(fs, FilePathJoin(fs, "..", "file")), commonerrors.ErrInvalid)
 	require.NoError(t, validateFindUpPattern(fs, FilePathJoin(fs, "config", "**", "*.json")))

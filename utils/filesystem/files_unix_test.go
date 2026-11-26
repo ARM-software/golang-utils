@@ -5,6 +5,11 @@
 
 //go:build !windows
 
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package filesystem
 
 import (
@@ -22,7 +27,7 @@ import (
 func TestIsUnixFile(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprint(fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
+			fs := NewTestFs(t, fsType)
 
 			tmpDir := t.TempDir()
 

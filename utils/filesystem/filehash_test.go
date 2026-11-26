@@ -20,7 +20,7 @@ import (
 func TestFileHash(t *testing.T) {
 	testInDir := "testdata"
 	testFilePath := filepath.Join(testInDir, "1KB.bin")
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 	tests := []struct {
 		Type string
 		Hash string
@@ -56,7 +56,7 @@ func TestFileHash(t *testing.T) {
 
 func TestFileHash2(t *testing.T) {
 	testInDir := "testdata"
-	fs := NewFs(StandardFS)
+	fs := NewTestFs(t, StandardFS)
 	hasher, err := NewFileHash(hashing.HashSha256)
 	require.Nil(t, err)
 	tests := []struct {

@@ -1018,13 +1018,13 @@ func (fs *VFS) Touch(path string) (err error) {
 	if err != nil {
 		return
 	}
+	if reflection.IsEmpty(path) {
+		err = commonerrors.New(commonerrors.ErrUndefined, "empty path")
+		return
+	}
 	if fs.Exists(path) {
 		now := time.Now().UTC()
 		err = fs.Chtimes(path, now, now)
-		return
-	}
-	if strings.TrimSpace(path) == "" {
-		err = commonerrors.New(commonerrors.ErrUndefined, "empty path")
 		return
 	}
 	if EndsWithPathSeparator(fs, path) {
@@ -1169,6 +1169,9 @@ func (fs *VFS) Readlink(name string) (value string, err error) {
 	if correctobj, ok := fs.vfs.(ILinkReader); ok {
 		value, err = correctobj.ReadlinkIfPossible(name)
 		err = ConvertFileSystemError(err)
+		if err == nil {
+			value = fs.ConvertFilePath(value)
+		}
 		return
 	}
 	err = commonerrors.Newf(commonerrors.ErrNotImplemented, "cannot read link `%v`", name)

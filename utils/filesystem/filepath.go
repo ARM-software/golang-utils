@@ -235,6 +235,17 @@ func FilePathVolumeName(fs FS, fp string) string {
 	return filepath.VolumeName(FilePathToPlatformPathSeparator(fs, fp))
 }
 
+// PathContains reports whether targetPath is contained within basePath using
+// lexical path analysis only.
+func PathContains(basePath, targetPath string) bool {
+	relPath, err := filepath.Rel(basePath, targetPath)
+	if err != nil {
+		return false
+	}
+
+	return relPath == "." || filepath.IsLocal(relPath)
+}
+
 func isSlashSeparator(fs FS) bool {
 	if fs == nil {
 		return false

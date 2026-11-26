@@ -37,7 +37,7 @@ func TestHashWithHashFileExists(t *testing.T) {
 		fsType := filesystem.FileSystemTypes[i]
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			t.Parallel()
-			fs := filesystem.NewFs(fsType)
+			fs := filesystem.NewTestFs(t, fsType)
 
 			// set up temp remote directory
 			tmpRemoteDir, err := fs.TempDirInTempDir("test-hashFile")
@@ -65,7 +65,7 @@ func TestHashWithHashFileNotExist(t *testing.T) {
 		fsType := filesystem.FileSystemTypes[i]
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			t.Parallel()
-			fs := filesystem.NewFs(fsType)
+			fs := filesystem.NewTestFs(t, fsType)
 
 			// set up temp remote directory
 			tmpRemoteDir, err := fs.TempDirInTempDir("test-hashFile")
@@ -96,7 +96,7 @@ func TestHashWithHashFileForceUpdate(t *testing.T) {
 		fsType := filesystem.FileSystemTypes[i]
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			t.Parallel()
-			fs := filesystem.NewFs(fsType)
+			fs := filesystem.NewTestFs(t, fsType)
 
 			// set up temp remote directory
 			tmpRemoteDir, err := fs.TempDirInTempDir("test-hashFile")
@@ -144,7 +144,7 @@ func TestTransferWithExistingDestination(t *testing.T) {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			t.Parallel()
 			ctx := context.Background()
-			fs := filesystem.NewFs(fsType)
+			fs := filesystem.NewTestFs(t, fsType)
 
 			folder1, err := fs.TempDirInTempDir("test-tranfer1")
 			require.NoError(t, err)
@@ -163,7 +163,7 @@ func TestTransferWithDestinationFiles(t *testing.T) {
 		fsType := filesystem.FileSystemTypes[i]
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			ctx := context.Background()
-			fs := filesystem.NewFs(fsType)
+			fs := filesystem.NewTestFs(t, fsType)
 
 			folder1, err := fs.TempDirInTempDir("test-tranfer1")
 			require.NoError(t, err)
@@ -184,7 +184,7 @@ func TestTransferWithNonExistentDestinationFolders(t *testing.T) {
 		fsType := filesystem.FileSystemTypes[i]
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			ctx := context.Background()
-			fs := filesystem.NewFs(fsType)
+			fs := filesystem.NewTestFs(t, fsType)
 
 			folder1, err := fs.TempDirInTempDir("test-tranfer1")
 			require.NoError(t, err)

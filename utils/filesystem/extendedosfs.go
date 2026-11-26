@@ -21,6 +21,10 @@ type ExtendedOsFs struct {
 	afero.OsFs
 }
 
+func (c *ExtendedOsFs) Name() string {
+	return StandardFS.String()
+}
+
 func (c *ExtendedOsFs) Remove(name string) (err error) {
 	// The following is to ensure sockets are correctly removed
 	// https://stackoverflow.com/questions/16681944/how-to-reliably-unlink-a-unix-domain-socket-in-go-programming-language
