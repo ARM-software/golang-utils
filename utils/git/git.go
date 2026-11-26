@@ -75,6 +75,42 @@ func (c *CloneObject) getBlobObject(hash plumbing.Hash) (blob *object.Blob, err 
 	return
 }
 
+func (c *CloneObject) getCommitObject(hash plumbing.Hash) (commit *object.Commit, err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	commit, err = c.repo.CommitObject(hash)
+	return
+}
+
+func (c *CloneObject) getObject(kind plumbing.ObjectType, hash plumbing.Hash) (value object.Object, err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	value, err = c.repo.Object(kind, hash)
+	return
+}
+
+func (c *CloneObject) getReference(name plumbing.ReferenceName) (reference *plumbing.Reference, err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	reference, err = c.repo.Reference(name, true)
+	return
+}
+
+func (c *CloneObject) checkReferences() (err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	refs, err := c.repo.References()
+	if err == nil {
+		refs.Close()
+	}
+
+	return
+}
+
 func (c *CloneObject) handleEntry(entry Entry) (err error) {
 	mode := entry.TreeEntry.Mode
 	switch mode & 0o170000 {
