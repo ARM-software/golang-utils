@@ -14,7 +14,7 @@ require (
 
 require (
 	github.com/ARM-software/golang-utils/utils/charset v1.173.0 // indirect
-	github.com/ARM-software/golang-utils/utils/collection v1.173.0 // indirect
+	github.com/ARM-software/golang-utils/utils/collection v1.173.0
 	github.com/ARM-software/golang-utils/utils/encoding v1.173.0 // indirect
 	github.com/ARM-software/golang-utils/utils/field v1.173.0
 	github.com/ARM-software/golang-utils/utils/keyring v1.173.0 // indirect

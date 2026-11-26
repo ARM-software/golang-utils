@@ -7,12 +7,13 @@ package git
 import (
 	"context"
 
+	git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
+
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
-	git "github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 )
 
 // LocalRevision reads HEAD without changing the worktree or index.
@@ -78,29 +79,22 @@ func LocalRevision(ctx context.Context, directory string) (revision *string, err
 func hasLocalGitMetadata(ctx context.Context, directory string) (found bool, err error) {
 	fs := filesystem.GetGlobalFileSystem()
 
-	// Absence is optional, unreadable metadata must not be treated as absence.
-	for ancestor := directory; ; ancestor = filesystem.FilePathDir(fs, ancestor) {
-		if err = parallelisation.DetermineContextError(ctx); err != nil {
-			return
-		}
-
-		// This is not just checking for existence, it checks wehther thhe .git is also valid to avoid mistaking
-		// an unreadable git metadata for a non-git directory
-		_, subErr := fs.Lstat(filesystem.FilePathJoin(fs, ancestor, ".git"))
+	err = fs.WalkUp(ctx, directory, func(ancestor string) (stop bool, subErr error) {
+		// Use Lstat to distinguish absent metadata from inspection errors.
+		_, subErr = fs.Lstat(filesystem.FilePathJoin(fs, ancestor, ".git"))
 		if subErr == nil {
 			found = true
+			stop = true
 			return
 		}
 
-		if !commonerrors.Any(subErr, commonerrors.ErrNotFound) {
-			err = subErr
-			return
+		if commonerrors.Any(subErr, commonerrors.ErrNotFound) {
+			subErr = nil
 		}
 
-		if filesystem.FilePathDir(fs, ancestor) == ancestor {
-			return
-		}
-	}
+		return
+	})
+	return
 }
 
 func validateUnbornLocalHEAD(ctx context.Context, repo *git.Repository) (err error) {

@@ -12,14 +12,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
-	"github.com/ARM-software/golang-utils/utils/filesystem"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
 func TestResolveReferenceHEAD(t *testing.T) {
@@ -245,6 +246,23 @@ func TestResolveReferenceCommitHashes(t *testing.T) {
 		assert.Equal(t, fixture.headCommit.String(), revision)
 	})
 
+	assert.Equal(t, before, revisionFiles(t, fixture.directory))
+}
+
+func TestResolveReferenceStopsAtFirstMatch(t *testing.T) {
+	t.Parallel()
+
+	fixture := newRevisionFixture(t)
+	_, err := fixture.repo.CreateTag("shared", fixture.initialCommit, nil)
+	require.NoError(t, err)
+	branchFile := filepath.Join(fixture.directory, ".git", "refs", "heads", "shared")
+	require.NoError(t, filesystem.WriteFile(branchFile, []byte("invalid\n"), 0o600))
+	clone := &CloneObject{repo: fixture.repo}
+	before := revisionFiles(t, fixture.directory)
+
+	revision, err := clone.ResolveReference(context.Background(), "shared")
+	require.NoError(t, err, "a later corrupt candidate must not override the matching tag")
+	assert.Equal(t, fixture.initialCommit.String(), revision)
 	assert.Equal(t, before, revisionFiles(t, fixture.directory))
 }
 

@@ -10,14 +10,15 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
-	"github.com/ARM-software/golang-utils/utils/field"
-	"github.com/ARM-software/golang-utils/utils/filesystem"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/field"
+	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
 func TestLocalRevision(t *testing.T) {

@@ -9,11 +9,13 @@ import (
 	"iter"
 	"strings"
 
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
+
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/reflection"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 const (
@@ -36,17 +38,17 @@ func (c *CloneObject) ResolveReference(ctx context.Context, reference string) (r
 		return
 	}
 
-	for _, candidate := range referenceCandidates(reference) {
-		ref, subErr := c.lookupReference(ctx, candidate)
-		if subErr != nil {
-			err = subErr
-			return
-		}
+	var ref *plumbing.Reference
+	_, found, err := collection.FirstByWithError(referenceCandidates(reference), func(candidate plumbing.ReferenceName) (matched bool, subErr error) {
+		ref, subErr = c.lookupReference(ctx, candidate)
+		matched = ref != nil
+		return
+	})
+	if err != nil {
+		return
+	}
 
-		if ref == nil {
-			continue
-		}
-
+	if found {
 		hash, subErr := c.peelReferenceCommit(ctx, ref.Hash())
 		if subErr != nil {
 			err = subErr
