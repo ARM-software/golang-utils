@@ -44,11 +44,25 @@ type MatchingFunction[E any] = FilterFunc[E]
 // references.
 type PredicateRef[E any] = FilterRefFunc[E]
 
+// PredicateWithError defines a predicate that may return an error while
+// deciding whether a value matches.
+type PredicateWithError[E any] func(E) (bool, error)
+
+// PredicateRefWithError defines a reference-based predicate that may return an
+// error while deciding whether a value matches.
+type PredicateRefWithError[E any] func(*E) (bool, error)
+
 // toPredicateFunc adapts a PredicateRef (reference-based predicate) to
 // a Predicate (value-based) by converting the value into an optional
 // reference using field.ToOptional.
 func toPredicateFunc[E any](f PredicateRef[E]) Predicate[E] {
 	return func(e E) bool {
+		return f(field.ToOptional(e))
+	}
+}
+
+func toPredicateWithErrorFunc[E any](f PredicateRefWithError[E]) PredicateWithError[E] {
+	return func(e E) (bool, error) {
 		return f(field.ToOptional(e))
 	}
 }

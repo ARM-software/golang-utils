@@ -6,6 +6,8 @@ package filesystem
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/platform"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 // GenerateTestFileTree generates a file tree for testing purposes and returns a list of all the files and filesystem items created.
@@ -98,4 +101,51 @@ func NewTestFilesystem(t *testing.T, pathSeparator rune) FS {
 func NewTestOSFilesystem(t *testing.T) FS {
 	t.Helper()
 	return NewVirtualFileSystemWithPathSeparator(afero.NewOsFs(), StandardFS, IdentityPathConverterFunc, platform.PathSeparator)
+}
+
+type permissionDeniedOpenFs struct {
+	afero.Fs
+	blocked string
+}
+
+func (fs *permissionDeniedOpenFs) Open(name string) (afero.File, error) {
+	if fs.isBlocked(name) {
+		return nil, &os.PathError{Op: "open", Path: name, Err: os.ErrPermission}
+	}
+	return fs.Fs.Open(name)
+}
+
+func (fs *permissionDeniedOpenFs) Stat(name string) (os.FileInfo, error) {
+	if fs.isBlocked(name) {
+		return nil, &os.PathError{Op: "stat", Path: name, Err: os.ErrPermission}
+	}
+	return fs.Fs.Stat(name)
+}
+
+func (fs *permissionDeniedOpenFs) isBlocked(name string) bool {
+	if reflection.IsEmpty(fs.blocked) {
+		return false
+	}
+	return name == fs.blocked || strings.HasPrefix(name, fs.blocked+"/") || strings.HasPrefix(name, fs.blocked+`\`)
+}
+
+type TestPermissionDeniedFS struct {
+	FS
+	wrapped *permissionDeniedOpenFs
+}
+
+// NewTestPermissionDeniedFS returns an in-memory test filesystem that can be
+// configured to fail with a permission error for a chosen path and its
+// descendants.
+func NewTestPermissionDeniedFS(t *testing.T) *TestPermissionDeniedFS {
+	t.Helper()
+	wrapped := &permissionDeniedOpenFs{Fs: afero.NewMemMapFs()}
+	return &TestPermissionDeniedFS{
+		FS:      NewVirtualFileSystemWithPathSeparator(wrapped, InMemoryFS, IdentityPathConverterFunc, platform.PathSeparator),
+		wrapped: wrapped,
+	}
+}
+
+func (fs *TestPermissionDeniedFS) DenyPath(path string) {
+	fs.wrapped.blocked = path
 }
